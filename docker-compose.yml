@@ -9,7 +9,8 @@ services:
     image: ai-office-backend:latest
     restart: unless-stopped
     ports:
-      - "8001:8001"
+      # Loopback only: reach it through Nginx or a Cloudflare Tunnel on this host, never directly.
+      - "127.0.0.1:8001:8001"
     env_file:
       - ./backend/.env
     depends_on:
@@ -32,3 +33,13 @@ services:
 
 volumes:
   mongo_data:
+
+# Fixed subnet so the gateway (the address the backend sees for requests from a host-side
+# Nginx/cloudflared via the published port) is predictable: set FORWARDED_ALLOW_IPS=172.30.0.1
+# in backend/.env when running this compose file. See docs/deploy/client-ip-and-proxies.md.
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+          gateway: 172.30.0.1
