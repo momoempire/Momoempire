@@ -59,19 +59,36 @@ def clear_auth_cookies(response):
     response.delete_cookie("refresh_token", path="/")
 
 
+# While a user must change their password, only these API paths are allowed.
+MUST_CHANGE_ALLOWED_PATHS = frozenset({
+    "/api/auth/me",
+    "/api/auth/logout",
+    "/api/auth/set-password",
+    "/api/auth/refresh",
+})
+
+
+def _enforce_must_change(request: Request, user: dict) -> dict:
+    if user and user.get("must_change_password"):
+        path = request.url.path.rstrip("/") or "/"
+        if path not in MUST_CHANGE_ALLOWED_PATHS:
+            raise HTTPException(403, "Password change required before continuing")
+    return user
+
+
 async def get_current_user(request: Request) -> dict:
+    return _enforce_must_change(request, await _load_current_user(request))
+
+
+async def _load_current_user(request: Request) -> dict:
     db = get_db()
     # 1) Try Emergent Google session cookie first
     session_token = request.cookies.get("session_token")
     if session_token:
         sess = await db.user_sessions.find_one({"session_token": session_token})
         if sess:
-            exp = sess.get("expires_at")
-            if isinstance(exp, str):
-                try: exp = datetime.fromisoformat(exp)
-                except Exception: exp = None
-            if exp and exp.tzinfo is None:
-                exp = exp.replace(tzinfo=timezone.utc)
+            from timeutil import as_utc  # EMP-W-CF-026: one normalizer for every stored expiry
+            exp = as_utc(sess.get("expires_at"))
             if exp and exp >= datetime.now(timezone.utc):
                 user = await db.users.find_one({"id": sess["user_id"]}, {"_id": 0, "password_hash": 0})
                 if user:

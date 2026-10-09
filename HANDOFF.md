@@ -115,10 +115,16 @@ DB_NAME
 JWT_SECRET
 CORS_ORIGINS
 FRONTEND_URL
-ADMIN_EMAIL
-ADMIN_PASSWORD
 WEBHOOK_CRON_SECRET
 ```
+### Platform admin (optional, no defaults)
+```
+ADMIN_EMAIL      # no default; unset = no platform admin is seeded (warning logged), the server still boots
+ADMIN_PASSWORD   # first seed only; 12+ chars with upper, lower, digit, symbol; changed at first login.
+                 # Unset or weak = admin seeded with an unusable password -> use forgot-password.
+```
+`ADMIN_EMAIL` must be an address no existing user has: if it matches a non-admin account, no admin
+is seeded and that account is NOT changed (warning logged); the other seeds still run.
 ### AI (one of)
 ```
 EMERGENT_LLM_KEY   # if staying on Emergent
@@ -299,7 +305,9 @@ curl https://api.your-domain.com/api/health/deployment | jq
 
 ## Required env variables (names only — see `backend/.env.example` for the full list)
 
-**Required for boot:** `MONGO_URL`, `DB_NAME`, `JWT_SECRET`, `CORS_ORIGINS`, `FRONTEND_URL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`.
+**Required for boot:** `MONGO_URL`, `DB_NAME`, `JWT_SECRET`, `CORS_ORIGINS`, `FRONTEND_URL`.
+**Platform admin (optional, no defaults):** `ADMIN_EMAIL` (unset = no admin seeded; must not match an
+existing user) and `ADMIN_PASSWORD` (first seed only, strong; unset = unusable password, use forgot-password).
 
 **AI (one of):** `EMERGENT_LLM_KEY` _or_ `OPENAI_API_KEY`.
 **Email (one of):** `EMERGENT_EMAIL_KEY` _or_ `RESEND_API_KEY`.
