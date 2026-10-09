@@ -2,6 +2,14 @@
 const path = require("path");
 require("dotenv").config();
 
+// EMP-WL-073: the waitlist-only build never ships source maps (they exposed the original source
+// and comments). Set before react-scripts reads GENERATE_SOURCEMAP; forced, so a stray
+// GENERATE_SOURCEMAP=true in the Pages settings can't turn them back on. The full build is
+// unchanged (TODO(Brann): decide whether it should drop them too).
+if (process.env.REACT_APP_WAITLIST_ONLY === "true") {
+  process.env.GENERATE_SOURCEMAP = "false";
+}
+
 // Check if we're in development/preview mode (not production build)
 // Craco sets NODE_ENV=development for start, NODE_ENV=production for build
 const isDevServer = process.env.NODE_ENV !== "production";
@@ -94,6 +102,12 @@ if (isDevServer && process.env.DISABLE_EMERGENT_OVERLAY !== "true") {
   }
 }
 
+// EMP-WL-014: site metadata (title, description, Open Graph/Twitter tags; favicon links are in
+// public/index.html), robots.txt and sitemap.xml, all from REACT_APP_SITE_* env vars.
+// Throws (fails the build) if REACT_APP_SITE_URL / REACT_APP_OG_IMAGE_URL are not absolute URLs.
+const { siteConfig, SiteMetaPlugin } = require("./site-meta");
+const siteMeta = siteConfig(process.env);
+
 let webpackConfig = {
   eslint: {
     configure: {
@@ -107,6 +121,13 @@ let webpackConfig = {
   webpack: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
+      // EMP-WL-002 / WL-033: the root component is picked at build time. A static import of this
+      // alias (src/index.js) keeps webpack's module concatenation, so the normal build is not
+      // bigger than before, and the waitlist build never sees App.js (dashboard, admin, auth).
+      '@root-app$': path.resolve(
+        __dirname,
+        process.env.REACT_APP_WAITLIST_ONLY === 'true' ? 'src/waitlist/WaitlistApp.jsx' : 'src/App.js',
+      ),
     },
     configure: (webpackConfig) => {
 
@@ -128,6 +149,8 @@ let webpackConfig = {
         webpackConfig.plugins.push(healthPluginInstance);
       }
 
+      webpackConfig.plugins.push(new SiteMetaPlugin(siteMeta));
+
       // Overlay's HTML injection + compile-error capture; self-gates on mode !== development.
       if (emergentOverlay) {
         webpackConfig.plugins.push(emergentOverlay.webpackPlugin);
@@ -135,6 +158,17 @@ let webpackConfig = {
       return webpackConfig;
     },
   },
+};
+
+// Jest: same "@/" alias as webpack, so tests can import real components (EMP-WL-026).
+webpackConfig.jest = {
+  configure: (jestConfig) => ({
+    ...jestConfig,
+    moduleNameMapper: {
+      ...(jestConfig.moduleNameMapper || {}),
+      "^@/(.*)$": "<rootDir>/src/$1",
+    },
+  }),
 };
 
 webpackConfig.devServer = (devServerConfig) => {

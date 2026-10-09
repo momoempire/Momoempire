@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import CanonicalLink from "@/components/CanonicalLink";
 import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "@/components/ui/sonner";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -142,6 +143,7 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <CanonicalLink />
         <Router />
       </BrowserRouter>
       <Toaster position="top-right" richColors />
