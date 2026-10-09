@@ -36,7 +36,9 @@ from security import require_tenant_user, require_tenant_owner_or_admin
 from services.email import send_email, followup_html
 
 log = logging.getLogger("c2p")
-stripe.api_key = os.environ.get("STRIPE_SECRET_KEY") or ""
+from services.stripe_config import configure_stripe_api_key, construct_stripe_event
+
+configure_stripe_api_key()
 
 router = APIRouter(prefix="/c2p", tags=["call-to-payment"])
 public_router = APIRouter(prefix="/public/c2p", tags=["call-to-payment-public"])
@@ -494,20 +496,12 @@ async def connect_webhook(request: Request):
     """Receives events from Stripe for connected accounts.
     Idempotent: duplicate `event.id` deliveries are detected and short-circuited.
     """
-    if not stripe.api_key:
-        raise HTTPException(503, "Stripe not configured")
     payload = await request.body()
     sig = request.headers.get("stripe-signature", "")
-    secret = os.environ.get("STRIPE_CONNECT_WEBHOOK_SECRET") or os.environ.get("STRIPE_WEBHOOK_SECRET", "")
-    try:
-        event = stripe.Webhook.construct_event(payload, sig, secret) if secret else None
-        if event is None:  # dev / local — accept but still require shape
-            import json as _json
-            event = _json.loads(payload)
-    except stripe.error.SignatureVerificationError:
-        raise HTTPException(400, "Invalid signature")
-    except Exception:
-        raise HTTPException(400, "Bad payload")
+    # Always require a configured signing secret + valid signature (no unsigned dev path).
+    event = construct_stripe_event(
+        payload, sig, "STRIPE_CONNECT_WEBHOOK_SECRET", "STRIPE_WEBHOOK_SECRET"
+    )
 
     db = get_db()
     ev_id = event.get("id") or f"ev_{_uuid()}"
@@ -524,17 +518,24 @@ async def connect_webhook(request: Request):
     obj = (event.get("data") or {}).get("object") or {}
     try:
         if ev_type == "payment_intent.succeeded":
-            await _apply_payment_success(db, obj)
+            await _apply_payment_success(db, obj, event.get("account"))
         elif ev_type == "payment_intent.payment_failed":
-            await _apply_payment_failure(db, obj)
+            await _apply_payment_failure(db, obj, event.get("account"))
         elif ev_type == "charge.refunded":
             await _apply_refund(db, obj)
         elif ev_type == "charge.dispute.created":
             await _apply_dispute(db, obj)
         elif ev_type == "account.updated":
-            await _apply_account_update(db, obj)
+            await _apply_account_update(db, obj, event.get("account"))
         else:
             log.info("c2p webhook ignored type=%s", ev_type)
+    except ConnectEventMismatch as e:
+        # Signed by Stripe but not about this tenant's own account/invoice: never applied.
+        # Acked (200) so Stripe stops retrying; kept on the event row for review.
+        # TODO(Brann): should the business owner / platform admin be alerted about these?
+        log.warning("c2p webhook rejected id=%s type=%s reason=%s", ev_id, ev_type, e.reason)
+        await db.webhook_events.update_one({"_id": ev_id}, {"$set": {"rejected": e.reason}})
+        return {"ok": True, "rejected": True}
     except Exception as e:
         log.exception("c2p webhook handling failed: %s", e)
         # Mark the event so it can be retried manually; still ack 200 to avoid loops.
@@ -542,7 +543,47 @@ async def connect_webhook(request: Request):
     return {"ok": True}
 
 
-async def _apply_payment_success(db, pi: dict):
+# EMP-W-CF-019: Connect events are signed by Stripe, but ANY connected account (another tenant)
+# can create a PaymentIntent whose metadata names someone else's invoice. So before touching an
+# invoice we check the event came from that invoice's own tenant account, and that the money
+# matches the PaymentIntent we created for it (create_invoice_payment records it).
+C2P_CURRENCY = "usd"  # create_invoice_payment always charges in USD
+
+
+class ConnectEventMismatch(Exception):
+    def __init__(self, reason: str):
+        super().__init__(reason)
+        self.reason = reason
+
+
+async def _require_tenant_account(db, tenant_id: str | None, account: str | None) -> None:
+    tenant = await db.tenants.find_one({"id": tenant_id}, {"_id": 0, "stripe_connect_id": 1}) if tenant_id else None
+    expected = (tenant or {}).get("stripe_connect_id")
+    if not account or not expected or account != expected:
+        raise ConnectEventMismatch("account does not match the invoice's tenant")
+
+
+async def _require_matching_payment(db, inv: dict, pi: dict, account: str, amount: int) -> None:
+    meta_tenant = (pi.get("metadata") or {}).get("tenant_id")
+    if meta_tenant and meta_tenant != inv["tenant_id"]:
+        raise ConnectEventMismatch("metadata tenant does not match the invoice")
+    if (pi.get("currency") or "").lower() != (inv.get("currency") or C2P_CURRENCY):
+        raise ConnectEventMismatch("currency mismatch")
+    rec = await db.invoice_payments.find_one(
+        {"stripe_payment_intent_id": pi.get("id")}, {"_id": 0, "invoice_id": 1, "amount_cents": 1,
+                                                     "connected_account": 1, "tenant_id": 1})
+    # TODO(Brann): a PaymentIntent we did not create (e.g. made by hand in the Stripe dashboard
+    # with invoice metadata) is rejected here; previously it would have been applied.
+    if not rec:
+        raise ConnectEventMismatch("unknown payment intent")
+    if rec.get("invoice_id") != inv["id"] or rec.get("tenant_id") != inv["tenant_id"] \
+            or (rec.get("connected_account") and rec["connected_account"] != account):
+        raise ConnectEventMismatch("payment intent belongs to another invoice/account")
+    if amount <= 0 or amount != int(rec.get("amount_cents") or 0):
+        raise ConnectEventMismatch("amount mismatch")
+
+
+async def _apply_payment_success(db, pi: dict, account: str | None = None):
     inv_id = (pi.get("metadata") or {}).get("invoice_id")
     if not inv_id:
         return
@@ -550,6 +591,8 @@ async def _apply_payment_success(db, pi: dict):
     if not inv:
         return
     amount = int(pi.get("amount_received") or pi.get("amount") or 0)
+    await _require_tenant_account(db, inv["tenant_id"], account)
+    await _require_matching_payment(db, inv, pi, account, amount)
     new_paid = int(inv.get("amount_paid_cents") or 0) + amount
     total = int(inv["total_cents"])
     status = "paid" if new_paid >= total else "sent"
@@ -588,11 +631,15 @@ async def _apply_payment_success(db, pi: dict):
             log.warning("receipt email failed: %s", e)
 
 
-async def _apply_payment_failure(db, pi: dict):
+async def _apply_payment_failure(db, pi: dict, account: str | None = None):
     inv_id = (pi.get("metadata") or {}).get("invoice_id")
     tenant_id = (pi.get("metadata") or {}).get("tenant_id")
     if not inv_id:
         return
+    inv = await db.invoices.find_one({"id": inv_id}, {"_id": 0, "tenant_id": 1})
+    if not inv or (tenant_id and tenant_id != inv["tenant_id"]):
+        raise ConnectEventMismatch("metadata tenant does not match the invoice")
+    await _require_tenant_account(db, inv["tenant_id"], account)
     err = (pi.get("last_payment_error") or {}).get("message") or "declined"
     await db.invoice_payments.update_one(
         {"stripe_payment_intent_id": pi.get("id")},
@@ -634,13 +681,17 @@ async def _apply_dispute(db, dispute: dict):
     )
 
 
-async def _apply_account_update(db, acct: dict):
+async def _apply_account_update(db, acct: dict, account: str | None = None):
     tenant_id = (acct.get("metadata") or {}).get("tenant_id")
     if not tenant_id:
         return
+    # Only the tenant's own connected account may change its status (metadata is set by the account).
+    if not acct.get("id") or (account and account != acct.get("id")):
+        raise ConnectEventMismatch("account.updated for a different account")
+    await _require_tenant_account(db, tenant_id, acct.get("id"))
     status = "active" if (acct.get("charges_enabled") and acct.get("payouts_enabled")) else "pending"
     await db.tenants.update_one(
-        {"id": tenant_id},
+        {"id": tenant_id, "stripe_connect_id": acct.get("id")},
         {"$set": {"stripe_connect_status": status, "updated_at": _now_iso()}},
     )
 
