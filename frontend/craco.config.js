@@ -107,6 +107,13 @@ let webpackConfig = {
   webpack: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
+      // EMP-WL-002 / WL-033: the root component is picked at build time. A static import of this
+      // alias (src/index.js) keeps webpack's module concatenation, so the normal build is not
+      // bigger than before, and the waitlist build never sees App.js (dashboard, admin, auth).
+      '@root-app$': path.resolve(
+        __dirname,
+        process.env.REACT_APP_WAITLIST_ONLY === 'true' ? 'src/waitlist/WaitlistApp.jsx' : 'src/App.js',
+      ),
     },
     configure: (webpackConfig) => {
 
@@ -135,6 +142,17 @@ let webpackConfig = {
       return webpackConfig;
     },
   },
+};
+
+// Jest: same "@/" alias as webpack, so tests can import real components (EMP-WL-026).
+webpackConfig.jest = {
+  configure: (jestConfig) => ({
+    ...jestConfig,
+    moduleNameMapper: {
+      ...(jestConfig.moduleNameMapper || {}),
+      "^@/(.*)$": "<rootDir>/src/$1",
+    },
+  }),
 };
 
 webpackConfig.devServer = (devServerConfig) => {
