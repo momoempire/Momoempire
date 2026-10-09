@@ -6,6 +6,8 @@
 - POST /api/public/waitlist → capture email/name/business/interest for early access.
 """
 import os
+import hashlib
+import httpx
 import time
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Request
@@ -167,6 +169,154 @@ async def demo_turn(data: DemoTurnIn, request: Request):
     sess["turns"] += 1
     return {"reply": reply, "turns_used": sess["turns"], "turns_left": _MAX_TURNS - sess["turns"], "ended": False}
 
+
+
+
+def _public_voice_demo_enabled() -> bool:
+    return (os.environ.get("PUBLIC_VOICE_DEMO_ENABLED") or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _voice_demo_max_seconds() -> int:
+    try:
+        return max(15, min(300, int(os.environ.get("PUBLIC_VOICE_DEMO_MAX_SECONDS") or "60")))
+    except ValueError:
+        return 60
+
+
+def _voice_instructions(preset: dict, lang: str) -> str:
+    """Ground the realtime voice session in the same industry preset as the text demo."""
+    is_es = (lang or "en").lower().startswith("es")
+    biz = preset["name"]
+    ai = preset["ai_employee"]["name"]
+    services = ", ".join(
+        f"{s['name']}" + (f" (${s['price']})" if s.get("price") else "")
+        for s in (preset.get("services") or [])[:6]
+    )
+    knowledge = "; ".join(
+        f"{k.get('question')}: {k.get('answer')}" for k in (preset.get("knowledge") or [])[:6]
+    )
+    if is_es:
+        return (
+            f"Eres {ai}, recepcionista AI de {biz}. Habla en español latinoamericano, claro y breve "
+            f"(1–3 oraciones). Ayuda a agendar, cotizar y responder preguntas frecuentes. "
+            f"Servicios: {services}. Conocimiento: {knowledge}. "
+            f"No inventes precios fuera de la lista. Si no sabes, ofrece transferir a un humano. "
+            f"Esta es una demo corta de marketing — sé amable y termina con una invitación a probar el plan gratis."
+        )
+    return (
+        f"You are {ai}, the AI receptionist for {biz}. Speak clearly and briefly (1–3 sentences). "
+        f"Help with booking, quotes, and FAQs. Services: {services}. Knowledge: {knowledge}. "
+        f"Do not invent prices outside the list. If unsure, offer to hand off to a human. "
+        f"This is a short marketing demo — be warm and end by inviting them to start a free trial."
+    )
+
+
+class DemoVoiceTokenIn(BaseModel):
+    industry: str = "hvac"
+    lang: str = "en"
+
+
+@router.post("/demo/voice-token")
+async def demo_voice_token(data: DemoVoiceTokenIn, request: Request):
+    """Mint a short-lived OpenAI Realtime ephemeral client secret for the public WebRTC demo.
+
+    OFF unless PUBLIC_VOICE_DEMO_ENABLED=true AND OPENAI_API_KEY is set.
+    Never returns the real API key — only an ephemeral `ek_…` client secret.
+    """
+    if not _ip_ok(request):
+        raise HTTPException(429, "Too many voice demo requests — slow down a bit.")
+
+    if not _public_voice_demo_enabled():
+        return {
+            "available": False,
+            "reason": "PUBLIC_VOICE_DEMO_ENABLED is off",
+            "fallback": "web-speech",
+        }
+
+    api_key = (os.environ.get("OPENAI_API_KEY") or "").strip()
+    if not api_key:
+        return {
+            "available": False,
+            "reason": "OPENAI_API_KEY not configured",
+            "fallback": "web-speech",
+        }
+
+    industry = (data.industry or "hvac").lower()
+    preset = INDUSTRY_PRESETS.get(industry) or INDUSTRY_PRESETS["hvac"]
+    lang = (data.lang or "en").lower()
+    model = (os.environ.get("PUBLIC_VOICE_DEMO_MODEL") or os.environ.get("OPENAI_REALTIME_MODEL") or "gpt-realtime").strip()
+    voice = (os.environ.get("PUBLIC_VOICE_DEMO_VOICE") or os.environ.get("OPENAI_REALTIME_VOICE") or "alloy").strip()
+    max_seconds = _voice_demo_max_seconds()
+    # Secret TTL slightly longer than session cap so clients can connect, then hang up by timer.
+    secret_ttl = max(60, min(600, max_seconds + 60))
+    instructions = _voice_instructions(preset, lang)
+
+    # Privacy-preserving safety identifier (hashed IP + industry), never the API key.
+    ip = (request.client.host if request.client else "unknown") or "unknown"
+    safety_id = hashlib.sha256(f"voice-demo:{ip}:{industry}".encode("utf-8")).hexdigest()[:32]
+
+    payload = {
+        "expires_after": {"anchor": "created_at", "seconds": secret_ttl},
+        "session": {
+            "type": "realtime",
+            "model": model,
+            "instructions": instructions,
+            "audio": {"output": {"voice": voice}},
+        },
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=20) as hc:
+            r = await hc.post(
+                "https://api.openai.com/v1/realtime/client_secrets",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                    "OpenAI-Safety-Identifier": safety_id,
+                },
+                json=payload,
+            )
+        if r.status_code >= 400:
+            return {
+                "available": False,
+                "reason": (r.text or "")[:200],
+                "fallback": "web-speech",
+            }
+        data_out = r.json() or {}
+    except Exception as e:
+        return {"available": False, "reason": str(e)[:200], "fallback": "web-speech"}
+
+    # OpenAI returns { value: "ek_…", expires_at: … } (and optionally nested session).
+    ephemeral = data_out.get("value") or (data_out.get("client_secret") or {}).get("value")
+    expires_at = data_out.get("expires_at") or (data_out.get("client_secret") or {}).get("expires_at")
+    if not ephemeral or not str(ephemeral).startswith("ek_"):
+        # Refuse anything that looks like a long-lived sk_ key
+        return {
+            "available": False,
+            "reason": "Ephemeral client secret missing from provider response",
+            "fallback": "web-speech",
+        }
+    if str(ephemeral).startswith("sk_"):
+        return {
+            "available": False,
+            "reason": "Refusing to return a non-ephemeral key",
+            "fallback": "web-speech",
+        }
+
+    return {
+        "available": True,
+        "value": ephemeral,
+        "expires_at": expires_at,
+        "model": model,
+        "voice": voice,
+        "max_duration_seconds": max_seconds,
+        "webrtc_url": "https://api.openai.com/v1/realtime/calls",
+        "business": preset["name"],
+        "ai_name": preset["ai_employee"]["name"],
+        "industry": industry,
+        "lang": lang,
+        "fallback": "web-speech",
+    }
 
 # ---------- Waitlist ----------
 class WaitlistIn(BaseModel):
