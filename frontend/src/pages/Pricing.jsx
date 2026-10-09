@@ -1,14 +1,20 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { api } from "@/lib/api";
+import { Link, useNavigate } from "react-router-dom";
+import { api, errMessage } from "@/lib/api";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Check, Sparkles } from "lucide-react";
+import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
+import { isPaidCheckoutPlan, setPendingCheckoutPlan, startStripeCheckout } from "@/lib/checkout";
 
 export default function Pricing() {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [busyPlan, setBusyPlan] = useState("");
+  const { user } = useAuth();
+  const nav = useNavigate();
 
   useEffect(() => {
     api.get("/plans").then((r) => setPlans(r.data)).finally(() => setLoading(false));
@@ -17,6 +23,24 @@ export default function Pricing() {
   const payable = plans.filter((p) => p.price_cents > 0 && p.key !== "enterprise");
   const trial = plans.find((p) => p.key === "trial");
   const enterprise = plans.find((p) => p.key === "enterprise");
+
+  const startPaidPlan = async (planKey) => {
+    if (!isPaidCheckoutPlan(planKey)) return;
+    // Logged-in tenant → existing checkout endpoint (server resolves stripe_price_id).
+    if (user && user.tenant_id) {
+      setBusyPlan(planKey);
+      try {
+        await startStripeCheckout(planKey);
+      } catch (e) {
+        toast.error(errMessage(e));
+        setBusyPlan("");
+      }
+      return;
+    }
+    // Anonymous / still loading auth → carry plan through signup (and login link).
+    setPendingCheckoutPlan(planKey);
+    nav(`/signup?plan=${encodeURIComponent(planKey)}`);
+  };
 
   return (
     <div className="marketing-shell relative overflow-x-hidden min-h-screen" data-testid="pricing-page">
@@ -79,11 +103,14 @@ export default function Pricing() {
                     overage: {p.overage.ai_minutes ? `${p.overage.ai_minutes}¢/min` : ""} {p.overage.sms ? `· ${p.overage.sms}¢/sms` : ""}
                   </div>
                 )}
-                <Link to="/signup" className="mt-6">
-                  <Button className="w-full bg-white text-black hover:bg-white/90" data-testid={`pricing-cta-${p.key}`}>
-                    Start {p.name}<ArrowRight className="h-4 w-4 ml-1" />
-                  </Button>
-                </Link>
+                <Button
+                  className="w-full mt-6 bg-white text-black hover:bg-white/90"
+                  disabled={busyPlan === p.key || user === undefined}
+                  onClick={() => startPaidPlan(p.key)}
+                  data-testid={`pricing-cta-${p.key}`}
+                >
+                  {busyPlan === p.key ? "Redirecting…" : <>Start {p.name}<ArrowRight className="h-4 w-4 ml-1" /></>}
+                </Button>
               </div>
             ))}
           </div>

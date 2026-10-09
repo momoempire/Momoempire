@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { api, errMessage } from "@/lib/api";
+import { errMessage } from "@/lib/api";
+import { api } from "@/lib/api";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
+import { startStripeCheckout } from "@/lib/checkout";
 
 export default function Billing() {
   const [plans, setPlans] = useState([]);
@@ -22,8 +24,7 @@ export default function Billing() {
   const subscribe = async (planId) => {
     setLoading(planId);
     try {
-      const { data } = await api.post("/payments/checkout", { plan_id: planId, origin_url: window.location.origin });
-      window.location.href = data.checkout_url;
+      await startStripeCheckout(planId);
     } catch (e) {
       toast.error(errMessage(e));
       setLoading("");

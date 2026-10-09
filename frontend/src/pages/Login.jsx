@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, Link, useLocation, useSearchParams } from "react-router-dom";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,11 @@ import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { errMessage } from "@/lib/api";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
+import {
+  isPaidCheckoutPlan,
+  setPendingCheckoutPlan,
+  resumePendingCheckoutIfAny,
+} from "@/lib/checkout";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -16,6 +21,18 @@ export default function Login() {
   const { login } = useAuth();
   const nav = useNavigate();
   const loc = useLocation();
+  const [params] = useSearchParams();
+  const planFromQuery = params.get("plan") || "";
+
+  useEffect(() => {
+    if (isPaidCheckoutPlan(planFromQuery)) {
+      setPendingCheckoutPlan(planFromQuery);
+    }
+  }, [planFromQuery]);
+
+  const signupHref = isPaidCheckoutPlan(planFromQuery)
+    ? `/signup?plan=${encodeURIComponent(planFromQuery)}`
+    : "/signup";
 
   const submit = async (e) => {
     e.preventDefault();
@@ -23,6 +40,12 @@ export default function Login() {
     try {
       const user = await login(email, password);
       toast.success(`Welcome back, ${user.name || user.email}`);
+      try {
+        const started = await resumePendingCheckoutIfAny();
+        if (started) return;
+      } catch (checkoutErr) {
+        toast.error(errMessage(checkoutErr) || "Could not start checkout — open Billing to subscribe.");
+      }
       const target = user.role === "platform_admin" ? "/admin" : (loc.state?.from || "/app");
       nav(target, { replace: true });
     } catch (err) {
@@ -70,7 +93,7 @@ export default function Login() {
           </form>
           <div className="flex items-center justify-between mt-4 text-[13px]">
             <Link to="/forgot-password" className="text-muted-foreground hover:text-foreground" data-testid="login-forgot-link">Forgot password?</Link>
-            <Link to="/signup" className="font-medium" data-testid="login-signup-link">Create account</Link>
+            <Link to={signupHref} className="font-medium" data-testid="login-signup-link">Create account</Link>
           </div>
         </div>
       </section>

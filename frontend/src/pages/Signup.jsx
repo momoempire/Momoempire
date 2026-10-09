@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,11 @@ import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { errMessage } from "@/lib/api";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
+import {
+  isPaidCheckoutPlan,
+  setPendingCheckoutPlan,
+  resumePendingCheckoutIfAny,
+} from "@/lib/checkout";
 
 export default function Signup() {
   const [name, setName] = useState("");
@@ -17,6 +22,18 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const nav = useNavigate();
+  const [params] = useSearchParams();
+  const planFromQuery = params.get("plan") || "";
+
+  useEffect(() => {
+    if (isPaidCheckoutPlan(planFromQuery)) {
+      setPendingCheckoutPlan(planFromQuery);
+    }
+  }, [planFromQuery]);
+
+  const loginHref = isPaidCheckoutPlan(planFromQuery)
+    ? `/login?plan=${encodeURIComponent(planFromQuery)}`
+    : "/login";
 
   const submit = async (e) => {
     e.preventDefault();
@@ -24,6 +41,12 @@ export default function Signup() {
     try {
       await register({ name, email, password, business_name: businessName });
       toast.success("Account created. Let's set up your office.");
+      try {
+        const started = await resumePendingCheckoutIfAny();
+        if (started) return; // redirecting to Stripe
+      } catch (checkoutErr) {
+        toast.error(errMessage(checkoutErr) || "Could not start checkout — continue setup, then upgrade from Billing.");
+      }
       nav("/onboarding", { replace: true });
     } catch (err) {
       toast.error(errMessage(err));
@@ -42,6 +65,11 @@ export default function Signup() {
             Open your AI Office<br /> in two minutes.
           </h2>
           <p className="text-white/60 mt-4 max-w-sm">A workspace built on battle-tested hardware, with a brand that stays yours forever.</p>
+          {isPaidCheckoutPlan(planFromQuery) && (
+            <p className="text-white/80 mt-4 text-sm" data-testid="signup-plan-hint">
+              Selected plan: <span className="font-medium">{planFromQuery}</span> — checkout continues after you create your account.
+            </p>
+          )}
         </div>
       </section>
 
@@ -77,7 +105,7 @@ export default function Signup() {
             </Button>
           </form>
           <p className="text-[13px] text-muted-foreground mt-4">
-            Already have an account? <Link to="/login" className="text-foreground font-medium" data-testid="signup-login-link">Log in</Link>
+            Already have an account? <Link to={loginHref} className="text-foreground font-medium" data-testid="signup-login-link">Log in</Link>
           </p>
         </div>
       </section>

@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
 import { Loader2 } from "lucide-react";
+import { resumePendingCheckoutIfAny } from "@/lib/checkout";
 
 // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
 export default function AuthCallback() {
@@ -27,6 +28,12 @@ export default function AuthCallback() {
         // Clear the hash
         window.history.replaceState({}, "", window.location.pathname);
         toast.success(`Welcome, ${data.name || data.email}`);
+        try {
+          const started = await resumePendingCheckoutIfAny();
+          if (started) return;
+        } catch (checkoutErr) {
+          toast.error(errMessage(checkoutErr) || "Could not start checkout — open Billing to subscribe.");
+        }
         const target = data.role === "platform_admin" ? "/admin" : "/app";
         nav(target, { replace: true, state: { user: data } });
       } catch (e) {

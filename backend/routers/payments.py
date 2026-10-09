@@ -29,11 +29,11 @@ async def _get_db_plan(plan_id: str) -> dict:
 
 @router.get("/plans")
 async def list_plans():
-    """Checkout-ready plans (public → paid, non-enterprise)."""
+    """Checkout-ready plans (public → paid, non-enterprise). Never expose stripe_price_id."""
     db = get_db()
     plans = await db.plans.find(
         {"is_public": True, "price_cents": {"$gt": 0}, "key": {"$ne": "enterprise"}},
-        {"_id": 0},
+        {"_id": 0, "stripe_price_id": 0},
     ).sort("sort_order", 1).to_list(100)
     return plans
 
