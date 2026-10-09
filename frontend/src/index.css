@@ -151,6 +151,13 @@
     color: hsl(var(--muted-foreground));
 }
 
+/* EMP-WL-013: on the dark marketing pages the default overline color (light-theme muted
+   foreground, ~2.9:1 on the page background) fails WCAG AA. This rule is plain CSS after the
+   Tailwind utilities, so it also overrode the text-white/* class on each overline. */
+.marketing-shell .overline {
+    color: rgba(255, 255, 255, 0.7);
+}
+
 /* Dashboard surface */
 .surface {
     @apply bg-card border border-border rounded-xl;

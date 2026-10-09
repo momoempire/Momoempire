@@ -1,0 +1,12 @@
+{
+  "landing": {
+    "cta_join_waitlist": "Join waitlist",
+    "waitlist_title": "Reserve your seat",
+    "waitlist_sub": "We open new industry slots every week.",
+    "waitlist_email": "Email",
+    "waitlist_business": "Business name",
+    "waitlist_industry": "Industry",
+    "waitlist_submit": "Reserve my seat",
+    "waitlist_thanks": "You're on the list! We'll reach out soon."
+  }
+}

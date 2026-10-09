@@ -1,0 +1,12 @@
+{
+  "landing": {
+    "cta_join_waitlist": "Lista de espera",
+    "waitlist_title": "Reserve su lugar",
+    "waitlist_sub": "Abrimos nuevos cupos de industria cada semana.",
+    "waitlist_email": "Correo",
+    "waitlist_business": "Nombre del negocio",
+    "waitlist_industry": "Industria",
+    "waitlist_submit": "Reservar mi lugar",
+    "waitlist_thanks": "¡Está en la lista! Pronto le contactamos."
+  }
+}
