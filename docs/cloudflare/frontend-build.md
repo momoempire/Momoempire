@@ -15,3 +15,7 @@ A frontend lockfile was not found. Generate and commit one before enforcing froz
 - Updated root `wrangler.toml` guidance to use `yarn install --non-interactive` instead of `--frozen-lockfile` until a reviewed `frontend/yarn.lock` is committed (commit `ee115ee2d6554797a23c388435f9ca441dc5695e`).
 - Confirmed `frontend/package.json` still references two Emergent-hosted development tarballs. Review/remove them after checking source usage.
 - A fresh dependency installation, compiled build, and Cloudflare preview deployment have **not** been executed; Task EMP-CF-003 remains in progress.
+
+## 2026-10-09 dependency portability update
+- Removed the two optional Emergent-hosted development tarball dependencies (`@emergentbase/overlay` and `@emergentbase/visual-edits`) from `frontend/package.json` on Cloudflare-2 (commit `20ba54bbb20fae23bfce9a1c2c2e0db0b436d04d`). CRACO loads these only through development-mode optional `require` paths, which already handle missing modules; this change does not remove application routes.
+- A dependency lockfile is still absent and a clean install / `yarn build` has not been executed. Task EMP-CF-003 stays in progress pending actual build validation; do not claim deploy readiness or enable production deployment.
