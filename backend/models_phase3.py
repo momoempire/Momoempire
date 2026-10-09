@@ -61,6 +61,11 @@ class KnowledgeChunk(BaseModel):
     doc_title: str
     chunk_idx: int
     content: str
+    # Optional semantic vector (populated when EMBEDDINGS_PROVIDER is enabled).
+    embedding: Optional[List[float]] = None
+    embedding_model: Optional[str] = None
+    embedding_provider: Optional[str] = None
+    embedded_at: Optional[str] = None
 
 
 # ---------- Automation Rules Engine ----------
