@@ -1,15 +1,14 @@
 """Twilio webhook router — real inbound call & SMS → runs through the AI receptionist pipeline."""
 import os
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Depends, Request, HTTPException
 from fastapi.responses import Response
 from db import get_db
 from models import _uuid, _now_iso
 from models_phase2 import Conversation, ConvMessage
 from ai_receptionist import receptionist_reply
-from services.twilio import twiml_voice_response, twiml_say_and_gather, send_sms
+from services.twilio import twiml_voice_response, twiml_say_and_gather, send_sms, _tenant_twilio_cfg
+from services import twilio_signature
 from routers.usage import record_usage, usage_capped
-
-router = APIRouter(prefix="/twilio", tags=["twilio-webhook"])
 
 
 async def _resolve_tenant(to_number: str) -> dict | None:
@@ -22,6 +21,34 @@ async def _resolve_tenant(to_number: str) -> dict | None:
     if row:
         return await db.tenants.find_one({"id": row["tenant_id"]}, {"_id": 0})
     return None
+
+
+async def require_twilio_signature(request: Request) -> None:
+    """Router-wide guard: every /api/twilio/* route needs a valid X-Twilio-Signature.
+
+    The token is the one of the tenant the webhook is about (same lookup as the
+    handler), falling back to TWILIO_AUTH_TOKEN; see services/twilio_signature.py.
+    """
+    form = await request.form()
+    path = request.url.path
+    tenant_id = None
+    if path.endswith("/voice-turn"):
+        conv = await get_db().conversations.find_one(
+            {"id": request.query_params.get("conv_id") or ""}, {"_id": 0, "tenant_id": 1})
+        tenant_id = (conv or {}).get("tenant_id")
+    elif path.endswith("/outbound-callback"):
+        tenant_id = request.query_params.get("tenant_id") or None
+    else:
+        tenant = await _resolve_tenant(form.get("To") or "")
+        tenant_id = (tenant or {}).get("id")
+    if tenant_id:
+        token = (await _tenant_twilio_cfg(tenant_id))["auth_token"]
+    else:
+        token = os.environ.get("TWILIO_AUTH_TOKEN") or ""
+    await twilio_signature.verify(request, token)
+
+
+router = APIRouter(prefix="/twilio", tags=["twilio-webhook"], dependencies=[Depends(require_twilio_signature)])
 
 
 def _public_base_url() -> str:

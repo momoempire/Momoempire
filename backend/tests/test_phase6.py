@@ -55,10 +55,34 @@ def test_health():
 
 
 # ---------- Twilio webhooks ----------
+# EMP-FIX-034: /api/twilio/* needs a valid X-Twilio-Signature. Set TWILIO_TEST_AUTH_TOKEN to the
+# server's TWILIO_AUTH_TOKEN (and its PUBLIC_BACKEND_URL to BASE_URL) to run the signed checks.
+TWILIO_TEST_AUTH_TOKEN = os.environ.get("TWILIO_TEST_AUTH_TOKEN", "")
+
+
+def _twilio_post(path, data):
+    headers = {}
+    if TWILIO_TEST_AUTH_TOKEN:
+        from twilio.request_validator import RequestValidator
+        url = f"{BASE_URL}{path}"
+        headers["X-Twilio-Signature"] = RequestValidator(TWILIO_TEST_AUTH_TOKEN).compute_signature(url, data)
+    return requests.post(f"{BASE_URL}{path}", data=data, headers=headers)
+
+
 class TestTwilioWebhooks:
-    def test_voice_unresolved_returns_twiml(self):
+    def test_unsigned_webhook_is_rejected(self):
         r = requests.post(f"{BASE_URL}/api/twilio/voice",
                           data={"To": "+15555550199", "From": "+15551234567", "CallSid": "CA_demo"})
+        assert r.status_code == 403
+
+    @pytest.fixture(autouse=True)
+    def _needs_token(self, request):
+        if request.function.__name__ != "test_unsigned_webhook_is_rejected" and not TWILIO_TEST_AUTH_TOKEN:
+            pytest.skip("set TWILIO_TEST_AUTH_TOKEN to sign Twilio webhook requests")
+
+    def test_voice_unresolved_returns_twiml(self):
+        r = _twilio_post("/api/twilio/voice",
+                         {"To": "+15555550199", "From": "+15551234567", "CallSid": "CA_demo"})
         assert r.status_code == 200
         assert "<?xml" in r.text
         assert "<Response" in r.text
@@ -66,20 +90,20 @@ class TestTwilioWebhooks:
         assert "not configured" in r.text.lower()
 
     def test_sms_unregistered_returns_empty_response(self):
-        r = requests.post(f"{BASE_URL}/api/twilio/sms",
-                          data={"To": "+15555550199", "From": "+15551234567", "Body": "hi"})
+        r = _twilio_post("/api/twilio/sms",
+                         {"To": "+15555550199", "From": "+15551234567", "Body": "hi"})
         assert r.status_code == 200
         assert "<Response/>" in r.text or "<Response></Response>" in r.text
 
     def test_missed_call_completed_ignored(self):
-        r = requests.post(f"{BASE_URL}/api/twilio/missed-call",
-                          data={"CallStatus": "completed", "To": "+15555550199", "From": "+15551234567"})
+        r = _twilio_post("/api/twilio/missed-call",
+                         {"CallStatus": "completed", "To": "+15555550199", "From": "+15551234567"})
         assert r.status_code == 200
         assert r.json().get("ignored") is True
 
     def test_missed_call_no_answer_unresolved_ignored(self):
-        r = requests.post(f"{BASE_URL}/api/twilio/missed-call",
-                          data={"CallStatus": "no-answer", "To": "+15555550199", "From": "+15551234567"})
+        r = _twilio_post("/api/twilio/missed-call",
+                         {"CallStatus": "no-answer", "To": "+15555550199", "From": "+15551234567"})
         assert r.status_code == 200
         assert r.json().get("ignored") is True
 
