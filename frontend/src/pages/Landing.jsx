@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Logo } from "@/components/Logo";
@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { api, errMessage } from "@/lib/api";
 import { toast } from "sonner";
 import DemoCall from "@/components/DemoCall";
+import TurnstileWidget from "@/components/TurnstileWidget";
 import {
   ArrowRight, Bot, Target, Rocket, Sparkles, PhoneCall, UserPlus,
   Headphones, ChevronDown, Check,
@@ -47,7 +48,7 @@ export default function Landing() {
   const { t } = useTranslation();
   const [trial, setTrial] = useState(null);
   const [openFaq, setOpenFaq] = useState(0);
-  const [wlForm, setWlForm] = useState({ email: "", name: "", business_name: "", industry: "", note: "" });
+  const [wlForm, setWlForm] = useState({ email: "", name: "", business_name: "", industry: "", note: "", website: "", turnstile_token: "" });
   const [wlSent, setWlSent] = useState(false);
   const [wlSending, setWlSending] = useState(false);
 
@@ -57,6 +58,8 @@ export default function Landing() {
       setTrial(t || null);
     }).catch(() => {});
   }, []);
+
+  const onTurnstileToken = useCallback((token) => setWlForm((f) => ({ ...f, turnstile_token: token })), []);
 
   const submitWaitlist = async (e) => {
     e.preventDefault();
@@ -247,6 +250,12 @@ export default function Landing() {
                 </div>
                 <Input placeholder="Industry (e.g. HVAC, dental)" value={wlForm.industry} onChange={(e) => setWlForm({ ...wlForm, industry: e.target.value })} className="bg-white/5 border-white/20 text-white placeholder:text-white/40" data-testid="waitlist-industry" />
                 <Textarea rows={2} placeholder="Anything specific you'd want it to do?" value={wlForm.note} onChange={(e) => setWlForm({ ...wlForm, note: e.target.value })} className="bg-white/5 border-white/20 text-white placeholder:text-white/40" data-testid="waitlist-note" />
+                {/* Honeypot: hidden from people and screen readers; bots that fill it are silently ignored. */}
+                <div aria-hidden="true" style={{ position: "absolute", left: "-10000px", width: 1, height: 1, overflow: "hidden" }}>
+                  <label htmlFor="wl-website">Website</label>
+                  <input id="wl-website" name="website" type="text" tabIndex={-1} autoComplete="off" value={wlForm.website} onChange={(e) => setWlForm({ ...wlForm, website: e.target.value })} />
+                </div>
+                <TurnstileWidget onToken={onTurnstileToken} />
                 <Button type="submit" disabled={wlSending || !wlForm.email} className="w-full h-11 bg-white text-black hover:bg-white/90" data-testid="waitlist-submit">
                   {wlSending ? "Adding…" : "Join waitlist"}
                 </Button>

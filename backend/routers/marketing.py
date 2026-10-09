@@ -4,13 +4,19 @@
   shaped by a chosen industry preset. No DB tenant touched.
 - POST /api/public/demo/turn → caller utterance → AI reply. Rate-limited by IP.
 - POST /api/public/waitlist → capture email/name/business/interest for early access.
+  No confirmation email unless WAITLIST_CONFIRMATION_EMAIL is explicitly on (EMP-WL-008).
 """
+import asyncio
+import json
+import logging
+import re
 import os
 import time
 from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel, EmailStr
-from typing import Optional
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, ValidationError, field_validator
+from typing import Literal, Optional
 from db import get_db
 from models import _uuid, _now_iso
 from ai_receptionist import receptionist_reply
@@ -19,21 +25,50 @@ router = APIRouter(prefix="/public", tags=["marketing"])
 
 # In-memory demo sessions: {session_id: {industry, history:[{role,content}], created_at, turns}}
 _SESSIONS: dict[str, dict] = {}
-_IP_RATE: dict[str, list[float]] = {}
 _MAX_TURNS = 10
-_RATE_WINDOW = 60.0
-_RATE_LIMIT = 20
+log = logging.getLogger("marketing")
+
+
+class SlidingLimiter:
+    """In-memory sliding-window limiter (per process). Each instance is its own bucket."""
+
+    MAX_KEYS = 50_000
+
+    def __init__(self, limit: int, window_s: float):
+        self.limit, self.window = limit, window_s
+        self.hits: dict[str, list[float]] = {}
+
+    def allow(self, key: str) -> bool:
+        now = time.time()
+        if len(self.hits) > self.MAX_KEYS:  # bound memory under key-spraying
+            self.hits = {k: v for k, v in self.hits.items() if v and now - v[-1] < self.window}
+        recent = [t for t in self.hits.get(key, []) if now - t < self.window]
+        if len(recent) >= self.limit:
+            self.hits[key] = recent
+            return False
+        recent.append(now)
+        self.hits[key] = recent
+        return True
+
+    def reset(self) -> None:
+        self.hits.clear()
+
+
+def client_ip(request: Request) -> str:
+    """Peer address as resolved by uvicorn's proxy-headers middleware.
+
+    X-Forwarded-For is honored ONLY when the direct peer is in FORWARDED_ALLOW_IPS
+    (see backend/Dockerfile and docs/deploy/client-ip-and-proxies.md); never read here.
+    """
+    return ((request.client.host if request.client else "") or "unknown")
+
+
+# AI demo bucket (unchanged limit: 20 requests / minute / IP).
+_DEMO_LIMIT = SlidingLimiter(20, 60.0)
 
 
 def _ip_ok(request: Request) -> bool:
-    ip = (request.client.host if request.client else "unknown") or "unknown"
-    now = time.time()
-    hits = [t for t in _IP_RATE.get(ip, []) if now - t < _RATE_WINDOW]
-    if len(hits) >= _RATE_LIMIT:
-        return False
-    hits.append(now)
-    _IP_RATE[ip] = hits
-    return True
+    return _DEMO_LIMIT.allow(client_ip(request))
 
 
 INDUSTRY_PRESETS = {
@@ -169,31 +204,239 @@ async def demo_turn(data: DemoTurnIn, request: Request):
 
 
 # ---------- Waitlist ----------
+# Its own limiter buckets (never shared with the AI demo). Defaults chosen by Momoempire Builder;
+# adjust freely, these are not product decisions.
+WAITLIST_MAX_BODY_BYTES = 16 * 1024
+_WAITLIST_IP_MINUTE = SlidingLimiter(5, 60.0)        # signups per IP per minute
+_WAITLIST_IP_HOUR = SlidingLimiter(30, 3600.0)       # signups per IP per hour
+_WAITLIST_INDEX_READY = False
+_WAITLIST_INDEX_LOCK = asyncio.Lock()
+WAITLIST_DUPLICATES_COLLECTION = "waitlist_duplicates"  # archive for de-duplicated rows (never deleted)
+
+# Honeypot: a visually hidden input on the landing form that humans leave empty.
+HONEYPOT_FIELD = "website"
+TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+
+WAITLIST_RESPONSE = {"ok": True, "status": "received"}  # identical for new and duplicate signups
+
+
+_TAG_RE = re.compile(r"</?[A-Za-z!][^>]*>")  # real tags/comments only: "a < b > c" keeps its text
+_CTRL_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+
+
+def sanitize_text(value):
+    """EMP-W-CF-031: plain text only for stored free-text fields.
+
+    Removes HTML tags (e.g. "<script>x</script>" -> "x"), any stray "<" or ">", and control
+    characters except newline/tab. Anything that later renders waitlist rows (admin page, CSV/
+    email export) must STILL escape on output; this is defense in depth, not a substitute.
+    """
+    if not isinstance(value, str):
+        return value
+    value = _TAG_RE.sub("", value)
+    value = value.replace("<", "").replace(">", "")
+    return _CTRL_RE.sub("", value).strip()
+
+
 class WaitlistIn(BaseModel):
+    model_config = ConfigDict(extra="ignore", str_strip_whitespace=True)
+
     email: EmailStr
-    name: Optional[str] = ""
-    business_name: Optional[str] = ""
-    industry: Optional[str] = ""
-    note: Optional[str] = ""
+    name: Optional[str] = Field(default="", max_length=120)
+    business_name: Optional[str] = Field(default="", max_length=120)
+    industry: Optional[str] = Field(default="", max_length=60)
+    note: Optional[str] = Field(default="", max_length=2000)
+    # Instant-quote estimator (EMP-FEAT-001). One lead source per lead (Brann's rule): estimator
+    # leads are source "website form" with source_detail "estimator"; other signups unchanged.
+    source_detail: Optional[Literal["estimator"]] = None
+    estimated_tier: Optional[str] = Field(default=None, max_length=40, pattern=r"^[a-z0-9_]+$")
+
+    @field_validator("name", "business_name", "industry", "note", mode="after")
+    @classmethod
+    def _plain_text(cls, v):
+        return sanitize_text(v)
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def _email_len(cls, v):
+        if isinstance(v, str) and len(v.strip()) > 254:
+            raise ValueError("email must be at most 254 characters")
+        return v
 
 
-@router.post("/waitlist")
-async def waitlist(data: WaitlistIn, request: Request):
-    if not _ip_ok(request):
-        raise HTTPException(429, "slow down")
-    db = get_db()
-    existing = await db.waitlist.find_one({"email": data.email.lower()})
-    if existing:
-        return {"ok": True, "status": "already-on-list"}
-    doc = {
-        "id": _uuid(), "email": data.email.lower(), "name": data.name or "",
-        "business_name": data.business_name or "", "industry": data.industry or "",
-        "note": data.note or "", "source": "landing",
-        "ip": request.client.host if request.client else "",
-        "created_at": _now_iso(),
-    }
-    await db.waitlist.insert_one(doc)
-    # Fire-and-forget confirmation email
+async def _read_capped_body(request: Request, cap: int) -> bytes:
+    declared = request.headers.get("content-length")
+    if declared is not None:
+        try:
+            if int(declared) > cap:
+                raise HTTPException(413, "Request body too large")
+        except ValueError:
+            raise HTTPException(400, "Invalid Content-Length")
+    body = b""
+    async for chunk in request.stream():
+        body += chunk
+        if len(body) > cap:
+            raise HTTPException(413, "Request body too large")
+    return body
+
+
+def normalize_email(value) -> str:
+    """Canonical waitlist key: trimmed + lowercased (EMP-WL-012)."""
+    return (value or "").strip().lower() if isinstance(value, str) else ""
+
+
+def _doc_time(doc) -> str:
+    """Sort key for 'earliest': created_at (ISO, UTC) else the ObjectId's creation time."""
+    ts = doc.get("created_at")
+    if isinstance(ts, str) and ts:
+        return ts
+    oid = doc.get("_id")
+    gen = getattr(oid, "generation_time", None)
+    return gen.isoformat() if gen is not None else "9999"
+
+
+async def dedupe_waitlist(db, apply: bool = True) -> dict:
+    """De-duplicate waitlist rows by normalized email before the unique index is built (EMP-WL-024).
+
+    Keeps the EARLIEST row per normalized email. Later duplicates are copied in full into
+    `waitlist_duplicates` (with duplicate_of/archived_at) and only then removed from `waitlist`;
+    nothing is merged into the kept row. A kept row whose email isn't normalized gets the
+    normalized value, with the original kept in `email_original`. Idempotent and safe to run in
+    several processes at once (archive is an upsert by _id; removal is by _id).
+    apply=False is a dry run: counts only, no writes.
+    """
+    groups: dict[str, list] = {}
+    scanned = 0
+    async for d in db.waitlist.find({}, {"_id": 1, "email": 1, "created_at": 1}):
+        scanned += 1
+        norm = normalize_email(d.get("email"))
+        if norm:
+            groups.setdefault(norm, []).append(d)
+    stats = {"scanned": scanned, "duplicate_groups": 0, "archived": 0, "normalized": 0, "dry_run": not apply}
+    now = _now_iso()
+    for norm, docs in groups.items():
+        docs.sort(key=lambda d: (_doc_time(d), str(d.get("_id"))))
+        keep, extra = docs[0], docs[1:]
+        if extra:
+            stats["duplicate_groups"] += 1
+        for d in extra:
+            stats["archived"] += 1
+            if not apply:
+                continue
+            full = await db.waitlist.find_one({"_id": d["_id"]})
+            if full is None:  # already handled by another process
+                continue
+            archived = {**full, "duplicate_of": keep.get("_id"), "archived_at": now, "archived_reason": "duplicate email"}
+            await db[WAITLIST_DUPLICATES_COLLECTION].replace_one({"_id": full["_id"]}, archived, upsert=True)
+            await db.waitlist.delete_one({"_id": full["_id"]})
+        if keep.get("email") != norm:
+            stats["normalized"] += 1
+            if apply:
+                await db.waitlist.update_one(
+                    {"_id": keep["_id"]}, {"$set": {"email": norm, "email_original": keep.get("email")}})
+    if stats["duplicate_groups"] or stats["normalized"]:
+        log.warning("waitlist dedupe%s: scanned=%d duplicate_groups=%d archived=%d normalized=%d",
+                    "" if apply else " (dry run)", stats["scanned"], stats["duplicate_groups"],
+                    stats["archived"], stats["normalized"])
+    else:
+        log.info("waitlist dedupe: scanned=%d, no duplicates", stats["scanned"])
+    return stats
+
+
+async def _ensure_waitlist_index(db) -> None:
+    """Once per process: de-duplicate, then build the unique index on the normalized email.
+
+    Runs at app startup (router startup hook) and again lazily before the first signup if that
+    didn't complete (e.g. the DB wasn't reachable at boot, or the WL-002 waitlist-only app).
+    """
+    global _WAITLIST_INDEX_READY
+    if _WAITLIST_INDEX_READY:
+        return
+    async with _WAITLIST_INDEX_LOCK:
+        if _WAITLIST_INDEX_READY:
+            return
+        await dedupe_waitlist(db, apply=True)  # DB errors propagate: retried on the next call
+        try:
+            await db.waitlist.create_index("email", unique=True)
+        except Exception:
+            # Rows inserted between the scan and the build can still collide; the upsert and the
+            # atomic confirmation claim keep signups correct, and the next process start retries.
+            log.error("waitlist: could not build unique email index after dedupe", exc_info=True)
+        _WAITLIST_INDEX_READY = True
+
+
+@router.on_event("startup")
+async def _waitlist_startup() -> None:
+    try:
+        await _ensure_waitlist_index(get_db())
+    except Exception:
+        log.warning("waitlist: startup dedupe/index skipped (will retry on first signup)", exc_info=True)
+
+
+def turnstile_enabled() -> bool:
+    return (os.environ.get("TURNSTILE_ENABLED") or "").strip().lower() in ("1", "true", "yes", "on")
+
+
+def check_turnstile_config() -> None:
+    """EMP-WL-023: refuse to start when Turnstile is on but has no secret.
+
+    Otherwise every real signup would get 400. Called at import, so uvicorn exits with this error
+    in both the full app and the WL-002 waitlist-only app.
+    """
+    if turnstile_enabled() and not (os.environ.get("TURNSTILE_SECRET_KEY") or "").strip():
+        msg = ("TURNSTILE_ENABLED is on but TURNSTILE_SECRET_KEY is empty. Refusing to start: every "
+               "waitlist signup would be rejected. Set TURNSTILE_SECRET_KEY or turn TURNSTILE_ENABLED off.")
+        log.critical(msg)
+        raise RuntimeError(msg)
+
+
+def check_single_worker() -> None:
+    """EMP-WL-021: the waitlist/demo limiters live in process memory. More than one worker
+    multiplies the limits (2 workers let 7 of 12 through instead of 5). Warn loudly."""
+    raw = (os.environ.get("WEB_CONCURRENCY") or "").strip()
+    try:
+        workers = int(raw) if raw else 1
+    except ValueError:
+        workers = 1
+    if workers > 1:
+        log.error("WEB_CONCURRENCY=%s: the waitlist and demo rate limits are per process, so each worker "
+                  "allows its own quota. Run ONE worker for the waitlist deploy "
+                  "(docs/deploy/client-ip-and-proxies.md, 'One worker').", raw)
+
+
+async def verify_turnstile(token: str, remote_ip: str) -> bool:
+    """Cloudflare Turnstile server-side check. Only called when TURNSTILE_ENABLED is on.
+
+    Enabled without TURNSTILE_SECRET_KEY fails closed (logged). Network errors fail closed.
+    """
+    secret = os.environ.get("TURNSTILE_SECRET_KEY") or ""
+    if not secret:
+        log.error("TURNSTILE_ENABLED is on but TURNSTILE_SECRET_KEY is not set; rejecting waitlist signups")
+        return False
+    if not token or len(token) > 2048:
+        return False
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            r = await client.post(TURNSTILE_VERIFY_URL,
+                                  data={"secret": secret, "response": token, "remoteip": remote_ip})
+            return bool(r.json().get("success"))
+    except Exception:
+        log.exception("turnstile: verification request failed")
+        return False
+
+
+def confirmation_email_enabled() -> bool:
+    """EMP-WL-008: the waitlist confirmation email is OFF unless WAITLIST_CONFIRMATION_EMAIL is
+    explicitly true/1/yes/on. Off means nothing is sent, queued, claimed or logged per address:
+    the signup only gets the on-page success message. Read per request, so no restart is
+    needed to check the setting in tests."""
+    return (os.environ.get("WAITLIST_CONFIRMATION_EMAIL") or "").strip().lower() in ("1", "true", "yes", "on")
+
+
+async def _send_waitlist_confirmation(email: str) -> None:
+    if not confirmation_email_enabled():  # defense in depth; the endpoint already skips it
+        return
     try:
         from services.email import send_email, _frame
         html = _frame(
@@ -202,7 +445,87 @@ async def waitlist(data: WaitlistIn, request: Request):
             "In the meantime, you can also try the free trial anytime at <a href='https://www.aioffice.io/pricing'>our pricing page</a>.</p>",
             app_name="AI Office",
         )
-        await send_email(to=data.email, subject="You're on the AI Office waitlist", html=html)
-    except Exception as e:
-        print(f"[waitlist email] {e}")
-    return {"ok": True, "status": "added"}
+        await send_email(to=email, subject="You're on the AI Office waitlist", html=html)
+    except Exception:
+        log.exception("waitlist: confirmation email failed")
+
+
+@router.post("/waitlist")
+async def waitlist(request: Request, background: BackgroundTasks):
+    ip = client_ip(request)
+    if not (_WAITLIST_IP_MINUTE.allow(ip) and _WAITLIST_IP_HOUR.allow(ip)):
+        raise HTTPException(429, "Too many requests. Please try again later.")
+
+    raw = await _read_capped_body(request, WAITLIST_MAX_BODY_BYTES)
+    try:
+        payload = json.loads(raw or b"{}")
+    except ValueError:
+        raise RequestValidationError([{"type": "json_invalid", "loc": ("body",), "msg": "Invalid JSON", "input": None}])
+    if not isinstance(payload, dict):
+        raise RequestValidationError([{"type": "dict_type", "loc": ("body",), "msg": "Expected an object", "input": None}])
+    if payload.get(HONEYPOT_FIELD):
+        # Bot filled the hidden field: same generic success, store nothing, send nothing.
+        log.info("waitlist: honeypot triggered")
+        return dict(WAITLIST_RESPONSE)
+    try:
+        data = WaitlistIn.model_validate(payload)
+    except ValidationError as e:
+        raise RequestValidationError(e.errors(include_url=False, include_input=False))
+
+    if turnstile_enabled():
+        token = payload.get("turnstile_token")
+        if not await verify_turnstile(token if isinstance(token, str) else "", ip):
+            raise HTTPException(400, "Verification failed. Please refresh the page and try again.")
+
+    db = get_db()
+    await _ensure_waitlist_index(db)
+    email = normalize_email(data.email)
+    now = _now_iso()
+    doc = {
+        "id": _uuid(), "email": email, "name": data.name or "",
+        "business_name": data.business_name or "", "industry": data.industry or "",
+        "note": data.note or "",
+        "source": "website form" if data.source_detail == "estimator" else "landing",
+        "source_detail": data.source_detail or "",
+        "estimated_tier": data.estimated_tier or "",
+        "ip": ip, "created_at": now,
+    }
+    inserted = False
+    try:
+        res = await db.waitlist.update_one({"email": email}, {"$setOnInsert": doc}, upsert=True)
+        inserted = getattr(res, "upserted_id", None) is not None
+    except Exception:  # duplicate-key race on the unique index = already on the list
+        log.info("waitlist: concurrent duplicate signup ignored")
+
+    # Repeat signup (EMP-W-CF-029 / CF-031): never overwrite what the first signup stored, since
+    # anyone who knows an address could otherwise change that person's row. Only fill fields that
+    # are still blank (estimated_tier, source_detail, note), each with an atomic "still blank"
+    # filter. Same response, no email resend: the reply doesn't reveal whether the email existed.
+    if not inserted:
+        fills = {"estimated_tier": data.estimated_tier or "", "source_detail": data.source_detail or "",
+                 "note": data.note or ""}
+        for field, value in fills.items():
+            if not value:
+                continue
+            try:
+                await db.waitlist.update_one({"email": email, field: {"$in": ["", None]}}, {"$set": {field: value}})
+            except Exception:
+                log.warning("waitlist: could not fill blank %s on existing entry", field, exc_info=True)
+
+    # Confirmation email: at most once per address, only for the request that created the entry
+    # (duplicates and rows from before this change never get another email). An atomic claim
+    # guards concurrent requests. Sent after the response so new vs duplicate take about the same
+    # time. Signup volume is bounded by the waitlist IP limiter above.
+    # EMP-WL-008: off by default. When off, no claim is written and nothing is queued or sent.
+    if inserted and confirmation_email_enabled():
+        claim = await db.waitlist.update_one(
+            {"email": email, "confirmation_sent_at": {"$exists": False}},
+            {"$set": {"confirmation_sent_at": now}},
+        )
+        if getattr(claim, "modified_count", 0) == 1:
+            background.add_task(_send_waitlist_confirmation, data.email)
+    return dict(WAITLIST_RESPONSE)
+
+
+check_turnstile_config()
+check_single_worker()
