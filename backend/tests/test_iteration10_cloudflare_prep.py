@@ -21,6 +21,18 @@ OWNER_A_EMAIL = "repeat-tester@example.com"
 OWNER_A_PASSWORD = "StrongPass123!"
 
 
+# PR #10: /api/health/deployment is platform-admin only. Provide admin credentials for the
+# server under test via TEST_ADMIN_EMAIL / TEST_ADMIN_PASSWORD to run the authenticated check.
+def _admin_headers(api_base):
+    email, pwd = os.environ.get("TEST_ADMIN_EMAIL"), os.environ.get("TEST_ADMIN_PASSWORD")
+    if not (email and pwd):
+        return None
+    r = requests.post(f"{api_base}/auth/login", json={"email": email, "password": pwd}, timeout=15)
+    assert r.status_code == 200, f"admin login failed: {r.status_code} {r.text}"
+    tok = r.json().get("access_token") or r.json().get("token")
+    return {"Authorization": f"Bearer {tok}"} if tok else {"Cookie": "; ".join(f"{k}={v}" for k, v in r.cookies.items())}
+
+
 def _apply_token(s, data):
     tok = data.get("access_token") or data.get("token") if isinstance(data, dict) else None
     if tok:
@@ -60,8 +72,16 @@ def _login_session(email, pwd):
 
 # ---------- 1. Deployment probe ----------
 class TestDeploymentHealth:
-    def test_deployment_probe_ready(self):
+    def test_deployment_probe_requires_auth(self):
         r = requests.get(f"{API}/health/deployment", timeout=15)
+        assert r.status_code == 401, r.text
+        assert "env" not in r.json() and "counts" not in r.json()
+
+    def test_deployment_probe_ready(self):
+        h = _admin_headers(API)
+        if h is None:
+            pytest.skip("set TEST_ADMIN_EMAIL / TEST_ADMIN_PASSWORD to run the admin probe check")
+        r = requests.get(f"{API}/health/deployment", headers=h, timeout=15)
         assert r.status_code == 200, r.text
         d = r.json()
         print(f"PROBE: {d}")
@@ -78,19 +98,19 @@ class TestDeploymentHealth:
 # ---------- 2. CORS preflight ----------
 class TestCORS:
     def test_cors_preflight_health(self):
-        r = requests.options(
-            f"{API}/health/deployment",
-            headers={
-                "Origin": "https://example-origin.pages.dev",
-                "Access-Control-Request-Method": "GET",
-                "Access-Control-Request-Headers": "content-type",
-            },
-            timeout=10,
-        )
-        # Must be 200 or 204, and must echo an allow-origin header
+        """PR #10: only exact CORS_ORIGINS entries are allowed. Set TEST_CORS_ORIGIN to one of the
+        server's allowed origins to check the positive case; a random origin must be refused."""
+        pre = {"Access-Control-Request-Method": "GET", "Access-Control-Request-Headers": "content-type"}
+        bad = requests.options(f"{API}/health/deployment",
+                               headers={"Origin": "https://not-allowed-origin.example", **pre}, timeout=10)
+        assert not bad.headers.get("access-control-allow-origin"), f"disallowed origin echoed: {dict(bad.headers)}"
+        allowed = os.environ.get("TEST_CORS_ORIGIN")
+        if not allowed:
+            pytest.skip("set TEST_CORS_ORIGIN to an origin listed in the server's CORS_ORIGINS")
+        r = requests.options(f"{API}/health/deployment", headers={"Origin": allowed, **pre}, timeout=10)
         assert r.status_code in (200, 204), f"preflight failed: {r.status_code} {r.text}"
-        allow = r.headers.get("access-control-allow-origin") or r.headers.get("Access-Control-Allow-Origin")
-        assert allow, f"no CORS allow-origin header: {dict(r.headers)}"
+        assert r.headers.get("access-control-allow-origin") == allowed, dict(r.headers)
+        assert r.headers.get("access-control-allow-credentials") == "true"
 
 
 # ---------- 3. AI demo (EN + ES) via llm_portable shim ----------

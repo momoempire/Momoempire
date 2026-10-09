@@ -1,5 +1,8 @@
 """Deployment-readiness probe. Hit before cutting DNS to a new environment.
 
+Platform-admin only (it reveals env-var presence and collection counts). Errors are
+logged server-side; responses carry only generic error flags, never exception text.
+
 Returns:
     - db_ok: can write + read a tiny doc?
     - tenant_isolation_ok: tenant_id filtering returns only this tenant's docs?
@@ -10,9 +13,10 @@ Returns:
 import os
 import time
 import logging
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from db import get_db
 from llm_portable import using_emergent
+from security import require_platform_admin
 
 log = logging.getLogger("deploy-health")
 router = APIRouter(prefix="/health", tags=["health"])
@@ -31,7 +35,7 @@ _OPTIONAL = [
 
 
 @router.get("/deployment")
-async def deployment_probe():
+async def deployment_probe(_admin: dict = Depends(require_platform_admin)):
     db = get_db()
     out: dict = {"ts": time.time()}
 
@@ -43,9 +47,10 @@ async def deployment_probe():
         found = await coll.find_one({"_id": doc_id})
         await coll.delete_one({"_id": doc_id})
         out["db_ok"] = bool(found and found.get("ok"))
-    except Exception as e:
+    except Exception:
+        log.exception("deploy probe: db round-trip failed")
         out["db_ok"] = False
-        out["db_error"] = str(e)[:200]
+        out["db_error"] = "db check failed (see server logs)"
 
     # 2) Tenant isolation smoke-check — a tenant_id query must only match its own docs.
     try:
@@ -59,9 +64,10 @@ async def deployment_probe():
             out["sample_tenant_appointments"] = own
         else:
             out["tenant_isolation_ok"] = True  # empty DB, nothing to leak
-    except Exception as e:
+    except Exception:
+        log.exception("deploy probe: tenant isolation check failed")
         out["tenant_isolation_ok"] = False
-        out["tenant_isolation_error"] = str(e)[:200]
+        out["tenant_isolation_error"] = "tenant isolation check failed (see server logs)"
 
     # 3) Env coverage (names only — never values).
     env_present = {k: bool(os.environ.get(k)) for k in _REQUIRED + _OPTIONAL}
@@ -85,7 +91,7 @@ async def deployment_probe():
             "plans": await db.plans.count_documents({}),
         }
     except Exception:
-        pass
+        log.exception("deploy probe: counts failed")
 
     out["ready"] = bool(
         out.get("db_ok")

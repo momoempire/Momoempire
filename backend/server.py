@@ -77,9 +77,10 @@ async def health():
     db = get_db()
     try:
         await db.command("ping")
-        return {"status": "ok", "db": "ok"}
-    except Exception as e:
-        return {"status": "degraded", "detail": str(e)}
+        return {"status": "ok"}
+    except Exception:
+        logging.getLogger("aio").exception("health: database ping failed")
+        return {"status": "degraded", "detail": "service unavailable"}
 
 
 # Register feature routers
@@ -144,19 +145,10 @@ api.add_api_route("/stripe/connect-webhook", _c2p_connect_wh, methods=["POST"], 
 app.include_router(api)
 
 
-# CORS: env-driven allow-list when CORS_ORIGINS is set; otherwise permissive (dev + Emergent preview).
-# For Cloudflare Pages / Oracle / Fly, set CORS_ORIGINS="https://your-pages.pages.dev,https://your-domain.com"
-_cors_env = os.environ.get("CORS_ORIGINS", "").strip()
-_cors_kwargs: dict = {
-    "allow_credentials": True,
-    "allow_methods": ["*"],
-    "allow_headers": ["*"],
-}
-if _cors_env and _cors_env != "*":
-    _cors_kwargs["allow_origins"] = [o.strip() for o in _cors_env.split(",") if o.strip()]
-else:
-    _cors_kwargs["allow_origin_regex"] = ".*"
-app.add_middleware(CORSMiddleware, **_cors_kwargs)
+# CORS: strict allow-list from CORS_ORIGINS via deploy_security (no regex fallback).
+# APP_ENV=production|staging with no valid allow-list fails closed (no cross-origin) and logs an error.
+from deploy_security import cors_options  # noqa: E402
+app.add_middleware(CORSMiddleware, **cors_options())
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 log = logging.getLogger("aio")
