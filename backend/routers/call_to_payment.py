@@ -665,22 +665,62 @@ async def set_reminder_settings(iid: str, data: ReminderSettingsIn, user: dict =
     return {"ok": True, **patch}
 
 
-async def run_overdue_reminders() -> dict:
-    """Daily cron. Scans invoices past due_at that aren't paid or paused."""
+async def _claim_overdue_reminder(db, inv: dict, now: datetime) -> str | None:
+    """EMP-FIX-036 (blocker 5): at most ONE overdue reminder per invoice per UTC day.
+
+    The idempotency key is `overdue:<invoice id>:<UTC date>`, stored as the _id of a
+    `reminder_claims` document, so the insert is atomic: a second run the same day (cron
+    retried, fired twice, or two workers at once) gets DuplicateKeyError and skips. The
+    winner then counts the reminder with a conditional update that re-checks, at that
+    moment, that the invoice is still unpaid, not paused and under max_reminders, so a
+    stale scan never sends. Counting happens before sending: if the send then fails we
+    do not retry the same day (at most once per day); the next day's run tries again.
+    Returns the claim id, or None when this run must not send.
+    """
+    from pymongo.errors import DuplicateKeyError
+    day = now.date().isoformat()
+    claim_id = f"overdue:{inv['id']}:{day}"
+    try:
+        await db.reminder_claims.insert_one({
+            "_id": claim_id, "kind": "overdue_invoice", "invoice_id": inv["id"],
+            "tenant_id": inv.get("tenant_id"), "day": day, "status": "claimed", "claimed_at": _now_iso(),
+        })
+    except DuplicateKeyError:
+        return None
+    res = await db.invoices.update_one(
+        {"id": inv["id"], "status": {"$in": ["sent", "overdue"]}, "reminders_paused_at": None,
+         "$expr": {"$lt": [{"$ifNull": ["$reminders_sent", 0]}, {"$ifNull": ["$max_reminders", 3]}]}},
+        {"$set": {"status": "overdue", "last_reminder_at": _now_iso(), "last_reminder_day": day,
+                  "updated_at": _now_iso()}, "$inc": {"reminders_sent": 1}},
+    )
+    if res.modified_count != 1:
+        await db.reminder_claims.update_one({"_id": claim_id}, {"$set": {"status": "skipped"}})
+        return None
+    return claim_id
+
+
+async def run_overdue_reminders(now: datetime | None = None) -> dict:
+    """Daily cron. Scans invoices past due_at that aren't paid or paused.
+    Safe to run any number of times a day: see _claim_overdue_reminder."""
     db = get_db()
-    now = datetime.now(timezone.utc)
+    now = now or datetime.now(timezone.utc)
     sent = 0
     invs = await db.invoices.find({
         "status": {"$in": ["sent", "overdue"]},
         "reminders_paused_at": None,
     }, {"_id": 0}).to_list(5000)
     for inv in invs:
+        claim_id = None
         try:
             due = datetime.fromisoformat((inv.get("due_at") or now.isoformat()).replace("Z", "+00:00"))
             if now < due:
                 continue
             if int(inv.get("reminders_sent") or 0) >= int(inv.get("max_reminders") or 3):
                 continue
+            claim_id = await _claim_overdue_reminder(db, inv, now)
+            if not claim_id:
+                continue
+
             # Build & send
             if inv.get("customer_email"):
                 tenant = await db.tenants.find_one({"id": inv["tenant_id"]}, {"_id": 0, "name": 1, "lang": 1}) or {}
@@ -699,16 +739,21 @@ async def run_overdue_reminders() -> dict:
                            f"past due. Remaining balance: <b>${remaining:.2f}</b>. "
                            f'<a href="{link}">Pay online</a>.')
                 html = followup_html(business=tenant.get("name", "us"), message=msg)
-                await send_email(to=inv["customer_email"], subject=subject, html=html,
-                                 from_name=tenant.get("name", "AI Office"))
-            await db.invoices.update_one(
-                {"id": inv["id"]},
-                {"$set": {"status": "overdue", "last_reminder_at": _now_iso(),
-                          "updated_at": _now_iso()}, "$inc": {"reminders_sent": 1}},
-            )
+                email_id = await send_email(to=inv["customer_email"], subject=subject, html=html,
+                                            from_name=tenant.get("name", "AI Office"))
+                outcome = {"status": "sent" if email_id else "send_failed", "email_id": email_id}
+            else:
+                outcome = {"status": "no_email"}
+            # The invoice was already counted / marked overdue when the claim was won.
+            await db.reminder_claims.update_one({"_id": claim_id}, {"$set": {**outcome, "done_at": _now_iso()}})
             sent += 1
         except Exception as e:
             log.warning("overdue reminder failed id=%s: %s", inv.get("id"), e)
+            if claim_id:
+                try:
+                    await db.reminder_claims.update_one({"_id": claim_id}, {"$set": {"status": "error"}})
+                except Exception:
+                    pass
     return {"sent": sent, "scanned": len(invs)}
 
 
