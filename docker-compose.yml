@@ -9,9 +9,16 @@ services:
     image: ai-office-backend:latest
     restart: unless-stopped
     ports:
-      - "8001:8001"
+      # Loopback only: reach it through Nginx or a Cloudflare Tunnel on this host, never directly.
+      - "127.0.0.1:8001:8001"
     env_file:
       - ./backend/.env
+    environment:
+      # One worker: the waitlist/demo rate limits are per process (EMP-WL-021). Don't add replicas.
+      WEB_CONCURRENCY: "1"
+      # Trust X-Forwarded-For only from this network's gateway (where host Nginx/cloudflared
+      # traffic appears). Derived from the same variable as the network below, so they can't drift.
+      FORWARDED_ALLOW_IPS: "${AIO_COMPOSE_GATEWAY:-172.30.0.1}"
     depends_on:
       - mongo
     healthcheck:
@@ -32,3 +39,18 @@ services:
 
 volumes:
   mongo_data:
+
+# Fixed subnet so the gateway (the address the backend sees for requests from a host-side
+# Nginx/cloudflared via the published port) is predictable. Override both if 172.30.0.0/24 clashes
+# with a network on your host (check: `ip route`, `docker network inspect $(docker network ls -q)`),
+# e.g. in a .env file next to this compose file:
+#   AIO_COMPOSE_SUBNET=10.213.47.0/24
+#   AIO_COMPOSE_GATEWAY=10.213.47.1
+# FORWARDED_ALLOW_IPS above follows AIO_COMPOSE_GATEWAY automatically (EMP-WL-025).
+# See docs/deploy/client-ip-and-proxies.md.
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: "${AIO_COMPOSE_SUBNET:-172.30.0.0/24}"
+          gateway: "${AIO_COMPOSE_GATEWAY:-172.30.0.1}"
