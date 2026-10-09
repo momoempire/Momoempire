@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { api, errMessage } from "@/lib/api";
 import { toast } from "sonner";
 import DemoCall from "@/components/DemoCall";
+import { isWaitlistOnly } from "@/lib/waitlistMode";
 import {
   ArrowRight, Bot, Target, Rocket, Sparkles, PhoneCall, UserPlus,
   Headphones, ChevronDown, Check,
@@ -50,8 +51,11 @@ export default function Landing() {
   const [wlForm, setWlForm] = useState({ email: "", name: "", business_name: "", industry: "", note: "" });
   const [wlSent, setWlSent] = useState(false);
   const [wlSending, setWlSending] = useState(false);
+  // WL-027: the waitlist-only build hides the demo, trial, login and pricing (their APIs 404 there).
+  const waitlistOnly = isWaitlistOnly();
 
   useEffect(() => {
+    if (isWaitlistOnly()) return; // no /api/plans call in the waitlist-only build
     api.get("/plans").then((r) => {
       const t = (r.data || []).find((p) => p.key === "trial");
       setTrial(t || null);
@@ -85,14 +89,15 @@ export default function Landing() {
             <a href="#features" className="hover:text-white">Features</a>
             <a href="#industries" className="hover:text-white">Industries</a>
             <a href="#how" className="hover:text-white">How it works</a>
-            <a href="#demo" className="hover:text-white">Live demo</a>
-            <Link to="/pricing" className="hover:text-white">Pricing</Link>
+            {!waitlistOnly && <a href="#demo" className="hover:text-white">Live demo</a>}
+            {!waitlistOnly && <Link to="/pricing" className="hover:text-white">Pricing</Link>}
             <a href="#faq" className="hover:text-white">FAQ</a>
           </nav>
           <div className="flex items-center gap-2">
             <LanguageSwitcher compact />
-            <Link to="/login"><Button variant="ghost" className="text-white hover:bg-white/10" data-testid="landing-login-btn">{t("common.login")}</Button></Link>
-            <Link to="/signup"><Button className="bg-white text-black hover:bg-white/90" data-testid="landing-signup-btn">{t("landing.cta_trial")}<ArrowRight className="h-4 w-4 ml-1" /></Button></Link>
+            {/* TODO(WL-001, Brann): waitlist-only header CTA copy. */}
+            {!waitlistOnly && <Link to="/login"><Button variant="ghost" className="text-white hover:bg-white/10" data-testid="landing-login-btn">{t("common.login")}</Button></Link>}
+            {!waitlistOnly && <Link to="/signup"><Button className="bg-white text-black hover:bg-white/90" data-testid="landing-signup-btn">{t("landing.cta_trial")}<ArrowRight className="h-4 w-4 ml-1" /></Button></Link>}
           </div>
         </div>
       </header>
@@ -111,15 +116,16 @@ export default function Landing() {
               Your business never misses a call again. The AI answers, books jobs, follows up with warm leads,
               and brings you a weekly summary — on autopilot, in your voice.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3 items-center">
+            {/* TODO(WL-001, Brann): waitlist-only hero CTA copy (demo and trial buttons are hidden there). */}
+            {!waitlistOnly && <div className="mt-8 flex flex-wrap gap-3 items-center">
               <Link to="/signup">
                 <Button className="h-12 px-6 bg-white text-black hover:bg-white/90 text-base" data-testid="hero-cta-signup">
                   Try it free<ArrowRight className="h-4 w-4 ml-1.5" />
                 </Button>
               </Link>
               <a href="#demo"><Button variant="ghost" className="h-12 px-5 text-white hover:bg-white/10" data-testid="hero-cta-demo">Try the live demo →</Button></a>
-            </div>
-            {trial && (
+            </div>}
+            {trial && !waitlistOnly && (
               <p className="mt-4 text-[13px] text-white/60" data-testid="hero-trial-copy">
                 Free trial: <strong className="text-white">{trialDays} days</strong>, {trialMinutes} AI minutes,
                 {" "}{trialCalls} calls. No credit card.
@@ -183,8 +189,8 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Live demo */}
-      <section id="demo" className="relative max-w-7xl mx-auto px-6 py-20">
+      {/* Live demo (hidden in the waitlist-only build: /api/public/demo/* returns 404 there) */}
+      {!waitlistOnly && <section id="demo" className="relative max-w-7xl mx-auto px-6 py-20">
         <div className="grid grid-cols-12 gap-6 items-start">
           <div className="col-span-12 lg:col-span-5">
             <div className="overline text-white/60 mb-3">See it, don't imagine it</div>
@@ -203,7 +209,7 @@ export default function Landing() {
             <DemoCall />
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* FAQ */}
       <section id="faq" className="relative max-w-4xl mx-auto px-6 py-20">
@@ -256,12 +262,12 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="relative max-w-5xl mx-auto px-6 py-20 text-center text-white">
+      {/* Final CTA (trial signup; hidden in the waitlist-only build). TODO(WL-001, Brann): waitlist copy. */}
+      {!waitlistOnly && <section className="relative max-w-5xl mx-auto px-6 py-20 text-center text-white">
         <h2 className="font-display text-5xl md:text-6xl tracking-tight">Your AI office is 60 seconds away.</h2>
         <p className="text-white/70 mt-5 max-w-xl mx-auto">Spin up your workspace, pick an industry, and the AI employee is on the clock.</p>
         <Link to="/signup"><Button className="mt-8 h-12 px-7 bg-white text-black hover:bg-white/90 text-base" data-testid="final-cta-signup">Try it free<ArrowRight className="h-4 w-4 ml-1.5" /></Button></Link>
-      </section>
+      </section>}
 
       {/* Footer */}
       <footer className="relative border-t border-white/10 mt-10 text-white/60">
@@ -275,8 +281,8 @@ export default function Landing() {
             <ul className="space-y-2">
               <li><a href="#features" className="hover:text-white">Features</a></li>
               <li><a href="#industries" className="hover:text-white">Industries</a></li>
-              <li><Link to="/pricing" className="hover:text-white">Pricing</Link></li>
-              <li><a href="#demo" className="hover:text-white">Live demo</a></li>
+              {!waitlistOnly && <li><Link to="/pricing" className="hover:text-white">Pricing</Link></li>}
+              {!waitlistOnly && <li><a href="#demo" className="hover:text-white">Live demo</a></li>}
             </ul>
           </div>
           <div>
