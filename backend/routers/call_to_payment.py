@@ -499,11 +499,12 @@ async def connect_webhook(request: Request):
     payload = await request.body()
     sig = request.headers.get("stripe-signature", "")
     secret = os.environ.get("STRIPE_CONNECT_WEBHOOK_SECRET") or os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+    if not secret:
+        raise HTTPException(503, "Stripe webhook signing secret not configured")
+    if not sig:
+        raise HTTPException(400, "Missing signature")
     try:
-        event = stripe.Webhook.construct_event(payload, sig, secret) if secret else None
-        if event is None:  # dev / local — accept but still require shape
-            import json as _json
-            event = _json.loads(payload)
+        event = stripe.Webhook.construct_event(payload, sig, secret)
     except stripe.error.SignatureVerificationError:
         raise HTTPException(400, "Invalid signature")
     except Exception:
