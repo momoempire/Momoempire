@@ -2,6 +2,19 @@ import { Link } from "react-router-dom";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { isWaitlistOnly } from "@/lib/waitlistMode";
+
+// EMP-WL-053: the waitlist-only build has no trial, pricing, plans or billing, so every sentence
+// about them is hidden there and replaced by a clearly marked slot for Brann/counsel to fill.
+// The legal text itself is NOT rewritten; the full build renders exactly as before.
+function TodoSlot({ id, what }) {
+  return (
+    <p className="text-xs border border-dashed border-amber-500 text-amber-800 bg-amber-50 rounded px-2 py-1"
+       data-testid="legal-todo-slot" data-todo-slot={id}>
+      [TODO(Brann/counsel): waitlist-mode wording for {what}, or remove this slot.]
+    </p>
+  );
+}
 
 function Legal({ title, children }) {
   return (
@@ -22,21 +35,24 @@ function Legal({ title, children }) {
 }
 
 export function Privacy() {
+  const wl = isWaitlistOnly();
   return (
     <Legal title="Privacy Policy">
       <p>AI Office ("we", "our", "us") provides a multi-tenant SaaS platform that gives small businesses an AI receptionist, CRM, scheduling, and growth tooling. This policy explains what we collect, why, and how to control it.</p>
       <h2>What we collect</h2>
       <ul>
         <li><strong>Account data</strong> — name, email, business name, hashed password, Google OAuth profile when used.</li>
-        <li><strong>Workspace content</strong> — services, pricing, knowledge, team members, appointments, leads, conversations, and uploaded knowledge documents.</li>
+        {wl ? <li><TodoSlot id="privacy-workspace-content" what="workspace content" /></li> : <li><strong>Workspace content</strong> — services, pricing, knowledge, team members, appointments, leads, conversations, and uploaded knowledge documents.</li>}
         <li><strong>Call & SMS content</strong> — transcripts and metadata the AI uses to serve your customers. Phone numbers and messages flow through Twilio.</li>
+        {wl ? <li><TodoSlot id="privacy-payment-usage" what="payment data and usage" /></li> : <>
         <li><strong>Payment data</strong> — handled by Stripe. We only store subscription IDs and plan state, never raw card numbers.</li>
         <li><strong>Usage</strong> — minutes, calls, SMS, AI interactions, and basic logs for billing + abuse prevention.</li>
+        </>}
       </ul>
       <h2>How we use it</h2>
       <ul>
         <li>To operate the AI receptionist and tools you asked us to run.</li>
-        <li>To bill the right amount — overage is computed from your plan's limits.</li>
+        {wl ? <li><TodoSlot id="privacy-billing-use" what="payment-related use of data" /></li> : <li>To bill the right amount — overage is computed from your plan's limits.</li>}
         <li>To send transactional email (invites, review requests, follow-ups, weekly digest) via Resend.</li>
         <li>To improve safety and reliability. We do <em>not</em> sell your data.</li>
       </ul>
@@ -45,7 +61,7 @@ export function Privacy() {
       <h2>Your rights</h2>
       <p>Email <a href="mailto:privacy@aioffice.io">privacy@aioffice.io</a> to export, correct, or delete your data. We will respond within 30 days.</p>
       <h2>Retention</h2>
-      <p>We keep account data while your workspace is active, plus 90 days after cancellation for billing reconciliation. Call recordings and transcripts can be deleted on request.</p>
+      {wl ? <TodoSlot id="privacy-retention" what="retention" /> : <p>We keep account data while your workspace is active, plus 90 days after cancellation for billing reconciliation. Call recordings and transcripts can be deleted on request.</p>}
       <h2>Contact</h2>
       <p>Questions? <a href="mailto:privacy@aioffice.io">privacy@aioffice.io</a>.</p>
     </Legal>
@@ -53,6 +69,7 @@ export function Privacy() {
 }
 
 export function Terms() {
+  const wl = isWaitlistOnly();
   return (
     <Legal title="Terms of Service">
       <p>By using AI Office you agree to these terms. In short: we provide the platform honestly, you provide accurate info and don't abuse it.</p>
@@ -60,14 +77,16 @@ export function Terms() {
       <p>You must be 18+ and the authorized operator of the business you're onboarding. Keep your password safe. You're responsible for your team members' actions in your workspace.</p>
       <h2>Acceptable use</h2>
       <p>No illegal content, no unsolicited mass messaging in violation of TCPA/CAN-SPAM, no attempts to break multi-tenant isolation, no reselling the service without a written agreement.</p>
+      {wl ? <TodoSlot id="terms-billing-trial" what="the two hidden sections on payments and sign-up offers" /> : <>
       <h2>Billing</h2>
       <p>Monthly plans auto-renew. You can cancel any time from your workspace — your access runs through the end of the paid period. Overage is billed on the next invoice at the rate shown on each plan.</p>
       <h2>Trial</h2>
       <p>The free trial has limits shown live on the pricing page. No credit card is required. We may update trial length with reasonable notice to new signups.</p>
+      </>}
       <h2>AI content</h2>
       <p>Our AI generates responses from your knowledge, services, and public context. You remain responsible for what your AI employee says on your behalf. We offer guardrails (discount caps, objection playbook, persona) to keep it on-brand.</p>
       <h2>Service levels</h2>
-      <p>We target high uptime but offer no formal SLA on free/starter plans. Enterprise agreements can include one.</p>
+      {wl ? <TodoSlot id="terms-service-levels" what="service levels" /> : <p>We target high uptime but offer no formal SLA on free/starter plans. Enterprise agreements can include one.</p>}
       <h2>Termination</h2>
       <p>Either side can terminate for breach. We can suspend accounts that threaten platform safety.</p>
       <h2>Liability</h2>
