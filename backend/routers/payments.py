@@ -9,8 +9,9 @@ from security import require_tenant_user
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 
-stripe.api_key = os.environ.get("STRIPE_SECRET_KEY") or "sk_test_emergent"
-STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+from services.stripe_config import configure_stripe_api_key, require_stripe_api_key, construct_stripe_event
+
+configure_stripe_api_key()
 
 
 class CheckoutRequest(BaseModel):
@@ -61,6 +62,7 @@ async def create_checkout(req: CheckoutRequest, user: dict = Depends(require_ten
             "quantity": req.quantity,
         }
 
+    require_stripe_api_key()
     try:
         session = stripe.checkout.Session.create(
             line_items=[line_item],
@@ -95,6 +97,8 @@ async def payment_status(session_id: str):
         raise HTTPException(404, "Transaction not found")
     if record.get("payment_status") != "paid":
         try:
+            if not configure_stripe_api_key():
+                return {"session_id": record["session_id"], "status": record["status"], "payment_status": record["payment_status"]}
             s = stripe.checkout.Session.retrieve(session_id)
             if s.payment_status == "paid" or s.status == "complete":
                 await db.payment_transactions.update_one(
@@ -129,10 +133,7 @@ async def stripe_webhook(request: Request):
     db = get_db()
     payload = await request.body()
     sig = request.headers.get("stripe-signature", "")
-    try:
-        event = stripe.Webhook.construct_event(payload, sig, STRIPE_WEBHOOK_SECRET)
-    except stripe.error.SignatureVerificationError:
-        raise HTTPException(400, "Invalid signature")
+    event = construct_stripe_event(payload, sig, "STRIPE_WEBHOOK_SECRET")
     obj, t = event["data"]["object"], event["type"]
     now = datetime.now(timezone.utc).isoformat()
     if t == "checkout.session.completed":

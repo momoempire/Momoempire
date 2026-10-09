@@ -36,7 +36,9 @@ from security import require_tenant_user, require_tenant_owner_or_admin
 from services.email import send_email, followup_html
 
 log = logging.getLogger("c2p")
-stripe.api_key = os.environ.get("STRIPE_SECRET_KEY") or ""
+from services.stripe_config import configure_stripe_api_key, construct_stripe_event
+
+configure_stripe_api_key()
 
 router = APIRouter(prefix="/c2p", tags=["call-to-payment"])
 public_router = APIRouter(prefix="/public/c2p", tags=["call-to-payment-public"])
@@ -494,20 +496,12 @@ async def connect_webhook(request: Request):
     """Receives events from Stripe for connected accounts.
     Idempotent: duplicate `event.id` deliveries are detected and short-circuited.
     """
-    if not stripe.api_key:
-        raise HTTPException(503, "Stripe not configured")
     payload = await request.body()
     sig = request.headers.get("stripe-signature", "")
-    secret = os.environ.get("STRIPE_CONNECT_WEBHOOK_SECRET") or os.environ.get("STRIPE_WEBHOOK_SECRET", "")
-    try:
-        event = stripe.Webhook.construct_event(payload, sig, secret) if secret else None
-        if event is None:  # dev / local — accept but still require shape
-            import json as _json
-            event = _json.loads(payload)
-    except stripe.error.SignatureVerificationError:
-        raise HTTPException(400, "Invalid signature")
-    except Exception:
-        raise HTTPException(400, "Bad payload")
+    # Always require a configured signing secret + valid signature (no unsigned dev path).
+    event = construct_stripe_event(
+        payload, sig, "STRIPE_CONNECT_WEBHOOK_SECRET", "STRIPE_WEBHOOK_SECRET"
+    )
 
     db = get_db()
     ev_id = event.get("id") or f"ev_{_uuid()}"
