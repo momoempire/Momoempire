@@ -45,7 +45,7 @@ export default function Payments() {
   };
   const sendEstimate = async (id) => { try { await api.post(`/tenants/estimates/${id}/send`); load(); toast.success("Marked sent"); } catch (e) { toast.error(errMessage(e)); } };
   const delEstimate = async (id) => { if (!confirm("Delete?")) return; try { await api.delete(`/tenants/estimates/${id}`); load(); } catch (e) { toast.error(errMessage(e)); } };
-  const copyEstimateLink = (e) => { navigator.clipboard.writeText(`${window.location.origin}/estimates/${e.public_token}`); toast.success("Public link copied"); };
+  const copyEstimateLink = (e) => { navigator.clipboard.writeText(`${window.location.origin}/q/${e.public_token}`); toast.success("Public link copied"); };
 
   const saveInvoice = async () => {
     try { await api.post("/tenants/invoices", invForm); setInvOpen(false); setInvForm({ customer_name: "", customer_phone: "", title: "", lines: [{ description: "", quantity: 1, unit_price: 0 }], notes: "" }); load(); toast.success("Invoice created"); }

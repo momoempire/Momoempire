@@ -20,6 +20,8 @@ import PaymentCancel from "@/pages/PaymentCancel";
 import CustomerPortalPublic from "@/pages/CustomerPortalPublic";
 import InviteAccept from "@/pages/InviteAccept";
 import ReferralLanding from "@/pages/ReferralLanding";
+import PublicQuote from "@/pages/PublicQuote";
+import PublicInvoice from "@/pages/PublicInvoice";
 import ReviewPublic from "@/pages/ReviewPublic";
 import AuthCallback from "@/pages/AuthCallback";
 import TestimonialConsent from "@/pages/TestimonialConsent";
@@ -90,6 +92,8 @@ function Router() {
       <Route path="/portal/:slug" element={<CustomerPortalPublic />} />
       <Route path="/invite" element={<InviteAccept />} />
       <Route path="/r/:code" element={<ReferralLanding />} />
+      <Route path="/q/:token" element={<PublicQuote />} />
+      <Route path="/i/:token" element={<PublicInvoice />} />
       <Route path="/reviews/:token" element={<ReviewPublic />} />
       <Route path="/t/consent/:token" element={<TestimonialConsent />} />
       <Route path="/payment/success" element={<PaymentSuccess />} />

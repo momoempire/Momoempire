@@ -255,8 +255,8 @@ async def owner_decision(qid: str, data: QuoteDecisionIn, user: dict = Depends(r
 
     # Email customer with public link
     tenant = await db.tenants.find_one({"id": user["tenant_id"]}, {"_id": 0, "name": 1, "slug": 1}) or {}
-    base = os.environ.get("FRONTEND_URL") or ""
-    link = f"{base}/q/{quote['public_token']}" if base else f"/q/{quote['public_token']}"
+    from public_links import quote_link
+    link = quote_link(quote["public_token"])
     if quote.get("customer_email"):
         msg = (
             f"Hi {quote['customer_name']},<br/><br/>"
@@ -485,7 +485,15 @@ async def create_invoice_payment(token: str, data: PayIntentIn):
         }},
         upsert=True,
     )
-    return {"client_secret": intent["client_secret"], "amount_cents": amount, "payment_intent_id": intent["id"]}
+    return {
+        "client_secret": intent["client_secret"],
+        "amount_cents": amount,
+        "payment_intent_id": intent["id"],
+        # Needed by Stripe.js on the public /i/:token page for a direct charge.
+        # Connected account ids and publishable keys are not secrets.
+        "stripe_account": acct_id,
+        "publishable_key": os.environ.get("STRIPE_PUBLISHABLE_KEY") or None,
+    }
 
 
 # ================== CONNECTED-ACCOUNT WEBHOOK ==================
@@ -685,8 +693,8 @@ async def run_overdue_reminders() -> dict:
             if inv.get("customer_email"):
                 tenant = await db.tenants.find_one({"id": inv["tenant_id"]}, {"_id": 0, "name": 1, "lang": 1}) or {}
                 lang = (tenant.get("lang") or "en").lower()
-                base = os.environ.get("FRONTEND_URL") or ""
-                link = f"{base}/i/{inv['public_token']}" if base else f"/i/{inv['public_token']}"
+                from public_links import invoice_link
+                link = invoice_link(inv["public_token"])
                 remaining = (int(inv["total_cents"]) - int(inv.get("amount_paid_cents") or 0)) / 100
                 if lang.startswith("es"):
                     subject = "Recordatorio: factura vencida"
