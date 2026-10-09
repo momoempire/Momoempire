@@ -161,6 +161,11 @@ app.add_middleware(CORSMiddleware, **_cors_kwargs)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 log = logging.getLogger("aio")
 
+# EMP-W-CF-023: cookie-authenticated POST/PUT/PATCH/DELETE must come from an allowed Origin
+# (or Referer). Webhooks, cron and the waitlist are exempt. See csrf_guard.py.
+from csrf_guard import CSRFOriginMiddleware  # noqa: E402
+app.add_middleware(CSRFOriginMiddleware)
+
 
 @app.on_event("startup")
 async def startup():
