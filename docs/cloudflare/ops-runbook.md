@@ -31,3 +31,9 @@ Production host and domain selection, credentials, database backup destination, 
 - Confirm backend readiness on a staging host.
 - Capture successful rollback and database restore evidence before release.
 - Require an explicit go/no-go decision before changing production settings.
+
+## 2026-10-09 verification notes (non-production)
+- The Dockerfile checks both status=ok and db=ok. Compose still checks only HTTP success and must be aligned before launch.
+- The public deployment diagnostics endpoint needs authorization before staging or production exposure.
+- An isolated test pass is not a staging, payment, restore, or rollback test.
+- Do not change DNS, billing, secrets, or production services without explicit approval.
