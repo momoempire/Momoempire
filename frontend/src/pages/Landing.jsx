@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Logo } from "@/components/Logo";
@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { api, errMessage } from "@/lib/api";
 import { toast } from "sonner";
 import DemoCall from "@/components/DemoCall";
+import { isWaitlistOnly } from "@/lib/waitlistMode";
 import {
   ArrowRight, Bot, Target, Rocket, Sparkles, PhoneCall, UserPlus,
   Headphones, ChevronDown, Check,
@@ -44,14 +45,32 @@ const FAQS = [
 ];
 
 export default function Landing() {
-  const { t } = useTranslation();
+  const { t: tCurrent, i18n } = useTranslation();
+  // EMP-WL-016: the waitlist page is English-only for now (most of its copy isn't translated), so
+  // its few translated labels stay English too, even for a Spanish browser or a saved "es" choice.
+  const t = isWaitlistOnly() ? i18n.getFixedT("en") : tCurrent;
   const [trial, setTrial] = useState(null);
   const [openFaq, setOpenFaq] = useState(0);
   const [wlForm, setWlForm] = useState({ email: "", name: "", business_name: "", industry: "", note: "" });
   const [wlSent, setWlSent] = useState(false);
   const [wlSending, setWlSending] = useState(false);
+  const [wlError, setWlError] = useState("");
+  const wlSuccessRef = useRef(null);
+  // WL-027: the waitlist-only build hides the demo, trial, login and pricing (their APIs 404 there).
+  const waitlistOnly = isWaitlistOnly();
+  const wlEmailRef = useRef(null);
+
+  // EMP-WL-034: header/hero "Join waitlist" CTAs scroll to the form and focus the email field.
+  // They stay plain #waitlist links, so they also work without JS.
+  const goToWaitlist = (e) => {
+    e.preventDefault();
+    const section = document.getElementById("waitlist");
+    if (section && section.scrollIntoView) section.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (wlEmailRef.current) wlEmailRef.current.focus({ preventScroll: true });
+  };
 
   useEffect(() => {
+    if (isWaitlistOnly()) return; // no /api/plans call in the waitlist-only build
     api.get("/plans").then((r) => {
       const t = (r.data || []).find((p) => p.key === "trial");
       setTrial(t || null);
@@ -61,12 +80,21 @@ export default function Landing() {
   const submitWaitlist = async (e) => {
     e.preventDefault();
     setWlSending(true);
+    setWlError("");
     try {
       await api.post("/public/waitlist", wlForm);
       setWlSent(true); toast.success("You're on the list.");
-    } catch (err) { toast.error(errMessage(err)); }
+    } catch (err) {
+      // EMP-WL-013: show the error next to the form (announced, linked to the email field)
+      // instead of only in a toast.
+      setWlError(errMessage(err));
+    }
     finally { setWlSending(false); }
   };
+
+  // EMP-WL-013: the form is replaced by the success message; move focus there so keyboard and
+  // screen-reader users aren't left on a removed element.
+  useEffect(() => { if (wlSent && wlSuccessRef.current) wlSuccessRef.current.focus(); }, [wlSent]);
 
   const trialLimits = trial?.limits || {};
   const trialDays = trial?.trial_days || 60;
@@ -79,54 +107,72 @@ export default function Landing() {
 
       {/* Nav */}
       <header className="sticky top-0 z-30 glass-crystal border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
           <Logo variant="light" />
           <nav className="hidden md:flex items-center gap-8 text-[13px] text-white/70">
             <a href="#features" className="hover:text-white">Features</a>
             <a href="#industries" className="hover:text-white">Industries</a>
-            <a href="#how" className="hover:text-white">How it works</a>
-            <a href="#demo" className="hover:text-white">Live demo</a>
-            <Link to="/pricing" className="hover:text-white">Pricing</Link>
+            {!waitlistOnly && <a href="#how" className="hover:text-white">How it works</a>}
+            {!waitlistOnly && <a href="#demo" className="hover:text-white">Live demo</a>}
+            {!waitlistOnly && <Link to="/pricing" className="hover:text-white">Pricing</Link>}
             <a href="#faq" className="hover:text-white">FAQ</a>
           </nav>
-          <div className="flex items-center gap-2">
-            <LanguageSwitcher compact />
-            <Link to="/login"><Button variant="ghost" className="text-white hover:bg-white/10" data-testid="landing-login-btn">{t("common.login")}</Button></Link>
-            <Link to="/signup"><Button className="bg-white text-black hover:bg-white/90" data-testid="landing-signup-btn">{t("landing.cta_trial")}<ArrowRight className="h-4 w-4 ml-1" /></Button></Link>
+          <div className="flex items-center gap-2 shrink-0">
+            {/* EMP-WL-016: the waitlist page is English-only for now, so no EN/ES switcher there. */}
+            {!waitlistOnly && <LanguageSwitcher compact />}
+            {/* EMP-WL-034: waitlist-only header CTA (existing "Join waitlist" label). */}
+            {waitlistOnly && (
+              // EMP-WL-051: one interactive element (a link styled as the button), not <button> in <a>.
+              <Button asChild className="bg-white text-black hover:bg-white/90">
+                <a href="#waitlist" onClick={goToWaitlist} data-testid="header-cta-waitlist">{t("landing.cta_join_waitlist")}<ArrowRight className="h-4 w-4 ml-1" /></a>
+              </Button>
+            )}
+            {!waitlistOnly && <Link to="/login"><Button variant="ghost" className="text-white hover:bg-white/10" data-testid="landing-login-btn">{t("common.login")}</Button></Link>}
+            {!waitlistOnly && <Link to="/signup"><Button className="bg-white text-black hover:bg-white/90" data-testid="landing-signup-btn">{t("landing.cta_trial")}<ArrowRight className="h-4 w-4 ml-1" /></Button></Link>}
           </div>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="relative max-w-7xl mx-auto px-6 pt-20 pb-20">
-        <div className="grid grid-cols-12 gap-6 items-start">
-          <div className="col-span-12 lg:col-span-7">
+      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-16 sm:pt-20 pb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="min-w-0 lg:col-span-7">
             <Badge className="bg-white/10 text-white/80 border border-white/15 mb-5 hover:bg-white/10">
               <Sparkles className="h-3 w-3 mr-1.5" /> AI Office Platform
             </Badge>
-            <h1 className="font-display text-5xl md:text-7xl leading-[0.95] tracking-tight text-white">
+            <h1 className="font-display text-4xl sm:text-5xl md:text-7xl leading-[0.95] tracking-tight text-white break-words">
               We build you an AI employee <span className="text-white/60">and a digital office.</span>
             </h1>
             <p className="mt-6 text-white/70 text-lg max-w-xl">
               Your business never misses a call again. The AI answers, books jobs, follows up with warm leads,
               and brings you a weekly summary — on autopilot, in your voice.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3 items-center">
+            {/* EMP-WL-034 / WL-001: waitlist-only hero CTA is the primary button (existing label). */}
+            {waitlistOnly && (
+              <div className="mt-8">
+                <Button asChild className="h-12 px-6 bg-white text-black hover:bg-white/90 text-base">
+                  <a href="#waitlist" onClick={goToWaitlist} data-testid="hero-cta-waitlist">
+                    {t("landing.cta_join_waitlist")}<ArrowRight className="h-4 w-4 ml-1.5" />
+                  </a>
+                </Button>
+              </div>
+            )}
+            {!waitlistOnly && <div className="mt-8 flex flex-wrap gap-3 items-center">
               <Link to="/signup">
                 <Button className="h-12 px-6 bg-white text-black hover:bg-white/90 text-base" data-testid="hero-cta-signup">
                   Try it free<ArrowRight className="h-4 w-4 ml-1.5" />
                 </Button>
               </Link>
               <a href="#demo"><Button variant="ghost" className="h-12 px-5 text-white hover:bg-white/10" data-testid="hero-cta-demo">Try the live demo →</Button></a>
-            </div>
-            {trial && (
+            </div>}
+            {trial && !waitlistOnly && (
               <p className="mt-4 text-[13px] text-white/60" data-testid="hero-trial-copy">
                 Free trial: <strong className="text-white">{trialDays} days</strong>, {trialMinutes} AI minutes,
                 {" "}{trialCalls} calls. No credit card.
               </p>
             )}
           </div>
-          <div className="col-span-12 lg:col-span-5">
+          <div className="min-w-0 lg:col-span-5">
             <HeroPreview />
           </div>
         </div>
@@ -134,7 +180,7 @@ export default function Landing() {
 
       {/* Features */}
       <section id="features" className="relative max-w-7xl mx-auto px-6 py-20">
-        <div className="overline text-white/60 mb-3">Three pillars</div>
+        <div className="overline text-white/70 mb-3">Three pillars</div>
         <h2 className="font-display text-4xl md:text-5xl text-white tracking-tight max-w-2xl">An entire office in one place.</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-10">
           {PILLARS.map((p) => (
@@ -149,7 +195,7 @@ export default function Landing() {
 
       {/* Industries */}
       <section id="industries" className="relative max-w-7xl mx-auto px-6 py-20">
-        <div className="overline text-white/60 mb-3">Not one-size-fits-all</div>
+        <div className="overline text-white/70 mb-3">Not one-size-fits-all</div>
         <h2 className="font-display text-4xl md:text-5xl text-white tracking-tight max-w-2xl">Same brain, your vocabulary.</h2>
         <p className="text-white/70 mt-4 max-w-xl">The AI adapts to your industry out of the box — jargon, service names, pricing patterns, intake flow.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-10">
@@ -167,27 +213,29 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* How it works */}
-      <section id="how" className="relative max-w-7xl mx-auto px-6 py-20">
-        <div className="overline text-white/60 mb-3">How it works</div>
+      {/* How it works. Hidden in the waitlist-only build: its steps describe self-serve signup
+          ("Sign up", "Create your workspace"), which that build doesn't offer (EMP-WL-001).
+          TODO(WL-001, Brann): waitlist-mode version of this section, if wanted. */}
+      {!waitlistOnly && <section id="how" className="relative max-w-7xl mx-auto px-6 py-20">
+        <div className="overline text-white/70 mb-3">How it works</div>
         <h2 className="font-display text-4xl md:text-5xl text-white tracking-tight max-w-2xl">Live in under five minutes.</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-10">
           {STEPS.map((s) => (
             <div key={s.n} className="glass-crystal rounded-2xl p-7 text-white" data-testid={`step-${s.n}`}>
-              <div className="font-mono text-white/40 text-sm">{s.n}</div>
+              <div className="font-mono text-white/60 text-sm">{s.n}</div>
               <div className="h-10 w-10 rounded-xl bg-white/10 border border-white/10 grid place-items-center mt-3 mb-4"><s.icon className="h-5 w-5" /></div>
               <h3 className="font-medium text-xl">{s.title}</h3>
               <p className="text-white/70 text-sm mt-2 leading-relaxed">{s.desc}</p>
             </div>
           ))}
         </div>
-      </section>
+      </section>}
 
-      {/* Live demo */}
-      <section id="demo" className="relative max-w-7xl mx-auto px-6 py-20">
-        <div className="grid grid-cols-12 gap-6 items-start">
-          <div className="col-span-12 lg:col-span-5">
-            <div className="overline text-white/60 mb-3">See it, don't imagine it</div>
+      {/* Live demo (hidden in the waitlist-only build: /api/public/demo/* returns 404 there) */}
+      {!waitlistOnly && <section id="demo" className="relative max-w-7xl mx-auto px-6 py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="min-w-0 lg:col-span-5">
+            <div className="overline text-white/70 mb-3">See it, don't imagine it</div>
             <h2 className="font-display text-4xl md:text-5xl text-white tracking-tight">Talk to the AI<br />right now.</h2>
             <p className="text-white/70 mt-5 max-w-md">
               Pick an industry, type (or tap the mic) and have an actual conversation.
@@ -199,15 +247,15 @@ export default function Landing() {
               <li className="flex gap-2"><Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />Try tough questions — "I got a cheaper quote," "I need you today"</li>
             </ul>
           </div>
-          <div className="col-span-12 lg:col-span-7">
+          <div className="min-w-0 lg:col-span-7">
             <DemoCall />
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* FAQ */}
       <section id="faq" className="relative max-w-4xl mx-auto px-6 py-20">
-        <div className="overline text-white/60 mb-3">Frequently asked</div>
+        <div className="overline text-white/70 mb-3">Frequently asked</div>
         <h2 className="font-display text-4xl md:text-5xl text-white tracking-tight">The honest answers.</h2>
         <div className="mt-10 divide-y divide-white/10 border-y border-white/10">
           {FAQS.map((f, i) => (
@@ -223,32 +271,56 @@ export default function Landing() {
       </section>
 
       {/* Waitlist */}
-      <section id="waitlist" className="relative max-w-5xl mx-auto px-6 py-20">
-        <div className="glass-crystal rounded-3xl p-8 md:p-12 text-white grid grid-cols-12 gap-8 items-center">
-          <div className="col-span-12 md:col-span-6">
-            <div className="overline text-white/60 mb-3">Not ready to try?</div>
-            <h2 className="font-display text-4xl tracking-tight">Join the early-access list.</h2>
+      {/* EMP-WL-006: one column on phones. The old grid-cols-12 + gap-8 kept 11 column gaps
+          (352 px) even with col-span-12, which pushed the form ~43 px past a 390 px screen. */}
+      <section id="waitlist" className="relative max-w-5xl mx-auto px-4 sm:px-6 py-20 scroll-mt-20">
+        <div className="glass-crystal rounded-3xl p-5 sm:p-8 md:p-12 text-white grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center">
+          <div className="min-w-0 md:col-span-6">
+            {/* TODO(WL-034, Brann): waitlist-mode card overline. "Not ready to try?" refers to the
+                trial, which the waitlist build doesn't have, so it is hidden there; wording is Brann's. */}
+            {!waitlistOnly && <div className="overline text-white/70 mb-3">Not ready to try?</div>}
+            <h2 className="font-display text-3xl sm:text-4xl tracking-tight break-words">Join the early-access list.</h2>
             <p className="text-white/70 mt-4">
               We'll send a short note when seats open in your industry — and we'll never spam you.
             </p>
           </div>
-          <div className="col-span-12 md:col-span-6">
+          <div className="min-w-0 md:col-span-6">
             {wlSent ? (
-              <div className="rounded-xl bg-emerald-400/10 border border-emerald-300/20 p-6 text-emerald-100" data-testid="waitlist-success">
+              <div ref={wlSuccessRef} tabIndex={-1} role="status" className="rounded-xl bg-emerald-400/10 border border-emerald-300/20 p-6 text-emerald-100 focus:outline-none" data-testid="waitlist-success">
                 <div className="font-medium">You're on the list.</div>
                 <div className="text-sm text-emerald-100/80 mt-1">We'll reach out as soon as your industry opens.</div>
               </div>
             ) : (
               <form onSubmit={submitWaitlist} className="space-y-3" data-testid="waitlist-form">
-                <Input required type="email" placeholder="you@yourbusiness.com" value={wlForm.email} onChange={(e) => setWlForm({ ...wlForm, email: e.target.value })} className="bg-white/5 border-white/20 text-white placeholder:text-white/40" data-testid="waitlist-email" />
-                <div className="grid grid-cols-2 gap-3">
-                  <Input placeholder="Your name" value={wlForm.name} onChange={(e) => setWlForm({ ...wlForm, name: e.target.value })} className="bg-white/5 border-white/20 text-white placeholder:text-white/40" data-testid="waitlist-name" />
-                  <Input placeholder="Business" value={wlForm.business_name} onChange={(e) => setWlForm({ ...wlForm, business_name: e.target.value })} className="bg-white/5 border-white/20 text-white placeholder:text-white/40" data-testid="waitlist-biz" />
+                {/* EMP-WL-013: every field has a visible <label> (existing wording: the locale keys or the
+                    old placeholder text). Placeholders and borders meet contrast (see Landing.contrast.test.js). */}
+                <div>
+                  <label htmlFor="wl-email" className="block text-sm text-white/80 mb-1.5">{t("landing.waitlist_email")}</label>
+                  <Input id="wl-email" ref={wlEmailRef} required type="email" autoComplete="email" placeholder="you@yourbusiness.com" value={wlForm.email} onChange={(e) => setWlForm({ ...wlForm, email: e.target.value })} aria-invalid={wlError ? true : undefined} aria-describedby={wlError ? "wl-error" : undefined} className="bg-white/5 border-white/40 text-white placeholder:text-white/60" data-testid="waitlist-email" />
                 </div>
-                <Input placeholder="Industry (e.g. HVAC, dental)" value={wlForm.industry} onChange={(e) => setWlForm({ ...wlForm, industry: e.target.value })} className="bg-white/5 border-white/20 text-white placeholder:text-white/40" data-testid="waitlist-industry" />
-                <Textarea rows={2} placeholder="Anything specific you'd want it to do?" value={wlForm.note} onChange={(e) => setWlForm({ ...wlForm, note: e.target.value })} className="bg-white/5 border-white/20 text-white placeholder:text-white/40" data-testid="waitlist-note" />
-                <Button type="submit" disabled={wlSending || !wlForm.email} className="w-full h-11 bg-white text-black hover:bg-white/90" data-testid="waitlist-submit">
-                  {wlSending ? "Adding…" : "Join waitlist"}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label htmlFor="wl-name" className="block text-sm text-white/80 mb-1.5">Your name</label>
+                    <Input id="wl-name" autoComplete="name" value={wlForm.name} onChange={(e) => setWlForm({ ...wlForm, name: e.target.value })} className="bg-white/5 border-white/40 text-white placeholder:text-white/60" data-testid="waitlist-name" />
+                  </div>
+                  <div>
+                    <label htmlFor="wl-biz" className="block text-sm text-white/80 mb-1.5">Business</label>
+                    <Input id="wl-biz" autoComplete="organization" value={wlForm.business_name} onChange={(e) => setWlForm({ ...wlForm, business_name: e.target.value })} className="bg-white/5 border-white/40 text-white placeholder:text-white/60" data-testid="waitlist-biz" />
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="wl-industry" className="block text-sm text-white/80 mb-1.5">{t("landing.waitlist_industry")}</label>
+                  <Input id="wl-industry" placeholder="Industry (e.g. HVAC, dental)" value={wlForm.industry} onChange={(e) => setWlForm({ ...wlForm, industry: e.target.value })} className="bg-white/5 border-white/40 text-white placeholder:text-white/60" data-testid="waitlist-industry" />
+                </div>
+                <div>
+                  <label htmlFor="wl-note" className="block text-sm text-white/80 mb-1.5">Anything specific you'd want it to do?</label>
+                  <Textarea id="wl-note" rows={2} value={wlForm.note} onChange={(e) => setWlForm({ ...wlForm, note: e.target.value })} className="bg-white/5 border-white/40 text-white placeholder:text-white/60" data-testid="waitlist-note" />
+                </div>
+                {wlError && <p id="wl-error" role="alert" className="text-sm text-rose-200" data-testid="waitlist-error">{wlError}</p>}
+                {/* WL-001: the primary button. Not greyed out before an email is typed (looked broken);
+                    the required email field still blocks an empty submit. */}
+                <Button type="submit" disabled={wlSending} className="w-full h-11 bg-white text-black hover:bg-white/90" data-testid="waitlist-submit">
+                  {wlSending ? "Adding…" : t("landing.cta_join_waitlist")}
                 </Button>
               </form>
             )}
@@ -256,45 +328,45 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="relative max-w-5xl mx-auto px-6 py-20 text-center text-white">
+      {/* Final CTA (trial signup; hidden in the waitlist-only build). TODO(WL-001, Brann): waitlist copy. */}
+      {!waitlistOnly && <section className="relative max-w-5xl mx-auto px-6 py-20 text-center text-white">
         <h2 className="font-display text-5xl md:text-6xl tracking-tight">Your AI office is 60 seconds away.</h2>
         <p className="text-white/70 mt-5 max-w-xl mx-auto">Spin up your workspace, pick an industry, and the AI employee is on the clock.</p>
         <Link to="/signup"><Button className="mt-8 h-12 px-7 bg-white text-black hover:bg-white/90 text-base" data-testid="final-cta-signup">Try it free<ArrowRight className="h-4 w-4 ml-1.5" /></Button></Link>
-      </section>
+      </section>}
 
       {/* Footer */}
       <footer className="relative border-t border-white/10 mt-10 text-white/60">
         <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
           <div>
             <Logo variant="light" />
-            <p className="mt-3 text-xs text-white/50 max-w-xs">Done-for-you AI office platform for service businesses.</p>
+            <p className="mt-3 text-xs text-white/60 max-w-xs">Done-for-you AI office platform for service businesses.</p>
           </div>
           <div>
-            <div className="overline text-white/50 mb-3">Product</div>
+            <div className="overline text-white/70 mb-3">Product</div>
             <ul className="space-y-2">
               <li><a href="#features" className="hover:text-white">Features</a></li>
               <li><a href="#industries" className="hover:text-white">Industries</a></li>
-              <li><Link to="/pricing" className="hover:text-white">Pricing</Link></li>
-              <li><a href="#demo" className="hover:text-white">Live demo</a></li>
+              {!waitlistOnly && <li><Link to="/pricing" className="hover:text-white">Pricing</Link></li>}
+              {!waitlistOnly && <li><a href="#demo" className="hover:text-white">Live demo</a></li>}
             </ul>
           </div>
           <div>
-            <div className="overline text-white/50 mb-3">Company</div>
+            <div className="overline text-white/70 mb-3">Company</div>
             <ul className="space-y-2">
               <li><a href="#waitlist" className="hover:text-white">Early access</a></li>
               <li><a href="mailto:hello@aioffice.io" className="hover:text-white">Contact</a></li>
             </ul>
           </div>
           <div>
-            <div className="overline text-white/50 mb-3">Legal</div>
+            <div className="overline text-white/70 mb-3">Legal</div>
             <ul className="space-y-2">
               <li><Link to="/privacy" className="hover:text-white" data-testid="footer-privacy-link">Privacy Policy</Link></li>
               <li><Link to="/terms" className="hover:text-white" data-testid="footer-terms-link">Terms of Service</Link></li>
             </ul>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-6 pb-8 text-[11px] text-white/40">© {new Date().getFullYear()} AI Office · All rights reserved.</div>
+        <div className="max-w-7xl mx-auto px-6 pb-8 text-[11px] text-white/60">© {new Date().getFullYear()} AI Office · All rights reserved.</div>
       </footer>
     </div>
   );
