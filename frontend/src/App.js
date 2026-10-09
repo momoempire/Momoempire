@@ -10,6 +10,7 @@ import Landing from "@/pages/Landing";
 import Pricing from "@/pages/Pricing";
 import { Privacy, Terms } from "@/pages/Legal";
 import Login from "@/pages/Login";
+import SetPassword from "@/pages/SetPassword";
 import Signup from "@/pages/Signup";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
@@ -95,6 +96,7 @@ function Router() {
       <Route path="/payment/success" element={<PaymentSuccess />} />
       <Route path="/payment/cancel" element={<PaymentCancel />} />
 
+      <Route path="/set-password" element={<ProtectedRoute><SetPassword /></ProtectedRoute>} />
       <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
 
       <Route path="/app" element={<Protected><Home /></Protected>} />

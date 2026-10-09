@@ -79,7 +79,7 @@ REACT_APP_BACKEND_URL=http://localhost:8001
 
 ## First-run
 - Backend auto-seeds industries, countries, plans and the admin user on startup.
-- Default admin: `ramonajefferson10@gmail.com` / `AdminPass123!`
+- Platform admin: set `ADMIN_EMAIL` (and optionally a strong `ADMIN_PASSWORD`) before first start; there is no default admin or password
 - Visit `/pricing` to see live tiered plans (reads `/api/plans`).
 
 ## Admin workflow

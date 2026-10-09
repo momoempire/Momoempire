@@ -196,26 +196,77 @@ DEFAULT_FLAGS = [
 
 
 async def seed_admin():
+    """Create the first platform admin ONLY if none exists. Never touches an existing hash.
+
+    - Email: ADMIN_EMAIL, no default. If unset, no platform admin is seeded and a warning is logged.
+      Existing users' emails are never changed.
+    - Password: ADMIN_PASSWORD is used only for the very first seed, and only if it
+      passes the strength rule. Otherwise the admin gets a random unusable password
+      (password_unusable=True) and must use the reset-token flow. Either way must_change_password=True.
+    - Existing DBs: any platform admin whose hash still matches a known default password gets that
+      hash REPLACED with a random unusable one, plus must_change_password=True and password_unusable=True,
+      so knowing the old default can never yield admin access.
+    """
+    import logging
+    import secrets
+    from password_policy import password_problems, KNOWN_DEFAULT_PASSWORDS
+
+    log = logging.getLogger("seed")
     db = get_db()
-    email = os.environ.get("ADMIN_EMAIL", "ramonajefferson10@gmail.com").lower()
-    pwd = os.environ.get("ADMIN_PASSWORD", "AdminPass123!")
-    existing = await db.users.find_one({"email": email})
-    if existing is None:
-        from models import _uuid
-        await db.users.insert_one({
-            "id": _uuid(),
-            "email": email,
-            "password_hash": hash_password(pwd),
-            "name": "Platform Admin",
-            "role": "platform_admin",
-            "tenant_id": None,
-            "email_verified": True,
-            "mfa_enabled": False,
-            "created_at": _now(),
-        })
-    elif not verify_password(pwd, existing["password_hash"]):
-        await db.users.update_one({"email": email},
-                                  {"$set": {"password_hash": hash_password(pwd)}})
+
+    existing_admins = await db.users.find({"role": "platform_admin"}).to_list(1000)
+    if existing_admins:
+        # Never reset an admin password EXCEPT to neutralize a known default.
+        for adm in existing_admins:
+            if adm.get("password_unusable"):
+                continue
+            h = adm.get("password_hash") or ""
+            if h and any(verify_password(w, h) for w in KNOWN_DEFAULT_PASSWORDS):
+                await db.users.update_one(
+                    {"id": adm.get("id"), "role": "platform_admin"},
+                    {"$set": {"password_hash": hash_password(secrets.token_urlsafe(48)),
+                              "password_unusable": True,
+                              "must_change_password": True,
+                              "password_changed_at": _now()}},
+                )
+                log.warning("Platform admin id=%s still had a known default password; it was replaced with an "
+                            "unusable one. Use forgot-password to set a new password.", adm.get("id"))
+        return
+
+    email = (os.environ.get("ADMIN_EMAIL") or "").strip().lower()
+    if not email:
+        log.warning("ADMIN_EMAIL is not set; skipping platform admin seed. Set ADMIN_EMAIL "
+                    "(and optionally ADMIN_PASSWORD) and restart to create the platform admin.")
+        return
+
+    env_pwd = os.environ.get("ADMIN_PASSWORD") or ""
+    problems = password_problems(env_pwd) if env_pwd else ["not set"]
+    unusable = False
+    if env_pwd and not problems:
+        pwd_hash = hash_password(env_pwd)
+        log.info("Seeding platform admin %s with ADMIN_PASSWORD (must change at first login)", email)
+    else:
+        if env_pwd:
+            log.error("ADMIN_PASSWORD rejected (%s); seeding admin with an unusable random password", "; ".join(problems))
+        else:
+            log.warning("ADMIN_PASSWORD not set; seeding admin with an unusable random password — use forgot-password to set one")
+        pwd_hash = hash_password(secrets.token_urlsafe(48))
+        unusable = True
+
+    from models import _uuid
+    await db.users.insert_one({
+        "id": _uuid(),
+        "email": email,
+        "password_hash": pwd_hash,
+        "name": "Platform Admin",
+        "role": "platform_admin",
+        "tenant_id": None,
+        "email_verified": True,
+        "mfa_enabled": False,
+        "must_change_password": True,
+        "password_unusable": unusable,
+        "created_at": _now(),
+    })
 
 
 async def seed_industries():

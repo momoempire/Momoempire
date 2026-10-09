@@ -59,7 +59,28 @@ def clear_auth_cookies(response):
     response.delete_cookie("refresh_token", path="/")
 
 
+# While a user must change their password, only these API paths are allowed.
+MUST_CHANGE_ALLOWED_PATHS = frozenset({
+    "/api/auth/me",
+    "/api/auth/logout",
+    "/api/auth/set-password",
+    "/api/auth/refresh",
+})
+
+
+def _enforce_must_change(request: Request, user: dict) -> dict:
+    if user and user.get("must_change_password"):
+        path = request.url.path.rstrip("/") or "/"
+        if path not in MUST_CHANGE_ALLOWED_PATHS:
+            raise HTTPException(403, "Password change required before continuing")
+    return user
+
+
 async def get_current_user(request: Request) -> dict:
+    return _enforce_must_change(request, await _load_current_user(request))
+
+
+async def _load_current_user(request: Request) -> dict:
     db = get_db()
     # 1) Try Emergent Google session cookie first
     session_token = request.cookies.get("session_token")
