@@ -36,5 +36,11 @@ EXPOSE 8001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
     CMD curl -fsS http://localhost:${PORT}/api/health || exit 1
 
-# Single worker is fine for low usage; raise with --workers for busier hosts.
-CMD ["sh", "-c", "uvicorn server:app --host 0.0.0.0 --port ${PORT} --proxy-headers --forwarded-allow-ips='*'"]
+# ONE worker, on purpose (EMP-WL-021): the waitlist and demo rate limits live in process memory,
+# so N workers would allow N times the limit. Scale with a bigger box or a shared limiter first.
+# The app logs an error at startup if WEB_CONCURRENCY > 1. See docs/deploy/client-ip-and-proxies.md.
+ENV WEB_CONCURRENCY=1
+# X-Forwarded-For is trusted ONLY from FORWARDED_ALLOW_IPS (comma-separated exact IPs; uvicorn 0.25
+# has no CIDR support). Default: loopback only. Never use '*'. See docs/deploy/client-ip-and-proxies.md.
+ENV FORWARDED_ALLOW_IPS=127.0.0.1
+CMD ["sh", "-c", "exec uvicorn server:app --host 0.0.0.0 --port ${PORT} --workers 1 --proxy-headers --forwarded-allow-ips=\"${FORWARDED_ALLOW_IPS:-127.0.0.1}\""]

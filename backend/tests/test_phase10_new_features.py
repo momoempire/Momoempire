@@ -4,7 +4,7 @@ import uuid
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://office-engine.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "http://127.0.0.1:9")  # WL-044: never a public server by default.rstrip("/")
 API = f"{BASE_URL}/api"
 
 OWNER_EMAIL = "repeat-tester@example.com"
