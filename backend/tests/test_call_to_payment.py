@@ -26,18 +26,7 @@ import requests
 from datetime import datetime, timezone, timedelta
 from pymongo import MongoClient
 
-# Read REACT_APP_BACKEND_URL from frontend/.env since pytest env may not have it
-_FE_ENV = {}
-try:
-    with open("/app/frontend/.env") as _f:
-        for _ln in _f:
-            if "=" in _ln and not _ln.strip().startswith("#"):
-                _k, _v = _ln.strip().split("=", 1)
-                _FE_ENV[_k.strip()] = _v.strip().strip('"').strip("'")
-except Exception:
-    pass
-BASE_URL = (os.environ.get("REACT_APP_BACKEND_URL") or _FE_ENV.get("REACT_APP_BACKEND_URL") or "").rstrip("/")
-assert BASE_URL, "REACT_APP_BACKEND_URL missing"
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "http://127.0.0.1:9").rstrip("/")  # WL-044: env only, never a deployment file or public server
 
 # Read secrets directly from backend/.env
 BACKEND_ENV = {}

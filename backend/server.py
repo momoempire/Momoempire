@@ -77,6 +77,9 @@ async def health():
     db = get_db()
     try:
         await db.command("ping")
+        from routers.marketing import waitlist_index_healthy  # EMP-WL-040: no unique email index
+        if not waitlist_index_healthy():
+            return {"status": "degraded"}
         return {"status": "ok", "db": "ok"}
     except Exception as e:
         return {"status": "degraded", "detail": str(e)}

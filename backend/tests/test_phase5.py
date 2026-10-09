@@ -7,16 +7,7 @@ import time
 import pytest
 import requests
 
-def _read_frontend_env():
-    try:
-        with open("/app/frontend/.env") as f:
-            for line in f:
-                if line.startswith("REACT_APP_BACKEND_URL"):
-                    return line.strip().split("=", 1)[1]
-    except Exception:
-        return None
-
-BASE_URL = (os.environ.get("REACT_APP_BACKEND_URL") or _read_frontend_env()).rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "http://127.0.0.1:9").rstrip("/")  # WL-044: env only, never a deployment file or public server
 API = f"{BASE_URL}/api"
 
 ADMIN_EMAIL = "ramonajefferson10@gmail.com"
