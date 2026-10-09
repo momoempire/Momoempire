@@ -10,3 +10,8 @@ A frontend lockfile was not found. Generate and commit one before enforcing froz
 - `frontend/yarn.lock` and `frontend/package-lock.json` are absent. Do **not** use `yarn install --frozen-lockfile` until a generated lockfile is reviewed and committed.
 - Safe preflight on a local/staging clone: `cd frontend && yarn install --non-interactive && yarn build`. Commit the resulting lockfile only after dependency review. This is an instruction, not a claimed successful build.
 - Production deployment remains disabled pending explicit approval, an actual clean build, and approved backend URL.
+
+## 2026-10-09 configuration check
+- Updated root `wrangler.toml` guidance to use `yarn install --non-interactive` instead of `--frozen-lockfile` until a reviewed `frontend/yarn.lock` is committed (commit `ee115ee2d6554797a23c388435f9ca441dc5695e`).
+- Confirmed `frontend/package.json` still references two Emergent-hosted development tarballs. Review/remove them after checking source usage.
+- A fresh dependency installation, compiled build, and Cloudflare preview deployment have **not** been executed; Task EMP-CF-003 remains in progress.
