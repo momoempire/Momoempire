@@ -26,27 +26,12 @@ import requests
 from datetime import datetime, timezone, timedelta
 from pymongo import MongoClient
 
-# Read REACT_APP_BACKEND_URL from frontend/.env since pytest env may not have it
-_FE_ENV = {}
-try:
-    with open("/app/frontend/.env") as _f:
-        for _ln in _f:
-            if "=" in _ln and not _ln.strip().startswith("#"):
-                _k, _v = _ln.strip().split("=", 1)
-                _FE_ENV[_k.strip()] = _v.strip().strip('"').strip("'")
-except Exception:
-    pass
-BASE_URL = (os.environ.get("REACT_APP_BACKEND_URL") or _FE_ENV.get("REACT_APP_BACKEND_URL") or "").rstrip("/")
-assert BASE_URL, "REACT_APP_BACKEND_URL missing"
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "http://127.0.0.1:9").rstrip("/")  # WL-044: env only, never a deployment file or public server
 
 # Read secrets directly from backend/.env
 BACKEND_ENV = {}
-with open("/app/backend/.env") as f:
-    for line in f:
-        line = line.strip()
-        if "=" in line and not line.startswith("#"):
-            k, v = line.split("=", 1)
-            BACKEND_ENV[k.strip()] = v.strip().strip('"').strip("'")
+# WL-044: from the environment only, never the deployment's backend/.env (secrets, DB URL).
+BACKEND_ENV.update(os.environ)
 STRIPE_WEBHOOK_SECRET = BACKEND_ENV.get("STRIPE_WEBHOOK_SECRET", "")
 WEBHOOK_CRON_SECRET = BACKEND_ENV.get("WEBHOOK_CRON_SECRET", "")
 MONGO_URL = BACKEND_ENV.get("MONGO_URL", "mongodb://localhost:27017")

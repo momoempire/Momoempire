@@ -8,35 +8,10 @@ import pytest
 import requests
 from pymongo import MongoClient
 
-def _read_env(path, key, default=None):
-    try:
-        with open(path) as fh:
-            for ln in fh:
-                if ln.strip().startswith(key + "="):
-                    return ln.split("=", 1)[1].strip().strip('"')
-    except Exception:
-        return default
-    return default
-
-BASE = (os.environ.get("REACT_APP_BACKEND_URL") or _read_env("/app/frontend/.env", "REACT_APP_BACKEND_URL") or "").rstrip("/")
-assert BASE, "REACT_APP_BACKEND_URL not configured"
+BASE = os.environ.get("REACT_APP_BACKEND_URL", "http://127.0.0.1:9").rstrip("/")  # WL-044: env only, never a deployment file or public server
 API = f"{BASE}/api"
-MONGO_URL = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
+MONGO_URL = os.environ.get("MONGO_URL", "mongodb://localhost:27017")  # WL-044: env only, never the deployment's backend/.env
 DB_NAME = os.environ.get("DB_NAME", "ai_office_platform")
-# Fallback: read from backend/.env directly for pytest runs outside supervisor env
-if MONGO_URL == "mongodb://localhost:27017" and not os.environ.get("MONGO_URL"):
-    try:
-        with open("/app/backend/.env") as fh:
-            for ln in fh:
-                if ln.startswith("MONGO_URL"):
-                    MONGO_URL = ln.split("=", 1)[1].strip().strip('"')
-                if ln.startswith("DB_NAME"):
-                    DB_NAME = ln.split("=", 1)[1].strip().strip('"')
-                if ln.startswith("WEBHOOK_CRON_SECRET"):
-                    os.environ["WEBHOOK_CRON_SECRET"] = ln.split("=", 1)[1].strip().strip('"')
-    except Exception:
-        pass
-
 CRON_SECRET = os.environ.get("WEBHOOK_CRON_SECRET", "")
 
 

@@ -6,20 +6,9 @@ import uuid
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://office-engine.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "http://127.0.0.1:9").rstrip("/")  # WL-044: never a public server by default
 
-# Load WEBHOOK_CRON_SECRET from backend/.env
-def _load_cron_secret():
-    try:
-        with open("/app/backend/.env") as f:
-            for line in f:
-                if line.startswith("WEBHOOK_CRON_SECRET="):
-                    return line.split("=", 1)[1].strip()
-    except Exception:
-        pass
-    return ""
-
-CRON_SECRET = _load_cron_secret()
+CRON_SECRET = os.environ.get("WEBHOOK_CRON_SECRET", "")  # WL-044: env only, never the deployment's backend/.env
 
 
 @pytest.fixture(scope="module")

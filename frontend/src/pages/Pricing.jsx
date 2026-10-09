@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
+import i18n from "@/i18n/estimator";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -88,6 +89,8 @@ export default function Pricing() {
             ))}
           </div>
         )}
+
+        <p className="mt-6 text-center text-sm text-white/70"><Link to="/estimate" className="underline hover:text-white" data-testid="pricing-estimate-link">{i18n.t("estimator.entry")}</Link></p>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-6">
           {trial && (
