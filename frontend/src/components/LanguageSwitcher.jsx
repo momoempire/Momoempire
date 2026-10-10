@@ -14,7 +14,8 @@ import { useAuth } from "@/context/AuthContext";
  */
 export default function LanguageSwitcher({ compact = false }) {
   const { i18n } = useTranslation();
-  const { user } = useAuth();
+  // Optional auth: the waitlist-only build has no AuthProvider (EMP-WL-026), so useAuth() is null.
+  const user = useAuth()?.user;
   const current = (i18n.language || "en").slice(0, 2);
 
   async function change(lng) {
