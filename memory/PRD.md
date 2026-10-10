@@ -118,7 +118,7 @@ All four phases ship as **one coherent multi-tenant platform**. Adding a new ind
 ### Upcoming / Backlog
 - P1: End-to-end Stripe Checkout wiring to `stripe_price_id` on frontend plan buttons.
 - P2: Translate remaining Landing marketing copy sections + admin panels (framework is in place; keys exist in locales/*.json).
-- P2: Vector embeddings for knowledge docs; CNAME active verification; push to github.com/momoempire/Momoempire.
+- P2: Vector embeddings for knowledge docs; CNAME active verification. (Repository is already pushed to https://github.com/momoempire/Momoempire; GitHub presence verified 2026-10-09. Cloudflare-2 deployment verification remains separate.)
 - P3: Real WebRTC voice demo on landing (currently text).
 
 
