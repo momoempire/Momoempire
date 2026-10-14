@@ -19,9 +19,9 @@ test("built bundle (if present) never mentions the internal name", () => {
   expect(findLeaks(build)).toEqual([]);
 });
 
-test("brand comes from env with the provisional defaults", () => {
-  expect(brandConfig({})).toEqual({ name: DEFAULT_BRAND_NAME, slogan: DEFAULT_BRAND_SLOGAN });
-  expect(brandConfig({ REACT_APP_BRAND_NAME: " Acme ", REACT_APP_BRAND_SLOGAN: "Hi" })).toEqual({ name: "Acme", slogan: "Hi" });
+test("brand comes from env with the Mind At Ease Solutions HVAC defaults", () => {
+  expect(brandConfig({})).toEqual({ niche: "hvac", name: DEFAULT_BRAND_NAME, slogan: DEFAULT_BRAND_SLOGAN, siteUrl: "https://hvac.mindateasesolutions.com" });
+  expect(brandConfig({ REACT_APP_BRAND_NAME: " Acme ", REACT_APP_BRAND_SLOGAN: "Hi" })).toMatchObject({ name: "Acme", slogan: "Hi" });
 });
 
 test("source map 'mappings' noise is ignored, but a real leak in a map is still caught", () => {

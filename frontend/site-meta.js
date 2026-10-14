@@ -37,7 +37,7 @@ function absoluteUrl(name, raw) {
 }
 
 function siteConfig(env = process.env) {
-  const siteUrl = absoluteUrl("REACT_APP_SITE_URL", env.REACT_APP_SITE_URL).replace(/\/+$/, "");
+  const siteUrl = (absoluteUrl("REACT_APP_SITE_URL", env.REACT_APP_SITE_URL) || brandConfig(env).siteUrl).replace(/\/+$/, "");
   return {
     name: clean(env.REACT_APP_SITE_NAME) || brandConfig(env).name,
     description: clean(env.REACT_APP_SITE_DESCRIPTION) || brandConfig(env).slogan,

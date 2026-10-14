@@ -100,7 +100,7 @@ def test_explicitly_on_sends_once_per_new_address(env, value):
     c.post(WL, json={"email": "On@Example.com"})
     c.post(WL, json={"email": "on@example.com"})  # repeat: no second email
     assert [x["to"] for x in calls] == ["On@example.com"]
-    assert calls[0]["subject"] == "You're on the waitlist for Your Business Name"  # brand.py default
+    assert calls[0]["subject"] == "You're on the waitlist for Mind At Ease Solutions HVAC"  # brand.py default
     assert "confirmation_sent_at" in db.waitlist.docs[0]
 
 

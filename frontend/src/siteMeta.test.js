@@ -12,10 +12,10 @@ const attrs = (tags) => tags.map((t) => t.attributes);
 const find = (tags, key, value) => attrs(tags).find((a) => a[key] === value);
 
 describe("siteConfig", () => {
-  test("defaults keep the existing title/description and need no domain", () => {
+  test("defaults use the brand name and the niche brand URL", () => {
     const cfg = siteConfig({});
     expect(cfg).toEqual({
-      name: DEFAULT_SITE_NAME, description: DEFAULT_DESCRIPTION, siteUrl: "", ogImage: "", waitlistOnly: false,
+      name: DEFAULT_SITE_NAME, description: DEFAULT_DESCRIPTION, siteUrl: "https://hvac.mindateasesolutions.com", ogImage: "", waitlistOnly: false,
     });
   });
 
@@ -30,11 +30,11 @@ describe("siteConfig", () => {
 });
 
 describe("meta tags", () => {
-  test("without a domain or image: no og:url / og:image, small Twitter card", () => {
+  test("without an image: brand og:url, no og:image, small Twitter card", () => {
     const tags = metaTags(siteConfig({}));
     expect(find(tags, "name", "description").content).toBe(DEFAULT_DESCRIPTION);
     expect(find(tags, "property", "og:title").content).toBe(DEFAULT_SITE_NAME);
-    expect(find(tags, "property", "og:url")).toBeUndefined();
+    expect(find(tags, "property", "og:url").content).toBe("https://hvac.mindateasesolutions.com/");
     expect(find(tags, "property", "og:image")).toBeUndefined();
     expect(find(tags, "name", "twitter:image")).toBeUndefined();
     expect(find(tags, "name", "twitter:card").content).toBe("summary");
@@ -64,10 +64,10 @@ describe("meta tags", () => {
 });
 
 describe("robots.txt and sitemap.xml", () => {
-  test("no site URL: robots allows all, no Sitemap line, no sitemap.xml", () => {
+  test("no site URL: defaults to the brand URL for Sitemap; sitemapXml needs a URL", () => {
     const cfg = siteConfig({ REACT_APP_WAITLIST_ONLY: "true" });
-    expect(robotsTxt(cfg)).toBe("User-agent: *\nAllow: /\n");
-    expect(sitemapXml(cfg)).toBeNull();
+    expect(robotsTxt(cfg)).toBe("User-agent: *\nAllow: /\n\nSitemap: https://hvac.mindateasesolutions.com/sitemap.xml\n");
+    expect(sitemapXml({ ...cfg, siteUrl: "" })).toBeNull();
   });
 
   test("waitlist build lists /, /privacy, /terms and the industry pages", () => {

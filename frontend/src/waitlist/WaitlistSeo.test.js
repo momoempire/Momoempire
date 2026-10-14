@@ -61,10 +61,10 @@ describe("<CanonicalLink />", () => {
     act(() => root.unmount());
   });
 
-  test("no REACT_APP_SITE_URL: no canonical tag (domain is TODO(Brann))", async () => {
+  test("no REACT_APP_SITE_URL: canonical falls back to the niche brand URL", async () => {
     delete process.env.REACT_APP_SITE_URL;
     const root = await render("/");
-    expect(links()).toEqual([]);
+    expect(links().map((l) => l.href)).toEqual(["https://hvac.mindateasesolutions.com/"]);
     act(() => root.unmount());
   });
 

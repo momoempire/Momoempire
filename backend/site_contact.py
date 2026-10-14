@@ -5,6 +5,8 @@ CONTACT_EMAIL / SITE_URL mirror the frontend's REACT_APP_CONTACT_EMAIL / REACT_A
 """
 import os
 
+import brand
+
 DEFAULT_CONTACT_EMAIL = "contact@example.com"
 
 
@@ -13,5 +15,5 @@ def contact_email() -> str:
 
 
 def site_url() -> str:
-    """Public site origin without trailing slash, or "" when unset."""
-    return (os.environ.get("SITE_URL") or "").strip().rstrip("/")
+    """Public site origin without trailing slash; defaults to the niche brand URL."""
+    return (os.environ.get("SITE_URL") or "").strip().rstrip("/") or brand.brand_site_url()

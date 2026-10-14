@@ -311,7 +311,7 @@ async def standup_ics(user: dict = Depends(require_tenant_user)):
         "", "Today's schedule:", *(lines or ["(no appointments)"]),
     ])
 
-    uid = f"aio-standup-{user['tenant_id']}-{now.strftime('%Y%m%d')}@aioffice"
+    uid = f"aio-standup-{user['tenant_id']}-{now.strftime('%Y%m%d')}@mindateasesolutions.com"
     dtstamp = now.strftime("%Y%m%dT%H%M%SZ")
     dtstart = now.strftime("%Y%m%dT%H%M%SZ")
     dtend = end_of_day.strftime("%Y%m%dT%H%M%SZ")

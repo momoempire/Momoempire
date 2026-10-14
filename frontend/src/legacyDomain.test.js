@@ -18,8 +18,8 @@ test("built bundle (if present) never contains the old domain", () => {
   expect(findLegacyDomain(build)).toEqual([]);
 });
 
-test("contact email and site URL come from env with a placeholder default", () => {
-  expect(contactConfig({})).toEqual({ email: DEFAULT_CONTACT_EMAIL, siteUrl: "" });
+test("contact email and site URL come from env with a placeholder email and the brand site URL default", () => {
+  expect(contactConfig({})).toEqual({ email: DEFAULT_CONTACT_EMAIL, siteUrl: "https://hvac.mindateasesolutions.com" });
   expect(DEFAULT_CONTACT_EMAIL).toMatch(/@example\.com$/);
   expect(PATTERN.test(DEFAULT_CONTACT_EMAIL)).toBe(false);
   expect(contactConfig({ REACT_APP_CONTACT_EMAIL: " hi@test.invalid ", REACT_APP_SITE_URL: "https://x.test/" }))
