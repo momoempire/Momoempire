@@ -387,5 +387,21 @@
     "footnote": "Los planes se actualizan desde el panel de administración; los precios mostrados están siempre al día.",
     "home": "Inicio",
     "get_started": "Comenzar"
+  },
+  "tracking": {
+    "live": "En vivo",
+    "no_signal": "Sin señal",
+    "updated_just_now": "Ahora mismo",
+    "updated_min_ago": "Actualizado hace {{n}} min",
+    "view_map": "Ver mapa",
+    "eta_title": "Rastrea a tu técnico",
+    "eta_heading": "{name} va en camino",
+    "eta_status_en_route": "En camino",
+    "eta_status_on_site": "Técnico en el lugar",
+    "eta_status_completed": "Completado",
+    "eta_no_position": "Esperando la posición en vivo…",
+    "eta_last_update": "Última actualización: {{time}}",
+    "eta_auto_refresh": "Se actualiza automáticamente cada 30 segundos",
+    "eta_invalid_link": "Este enlace de rastreo no es válido o ha expirado."
   }
 }

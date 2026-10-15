@@ -387,5 +387,21 @@
     "footnote": "Plans update live from the admin dashboard — pricing shown is always current.",
     "home": "Home",
     "get_started": "Get started"
+  },
+  "tracking": {
+    "live": "Live",
+    "no_signal": "No signal",
+    "updated_just_now": "Just now",
+    "updated_min_ago": "Updated {{n}} min ago",
+    "view_map": "View map",
+    "eta_title": "Track your technician",
+    "eta_heading": "{name} is on the way",
+    "eta_status_en_route": "On the way",
+    "eta_status_on_site": "Tech on site",
+    "eta_status_completed": "Completed",
+    "eta_no_position": "Waiting for the live position…",
+    "eta_last_update": "Last update: {{time}}",
+    "eta_auto_refresh": "Updates automatically every 30 seconds",
+    "eta_invalid_link": "This tracking link is invalid or has expired."
   }
 }
