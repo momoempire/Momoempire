@@ -63,7 +63,8 @@
     "repeat": "Agenda Recurrente",
     "platform_admin": "Administrador",
     "photo_estimates": "Estimados con foto",
-    "marketing": "Marketing"
+    "marketing": "Marketing",
+    "ai_dispatcher": "Despachador IA"
   },
   "landing": {
     "nav_features": "Funciones",
@@ -567,5 +568,6 @@
     "add_step": "Añadir paso",
     "step_n": "Paso {{n}}",
     "delay_days": "retraso (días)"
-  }
+  },
+  "ai_dispatcher": "Despachador IA"
 }
