@@ -80,7 +80,10 @@ engine, outbound voice AI, per-job profitability, price intelligence).
    its own Twilio subaccount + dedicated number(s) at signup (platform holds one
    parent account); existing numbers portable in. Required for the 270-business
    plan — one shared number cannot serve many businesses (branding, 10DLC
-   compliance, throughput, reputation isolation).
+   compliance, throughput, reputation isolation). **Fee model (decided
+   2026-10-15): bundled** — telephony included in the flat platform fee with a
+   generous usage allowance; overages billed through. Shops never open their own
+   Twilio account.
 9. **Predictive revenue engine** — equipment age + season + history → auto-generated
    replacement/upsell quotes with financing pre-attached, one tap to send.
 10. **Outbound voice AI** — missed-call callbacks in 60s, overdue-invoice calls,
