@@ -174,6 +174,36 @@ Some endgame ideas port directly to the bookkeeping app:
 - **Autonomous categorization** — every transaction categorized at confidence;
   only low-confidence items ever surface for human review.
 
+## Competitor-gap audit — added 2026-10-15
+
+**Gaps vs ServiceTitan-class (must-add):**
+31. **Marketing automation** — email/SMS campaigns, audience segmentation,
+    automated nurture sequences. Plugs directly into the lead-gen core of the
+    business model. (Phase B priority.)
+32. **Tech time tracking / timesheets** — clock-in/out feeding payroll; pairs
+    with the bookkeeping app's payroll-lite.
+33. **Inventory / truck stock** — what's on each truck and in the warehouse;
+    pairs with Phase D parts ordering (buying) by covering tracking.
+34. **Multi-location management** — consolidated reporting + cross-location
+    dispatch for multi-branch shops. Matters for the 270-business plan.
+
+**Gaps vs the broader field (Jobber, Housecall Pro):**
+35. **Public API + Zapier** — integration ecosystem; lets shops connect the
+    thousands of tools we don't build. Table stakes for platform credibility.
+36. **Custom job forms / checklists** — structured on-site checklists (install
+    QC, safety, trade-specific) techs complete from the field.
+
+**New differentiators nobody has:**
+37. **Predictive failure alerts** — equipment history + service data →
+    "your capacitor shows wear patterns; 73% fail within 90 days — book now."
+    Our data moat, weaponized. Surfaced to homeowners via the home hub.
+38. **AI home report after every visit** — beautiful homeowner-facing summary:
+    what was done, photos, system health scores, what's coming due. Drives
+    reviews, repeat business, and home-hub adoption.
+39. **Home profile transfer on sale** — when a homeowner sells, the home's full
+    service history transfers to the new owner with the shop retained as
+    provider. Lock-in through real estate transactions.
+
 ## Customer-service excellence initiative (both layers, one brain)
 
 The moat: one AI brain serves the shop AND the shop's customers with shared
