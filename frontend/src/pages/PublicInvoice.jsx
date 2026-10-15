@@ -4,6 +4,7 @@ import { api, errMessage } from "@/lib/api";
 import { fmtUSD, lineTotal } from "@/lib/money";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Loader2 } from "lucide-react";
+import FinancingOptions from "@/components/FinancingOptions";
 
 // Public "Pay online" page for an invoice sent to a customer.
 // Backend: GET /api/public/c2p/invoices/:token, POST .../pay (Stripe PaymentIntent on the
@@ -101,6 +102,8 @@ export default function PublicInvoice() {
             <tr className="font-semibold"><td className="py-2">Amount due</td><td className="py-2 text-right" data-testid="public-invoice-due">{fmtUSD(due)}</td></tr>
           </tfoot>
         </table>
+
+        {!paid && <FinancingOptions token={token} />}
 
         {error && <p role="alert" className="mt-4 text-sm text-rose-600">{error}</p>}
 

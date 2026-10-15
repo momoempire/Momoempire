@@ -4,6 +4,7 @@ import { api, errMessage } from "@/lib/api";
 import { fmtUSD, lineTotal } from "@/lib/money";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Loader2 } from "lucide-react";
+import FinancingOptions from "@/components/FinancingOptions";
 
 // Public "Review & accept" page for a quote/estimate sent to a customer.
 // Backend: GET/POST /api/public/c2p/quotes/:token[/accept]
@@ -67,6 +68,8 @@ export default function PublicQuote() {
           </tbody>
           <tfoot><tr className="border-t font-semibold"><td className="py-2" colSpan={2}>Total</td><td className="py-2 text-right" data-testid="public-quote-total">{fmtUSD(quote.total)}</td></tr></tfoot>
         </table>
+
+        <FinancingOptions token={token} />
 
         {error && <p role="alert" className="mt-4 text-sm text-rose-600">{error}</p>}
 
