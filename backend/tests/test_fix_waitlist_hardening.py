@@ -279,8 +279,15 @@ def test_waitlist_exhaustion_does_not_block_demo(env):
 
 
 def test_limiters_are_distinct_objects():
+    # Buckets are now backed by the shared rate_limit interface (namespaced);
+    # assert the behavioral contract, not the old .hits internals.
     assert mk._DEMO_LIMIT is not mk._WAITLIST_IP_MINUTE
-    assert mk._DEMO_LIMIT.hits is not mk._WAITLIST_IP_MINUTE.hits
+    for _ in range(20):
+        assert mk._DEMO_LIMIT.allow("same-key")
+    assert not mk._DEMO_LIMIT.allow("same-key")  # demo bucket exhausted
+    assert mk._WAITLIST_IP_MINUTE.allow("same-key")  # waitlist bucket unaffected
+    mk._DEMO_LIMIT.reset()
+    mk._WAITLIST_IP_MINUTE.reset()
 
 
 # ---------------- real client IP / spoofed X-Forwarded-For ----------------

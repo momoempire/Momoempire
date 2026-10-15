@@ -12,6 +12,7 @@ from starlette.middleware.cors import CORSMiddleware
 from db import get_db, close_db
 from seed_data import run_all_seeds
 from routers.auth import router as auth_router
+from routers.two_factor import router as two_factor_router
 from routers.industries import router as industries_router
 from routers.countries import router as countries_router
 from routers.tenants import router as tenants_router
@@ -95,6 +96,7 @@ async def health():
 
 # Register feature routers
 api.include_router(auth_router)
+api.include_router(two_factor_router)
 api.include_router(industries_router)
 api.include_router(countries_router)
 api.include_router(tenants_router)
@@ -171,6 +173,10 @@ from deploy_security import cors_options  # noqa: E402
 app.add_middleware(CORSMiddleware, **cors_options())
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+
+# Error monitoring: no-op unless SENTRY_DSN is set.
+from sentry_init import init_sentry  # noqa: E402
+init_sentry()
 log = logging.getLogger("aio")
 
 # EMP-W-CF-023: cookie-authenticated POST/PUT/PATCH/DELETE must come from an allowed Origin
