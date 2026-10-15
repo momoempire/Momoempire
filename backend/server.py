@@ -63,6 +63,7 @@ from routers.pricebook import router as pricebook_router
 from routers.equipment import router as equipment_router
 from routers.tracking import router as tracking_router, public_router as tracking_public_router
 from routers.financing import router as financing_router, public_router as financing_public_router
+from routers.bookkeeping_link import router as bookkeeping_link_router
 
 app = FastAPI(title="AI Office Platform API")
 api = APIRouter(prefix="/api")
@@ -153,6 +154,7 @@ api.include_router(tracking_router)
 api.include_router(tracking_public_router)
 api.include_router(financing_router)
 api.include_router(financing_public_router)
+api.include_router(bookkeeping_link_router)
 # Stripe is registered to deliver webhooks to /api/stripe/webhook (top-level, platform account).
 api.add_api_route("/stripe/webhook", _stripe_wh, methods=["POST"], include_in_schema=False)
 # Stripe Connect webhook (connected accounts) → /api/stripe/connect-webhook. Separate signing secret.
