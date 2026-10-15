@@ -8,7 +8,7 @@ import {
   Home, Bot, PhoneCall, MessageSquare, Target, Users, CalendarClock,
   Wrench, CreditCard, Globe, UserRound, Star, LineChart, Compass,
   BookOpenText, Workflow, Plug, PhoneForwarded, Gauge, Receipt, Settings,
-  LogOut, ShieldCheck, Rocket, Repeat, ClipboardList, BookOpen, Camera, Megaphone,
+  LogOut, ShieldCheck, Rocket, Repeat, ClipboardList, BookOpen, Camera, Megaphone, TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -38,10 +38,12 @@ const GROUPS = [
       { to: "/app/customers", icon: Users, label: "nav.customers", testId: "nav-customers" },
       { to: "/app/appointments", icon: CalendarClock, label: "nav.appointments", testId: "nav-appointments" },
       { to: "/app/dispatch", icon: ClipboardList, label: "nav.dispatch", testId: "nav-dispatch" },
+      { to: "/app/ai-dispatcher", icon: Bot, label: "nav.ai_dispatcher", testId: "nav-ai-dispatcher" },
       { to: "/app/repeat", icon: Repeat, label: "nav.repeat", testId: "nav-repeat" },
       { to: "/app/services", icon: Wrench, label: "nav.services", testId: "nav-services" },
       { to: "/app/pricebook", icon: BookOpen, label: "nav.pricebook", testId: "nav-pricebook" },
       { to: "/app/photo-estimates", icon: Camera, label: "nav.photo_estimates", testId: "nav-photo-estimates" },
+      { to: "/app/onboarding", icon: Rocket, label: "nav.onboarding", testId: "nav-onboarding" },
       { to: "/app/equipment", icon: Wrench, label: "nav.equipment", testId: "nav-equipment" },
       { to: "/app/payments", icon: CreditCard, label: "nav.payments", testId: "nav-payments" },
       { to: "/app/website", icon: Globe, label: "nav.website", testId: "nav-website" },
@@ -57,6 +59,7 @@ const GROUPS = [
       { to: "/app/advisor", icon: Compass, label: "nav.advisor", testId: "nav-advisor" },
       { to: "/app/sales-intel", icon: Target, label: "nav.sales_intel", testId: "nav-sales-intel" },
       { to: "/app/growth", icon: Rocket, label: "nav.growth", testId: "nav-growth" },
+      { to: "/app/revenue", icon: TrendingUp, label: "nav.revenue", testId: "nav-revenue" },
       { to: "/app/marketing", icon: Megaphone, label: "nav.marketing", testId: "nav-marketing" },
       { to: "/app/knowledge", icon: BookOpenText, label: "nav.knowledge", testId: "nav-knowledge" },
     ],
