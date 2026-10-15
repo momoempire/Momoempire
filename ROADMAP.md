@@ -77,8 +77,10 @@ engine, outbound voice AI, per-job profitability, price intelligence).
    pricebook, customers, and service history in an afternoon. Kills ServiceTitan's
    implementation-moat advantage and becomes the #1 sales pitch. Includes
    **Twilio subaccount auto-provisioning**: each new business automatically gets
-   its own Twilio subaccount + dedicated number(s) at signup (platform holds one
-   parent account); existing numbers portable in. Required for the 270-business
+   its own Twilio subaccount at signup (platform holds one parent account).
+   Numbering is flexible per business: port in their existing number(s), take
+   freshly provisioned number(s), or both (e.g. keep the familiar main line +
+   add a dedicated AI/marketing line). Required for the 270-business
    plan — one shared number cannot serve many businesses (branding, 10DLC
    compliance, throughput, reputation isolation). **Fee model (decided
    2026-10-15): bundled** — telephony included in the flat platform fee with a
