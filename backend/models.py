@@ -232,7 +232,7 @@ class AppointmentIn(BaseModel):
     staff: str = ""
     start_at: str  # ISO
     end_at: str
-    status: Literal["scheduled", "confirmed", "completed", "canceled", "no_show"] = "scheduled"
+    status: Literal["scheduled", "confirmed", "en_route", "on_site", "completed", "canceled", "no_show"] = "scheduled"
     notes: str = ""
 
 
