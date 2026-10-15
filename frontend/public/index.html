@@ -4,20 +4,10 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#000000" />
-        <!-- No flash of the wrong theme: set <html class="dark"> before first paint, using the same
-             rule as next-themes (src/components/ThemeProvider.jsx): saved "theme" choice, else the
-             OS setting. Inline on purpose; if a CSP is ever added, allow this script by hash. -->
-        <script>
-            (function () {
-                try {
-                    var t = localStorage.getItem("theme");
-                    var dark = t === "dark" || ((!t || t === "system") && window.matchMedia("(prefers-color-scheme: dark)").matches);
-                    var c = document.documentElement.classList;
-                    c.add(dark ? "dark" : "light");
-                    document.documentElement.style.colorScheme = dark ? "dark" : "light";
-                } catch (e) {}
-            })();
-        </script>
+        <!-- No flash of the wrong theme: theme-init.js sets <html class="dark"> before first
+             paint (same rule as src/components/ThemeProvider.jsx). External file so the
+             Content-Security-Policy needs no 'unsafe-inline' for scripts. -->
+        <script src="%PUBLIC_URL%/theme-init.js"></script>
         <link rel="icon" href="%PUBLIC_URL%/favicon.svg" type="image/svg+xml" />
         <link rel="icon" href="%PUBLIC_URL%/favicon-32.png" type="image/png" sizes="32x32" />
         <link rel="apple-touch-icon" href="%PUBLIC_URL%/apple-touch-icon.png" />
