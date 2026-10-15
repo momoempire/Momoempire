@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends
 from db import get_db
 from security import require_tenant_user
-from models_phase2 import PLAN_LIMITS, WARNING_THRESHOLDS
+from models import PLAN_LIMITS, WARNING_THRESHOLDS
 
 router = APIRouter(prefix="/usage", tags=["usage"])
 

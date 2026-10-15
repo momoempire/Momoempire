@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Request, HTTPException
 from fastapi.responses import Response
 from db import get_db
 from models import _uuid, _now_iso
-from models_phase2 import Conversation, ConvMessage
+from models import Conversation, ConvMessage
 from ai_receptionist import receptionist_reply
 from services.twilio import twiml_voice_response, twiml_say_and_gather, send_sms, _tenant_twilio_cfg
 from services import twilio_signature
