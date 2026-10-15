@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from db import get_db
 from models import _now_iso
-from models_phase3 import QualityFlag, QualityIssueType
+from models import QualityFlag, QualityIssueType
 from security import require_tenant_user, require_platform_admin
 
 router = APIRouter(prefix="/quality", tags=["ai-quality"])

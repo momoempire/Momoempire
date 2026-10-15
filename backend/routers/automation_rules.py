@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime, timezone, timedelta
 from db import get_db
 from models import _now_iso
-from models_phase3 import AutomationRule, AutomationRuleIn
+from models import AutomationRule, AutomationRuleIn
 from security import require_tenant_user, require_tenant_owner_or_admin
 from routers.usage import record_usage
 
@@ -121,7 +121,7 @@ async def _execute_actions(tenant_id: str, rule: dict, target: dict, kind: str) 
             print(f"[AUTO-NOTIFY-OWNER→{dest}] {rule['name']} fired for {kind}")
             lines.append(f"Owner notified at {dest}")
         elif atype == "request_review":
-            from models_phase2 import ReviewRequest
+            from models import ReviewRequest
             rr = ReviewRequest(
                 tenant_id=tenant_id, customer_id=target.get("id"),
                 customer_name=name, customer_phone=phone,
