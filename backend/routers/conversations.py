@@ -4,7 +4,7 @@ from typing import List, Optional
 from datetime import datetime, timezone
 from db import get_db
 from models import _uuid, _now_iso, Lead, Appointment, Customer
-from models_phase2 import (
+from models import (
     Conversation, ConversationIn, ConvMessage, ConvMessageIn, SimulateCallerIn,
 )
 from security import require_tenant_user

@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List
 from db import get_db
-from models_phase4 import DomainSearchIn, DomainPurchaseIn
+from models import DomainSearchIn, DomainPurchaseIn
 from security import require_tenant_user, require_platform_admin
 
 
@@ -103,7 +103,7 @@ async def purchase(data: DomainPurchaseIn, user: dict = Depends(require_tenant_u
         raise HTTPException(400, "Unknown provider")
     out = await p.purchase(data.domain, data.years)
     # Auto-register the domain in the tenant's own Domain list (routes to CNAME wizard)
-    from models_phase2 import Domain
+    from models import Domain
     import os
     apex = os.environ.get("CNAME_TARGET_HOST", "office-engine.preview.emergentagent.com")
     d = Domain(tenant_id=user["tenant_id"], domain=data.domain.lower(), cname_target=apex)

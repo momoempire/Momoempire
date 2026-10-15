@@ -2,7 +2,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from db import get_db
 from models import _now_iso
-from models_phase2 import IntegrationConfig, IntegrationConfigIn
+from models import IntegrationConfig, IntegrationConfigIn
 from security import require_tenant_owner_or_admin
 
 router = APIRouter(prefix="/tenants/integrations", tags=["integrations"])

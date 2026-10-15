@@ -3,7 +3,7 @@ import os
 from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timezone, timedelta
 from db import get_db
-from models_phase3 import IndustryBrief
+from models import IndustryBrief
 from security import require_tenant_user
 
 router = APIRouter(prefix="/tenants/industry-intel", tags=["industry-intel"])

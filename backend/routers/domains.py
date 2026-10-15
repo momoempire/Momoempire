@@ -3,7 +3,7 @@ import os
 import socket
 from fastapi import APIRouter, HTTPException, Depends
 from db import get_db
-from models_phase2 import Domain, DomainIn
+from models import Domain, DomainIn
 from models import _now_iso
 from security import require_tenant_owner_or_admin
 

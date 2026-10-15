@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Depends, Response
 from datetime import datetime, timezone, timedelta
 from db import get_db
 from models import _uuid, _now_iso
-from models_phase2 import InvitationIn, Invitation, InvitationAccept
+from models import InvitationIn, Invitation, InvitationAccept
 from security import (
     hash_password, require_tenant_owner_or_admin,
     create_access_token, create_refresh_token, set_auth_cookies,

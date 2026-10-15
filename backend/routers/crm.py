@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timezone
 from db import get_db
 from models import _now_iso
-from models_phase2 import Estimate, EstimateIn, Invoice, InvoiceIn
+from models import Estimate, EstimateIn, Invoice, InvoiceIn
 from security import require_tenant_user
 
 router = APIRouter(prefix="/tenants", tags=["crm"])
