@@ -71,6 +71,10 @@ from routers.marketing_automation import (
     public_router as marketing_automation_public_router,
     admin_router as marketing_automation_admin_router,
 )
+from routers.ai_dispatcher import router as ai_dispatcher_router
+from routers.ai_onboarding import router as ai_onboarding_router
+from routers.predictive_revenue import router as predictive_revenue_router
+from routers.outbound_voice import router as outbound_voice_router
 
 app = FastAPI(title="AI Office Platform API")
 api = APIRouter(prefix="/api")
@@ -167,6 +171,10 @@ api.include_router(photo_estimates_router)
 api.include_router(marketing_automation_router)
 api.include_router(marketing_automation_public_router)
 api.include_router(marketing_automation_admin_router)
+api.include_router(ai_dispatcher_router)
+api.include_router(ai_onboarding_router)
+api.include_router(predictive_revenue_router)
+api.include_router(outbound_voice_router)
 # Stripe is registered to deliver webhooks to /api/stripe/webhook (top-level, platform account).
 api.add_api_route("/stripe/webhook", _stripe_wh, methods=["POST"], include_in_schema=False)
 # Stripe Connect webhook (connected accounts) → /api/stripe/connect-webhook. Separate signing secret.
