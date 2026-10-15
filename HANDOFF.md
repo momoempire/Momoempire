@@ -1,6 +1,13 @@
 # HANDOFF — AI Office Platform (Rounds 1 & 2 complete)
 
-> **Resume here.** Rounds 1 (Cloudflare prep) and 2 (call-to-payment) are **code-complete and committed locally**. Nothing has been pushed to GitHub, deployed, or purchased. Round 3 (Spanish/voice) is **not started**.
+> **Branch status (updated 2026-10-15, `cleanup/cloudflare-2-polish` pass).**
+> This branch (`Cloudflare-2`) contains Rounds 1 (Cloudflare prep) and 2
+> (call-to-payment) **code-complete**. Round 3 (Spanish/voice) is **not started**.
+> Nothing in this handoff has been deployed to production yet.
+> The original "Save to GitHub" workflow notes below are historical — the code
+> now lives on this branch; use normal `git` branching/PR flow from here.
+
+> **Resume here.** Rounds 1 (Cloudflare prep) and 2 (call-to-payment) are **code-complete and committed**. Nothing has been deployed or purchased. Round 3 (Spanish/voice) is **not started**.
 
 ## Final status snapshot — what the agent did
 
@@ -11,50 +18,27 @@
 | Round 3 — Spanish / voice | `spanish-voice-finish` | — | **Not started.** No commits. |
 | Round 0 — Phase 11 (prior) | — | `dd1d2db` | Already in your history. |
 
-Local branch state: **only `main` exists in `/app`.** All my commits sit linearly on top of the previous Phase 11 head. The three-branch split you asked for happens **after** you click Save to GitHub (see below).
+Local branch state at the time of writing: all commits sat linearly on top of the
+previous Phase 11 head. The three-branch split described below happened **after**
+the code was pushed — see the branch plan further down.
 
-## What is saved vs. what still needs your click
+## What is saved vs. what still needed a push (historical)
 
-### Saved locally in `/app` (auto-committed by Emergent after each turn)
+### Saved in the repo
 - ✅ `backend/llm_portable.py`, `backend/routers/health_deploy.py`, `backend/routers/call_to_payment.py`
 - ✅ Edits to `backend/server.py`, `backend/ai_receptionist.py`, `backend/ai_insights.py`, and 5 other routers (import swap only)
 - ✅ `backend/Dockerfile`, `backend/.dockerignore`, `docker-compose.yml`
 - ✅ `frontend/public/_redirects`, `frontend/public/_headers`, `wrangler.toml`
 - ✅ `.emergent/crons.yml` (overdue-reminders + repeat-reminders schedules)
-- ✅ `/app/HANDOFF.md`, `/app/memory/PRD.md`, `/app/memory/test_credentials.md`
+- ✅ `HANDOFF.md`, `memory/PRD.md`
 - ✅ `backend/tests/test_call_to_payment.py`, `backend/tests/test_iteration10_cloudflare_prep.py`
 - ✅ `test_reports/iteration_10.json`, `test_reports/iteration_11.json`
 
-### Still needs YOU to click "Save to GitHub" in the chat input
-I do **not** have `git push` rights from this environment. Everything above lives only on this pod until you push.
+> Historical note: this section originally described pushing from the Emergent
+> environment via its "Save to GitHub" button. That workflow is obsolete — the
+> code is now on the `Cloudflare-2` branch. Use normal `git push` / PR flow.
 
-## How to save to the three branches you want
-
-> Reality check: Emergent's **Save to GitHub** button pushes the current `main` **as-is** to the branch name you pick. All my commits are already on local `main`; I cannot split them into three branches from here. Pick ONE of the two options below.
-
-### Option A — Simplest (recommended): one combined branch now, split later if needed
-
-1. Click **Save to GitHub** in the chat input.
-2. Target branch: `cloudflare-and-call-to-payment` (or `empire-market-expansion-rounds-1-2`).
-3. Open a PR against `main` on GitHub. Review by commit (the Round 1 and Round 2 boundaries at SHAs `54d84cf` and `e6dc83f` are clean checkpoints).
-4. Leave `main` and `empire-market-expansion` **untouched** on GitHub — nothing in this handoff is destined for either.
-
-If you later want the formal three-branch split, do it from your laptop after the push:
-```bash
-git fetch origin
-git checkout -b cloudflare-ready 54d84cf    # or the matching SHA on your remote
-git push origin cloudflare-ready
-git checkout -b call-to-payment e6dc83f
-git push origin call-to-payment
-```
-
-### Option B — Three branches via the UI, one at a time
-If the Save to GitHub button supports choosing which commit to push, click it three times:
-1. First push → branch `cloudflare-ready`, cutoff at commit `54d84cf`.
-2. Second push → branch `call-to-payment`, cutoff at commit `e6dc83f`.
-3. Round 3 branch (`spanish-voice-finish`) is not yet created; skip.
-
-If the button only pushes HEAD, use Option A — the branch split is a safe post-push `git` operation.
+## Branch plan (historical — for reference)
 
 ## Round 3 — unfinished work (next session's starting point)
 
@@ -222,7 +206,8 @@ git merge --no-ff call-to-payment
 git merge --no-ff spanish-voice-finish
 ```
 
-I cannot `git` from this environment. Create and switch branches via the Emergent **"Save to GitHub"** button; it accepts a branch name per push.
+Create and switch branches with normal `git` commands (the old Emergent
+"Save to GitHub" button workflow is obsolete — this code now lives on a branch).
 
 ## What actually changed in this branch
 
@@ -289,7 +274,7 @@ docker build -t ai-office-backend .
 docker run -d --name aio --env-file .env -p 8001:8001 ai-office-backend
 
 # OR with compose (brings up Mongo too if you don't use Atlas):
-cd /app
+# (from the repo root)
 docker compose up -d
 
 # Oracle Cloud: push image to OCI Container Registry, then run on an Ampere VM.
