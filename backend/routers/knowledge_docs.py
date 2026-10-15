@@ -11,7 +11,7 @@ from pypdf import PdfReader
 from docx import Document as DocxDoc
 
 from db import get_db
-from models_phase3 import KnowledgeDoc, KnowledgeChunk
+from models import KnowledgeDoc, KnowledgeChunk
 from models import _uuid, _now_iso
 from security import require_tenant_user, require_tenant_owner_or_admin, require_platform_admin
 from services.embeddings import (

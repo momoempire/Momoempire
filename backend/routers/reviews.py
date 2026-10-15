@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timezone
 from pydantic import BaseModel
 from db import get_db
-from models_phase2 import ReviewRequest, ReviewRequestIn
+from models import ReviewRequest, ReviewRequestIn
 from security import require_tenant_user
 from routers.usage import record_usage
 from services.email import send_email, review_request_html

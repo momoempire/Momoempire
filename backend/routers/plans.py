@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from db import get_db
 from models import _now_iso
-from models_phase4 import Plan, PlanIn, CostConfig, CostConfigIn
+from models import Plan, PlanIn, CostConfig, CostConfigIn
 from security import require_platform_admin
 
 router = APIRouter(prefix="/admin/plans", tags=["admin-plans"], dependencies=[Depends(require_platform_admin)])

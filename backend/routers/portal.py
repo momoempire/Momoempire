@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Response, Request
 from pydantic import BaseModel
 from db import get_db
 from models import _uuid, _now_iso, Lead, Customer, Appointment
-from models_phase2 import ServiceRequestIn, PortalMagicLinkIn
+from models import ServiceRequestIn, PortalMagicLinkIn
 
 router = APIRouter(prefix="/portal", tags=["portal"])
 
