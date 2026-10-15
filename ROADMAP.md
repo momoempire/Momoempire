@@ -49,8 +49,25 @@
    bookkeeping app (the QuickBooks competitor), not QuickBooks. Provider-abstracted
    adapter; per-tenant encrypted API token; auto-sync on invoice-paid. (Replaces
    the earlier QuickBooks-sync plan per user directive 2026-10-15.)
-6. **AI photo estimates** — customer sends a photo, AI generates a draft estimate
-   (leans on the pricebook from #1).
+6. **AI photo estimates** ✅ done (`feature/ai-photo-estimates`) — customer sends a
+   photo, AI generates a draft estimate (leans on the pricebook from #1).
+   `VisionProvider` ABC + deterministic `MockVisionProvider`; live Gemini
+   (`GEMINI_API_KEY`, free tier) and OpenAI-compatible providers are skeletons
+   with TODO(LIVE) markers and a mock fallback so the flow always works in
+   demo. `/tenants/photo-estimates`: upload (image-MIME + 10MB validation) →
+   analyze (Jaccard description-match against active pricebook rows, confidence
+   surfaced, unmatched → generic lines) → approve (human edit step) → flows
+   into the existing `_create_estimate_doc` quote-draft pipeline, nothing
+   duplicated. Part B: `llm_portable.py` now supports `GEMINI_API_KEY`
+   (google-genai==2.26.0); resolution EMERGENT → OPENAI → GEMINI → raise,
+   completing the "Claude/Gemini later" TODO for Gemini.
+   Frontend: `/app/photo-estimates` page (upload → review suggestions w/
+   confidence + pricebook matches → edit/approve → create quote draft), EN+ES.
+
+**Phase A is COMPLETE** — all 6 ServiceTitan parity gaps shipped (pricebook,
+equipment history, GPS tracking, financing, bookkeeping link, AI photo
+estimates). Next: Phase B (AI dispatcher, AI onboarding, predictive revenue
+engine, outbound voice AI, per-job profitability, price intelligence).
 
 ## Phase B — Beyond parity (the distance-makers)
 
@@ -97,6 +114,22 @@
     32. siding & gutters, 33. home inspection.
     Launch order: HVAC first (Mind at Ease HVAC is the reference brand), then
     plumbing, electrical, roofing — then the rest in list order.
+
+## Phase D — Shine-brighter differentiators (post-launch)
+
+19. **Homeowner home-hub app** — consumer-facing: systems, warranties, service
+    history, maintenance reminders, one-tap booking. Makes us a consumer brand,
+    not just shop software. Biggest swing.
+20. **Video estimates** — customer records a walkthrough video; AI extracts full
+    scope into a draft estimate. Builds on AI photo estimates.
+21. **Parts ordering from the job** — tech diagnoses, taps once, distributor order
+    placed. Kills supply-house runs.
+22. **AI collections with empathy** — persistent but polite AI follow-up on overdue
+    invoices (text → voice → escalate). No burned relationships.
+23. **Maintenance agreement autopilot** — auto-renewals, auto-scheduled tune-ups,
+    churn prediction before members cancel. Recurring-revenue machine.
+24. **Tech gamification** — leaderboards on close rate, ticket size, callbacks.
+    Retention + performance.
 
 ## Principles
 
