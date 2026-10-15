@@ -131,6 +131,39 @@ engine, outbound voice AI, per-job profitability, price intelligence).
 24. **Tech gamification** — leaderboards on close rate, ticket size, callbacks.
     Retention + performance.
 
+## Phase E — Endgame: the autonomous shop (A++)
+
+The shop that runs itself. Zero human effort; humans handle exceptions only.
+
+25. **Zero-touch job lifecycle** — quote → AI follow-up → approval → auto-dispatch →
+    routed → completed → invoiced → paid → review requested. Builds on: dispatch,
+    AI dispatcher, outbound voice, AI collections.
+26. **Dynamic pricing engine** — AI adjusts flat-rate prices for demand, season,
+    tech availability (emergency premiums, shoulder-season fill discounts).
+    Builds on: pricebook.
+27. **Self-healing operations** — auto-retry failed webhooks/payments, auto-resend
+    failed customer links, auto-redistribute jobs when a tech calls in sick.
+28. **Predictive cash flow** — 90-day forecast that prescribes actions
+    ("send tune-up campaign to 200 customers, expect $40K"). Builds on: predictive
+    revenue engine, price intelligence.
+29. **Compliance autopilot** — tech licenses, insurance certs, 1099s tracked,
+    reminded, filed automatically.
+30. **Autonomous reputation** — AI-drafted responses to every review in minutes;
+    unhappy customers intercepted with a fix before posting publicly.
+
+## Bookkeeping-side A++ candidates (sister app)
+
+Some endgame ideas port directly to the bookkeeping app:
+- **Predictive cash flow for the books** — same engine, pointed at the ledger.
+- **AI collections** — the bookkeeping app already schedules collections;
+  upgrade to AI-driven empathetic follow-up sequences.
+- **Compliance autopilot (tax)** — quarterly estimates, 1099 filings, deadline
+  tracking — the tax features it already has, made fully autonomous.
+- **Anomaly detection** — AI watches every transaction and flags "this expense is
+  3× normal" or "duplicate charge detected" without being asked.
+- **Autonomous categorization** — every transaction categorized at confidence;
+  only low-confidence items ever surface for human review.
+
 ## Principles
 
 - One feature per checkpoint: build → test → report → user go-ahead before the next.
