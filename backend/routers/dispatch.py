@@ -8,6 +8,7 @@ name string is kept in sync for the existing availability/conflict logic.
 """
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
@@ -18,6 +19,9 @@ from db import get_db
 from models import _now_iso
 from security import require_tenant_user
 from routers.call_to_payment import JobCompleteIn, mark_job_complete
+from routers.tracking import maybe_send_eta_sms
+
+logger = logging.getLogger("dispatch")
 
 router = APIRouter(prefix="/tenants/dispatch", tags=["dispatch"])
 
@@ -205,4 +209,12 @@ async def set_status(data: StatusIn, user: dict = Depends(require_tenant_user)):
                   f"{data.status}_at": now}},
     )
     job = await db.appointments.find_one({"id": data.job_id, "tenant_id": tenant_id}, {"_id": 0})
+    if data.status == "en_route":
+        # Customer "tech's on the way" ETA SMS. Best-effort: it must never
+        # break the status update, so failures are swallowed inside the hook
+        # and here too.
+        try:
+            await maybe_send_eta_sms(db, tenant_id, job)
+        except Exception:  # noqa: BLE001
+            logger.exception("ETA SMS hook failed")
     return _job_card(job)

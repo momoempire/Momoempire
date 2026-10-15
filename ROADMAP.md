@@ -15,6 +15,11 @@
   (`models_phase2/3/4` → domain-organized `models.py`). Router audit: 0 duplicates.
 - **Dispatch board** (`feature/dispatch-board`): per-tech day board, drag-and-drop
   assign/move, status flow (scheduled → en_route → on_site → completed), 12/12 tests.
+- **GPS tracking** (`feature/gps-tracking`): live tech locations (tenant-scoped
+  `tech_locations` collection, current + capped 50-point history), customer ETA
+  page at `/track/:token` (public, token-scoped, first-name-only, zero customer
+  PII), "tech's on the way" ETA SMS on en_route (v1: haversine at ~30mph;
+  degrades to "On the way" without coords), dispatch-board live badges. 22/22 tests.
 - **Equipment history** (`feature/equipment-history`): per-customer-location equipment
   records (make/model/serial, install date, full service address) + service
   timeline with job linkage; adds the missing service-address field to the data
@@ -30,7 +35,7 @@
    adds the missing service-address field to the data model (appointments/
    customers have none today — customers now accept an optional
    `service_address`, equipment records always carry the full address).
-3. **GPS tech tracking** — "tech's on the way" live map + ETA texts for customers.
+3. **GPS tech tracking** — "tech's on the way" live map + ETA texts for customers. **Done** (see Shipped).
 4. **Financing at checkout** — customer financing offers embedded in quotes/invoices.
 5. **Bookkeeping link** — sync customers, invoices, payments with our OWN
    bookkeeping app (the QuickBooks competitor), not QuickBooks. Provider-abstracted
