@@ -201,25 +201,52 @@ async def draft_quote(data: QuoteDraftIn, user: dict = Depends(require_tenant_us
             "unit_price": float(l.unit_price or 0),
             "service_id": None,
         })
-    cust_id = await _ensure_customer(
-        db, user["tenant_id"], data.customer_name, data.customer_email, data.customer_phone or ""
+    return await _create_estimate_doc(
+        db,
+        user["tenant_id"],
+        lead_id=data.lead_id,
+        customer_name=data.customer_name,
+        customer_email=data.customer_email,
+        customer_phone=data.customer_phone or "",
+        title=data.title,
+        lines=lines,
+        notes=data.notes,
+        expires_in_days=data.expires_in_days,
     )
+
+
+async def _create_estimate_doc(
+    db,
+    tenant_id: str,
+    *,
+    lead_id: Optional[str],
+    customer_name: str,
+    customer_email: Optional[str],
+    customer_phone: str,
+    title: str,
+    lines: List[dict],
+    notes: str = "",
+    expires_in_days: int = 14,
+) -> dict:
+    """Shared estimate persistence. Prices are frozen into the doc at draft time,
+    so later catalog/pricebook changes never rewrite an already-sent quote."""
+    cust_id = await _ensure_customer(db, tenant_id, customer_name, customer_email, customer_phone or "")
     doc = {
         "id": _uuid(),
-        "tenant_id": user["tenant_id"],
-        "lead_id": data.lead_id,
+        "tenant_id": tenant_id,
+        "lead_id": lead_id,
         "customer_id": cust_id,
-        "customer_name": data.customer_name,
-        "customer_email": data.customer_email,
-        "customer_phone": data.customer_phone or "",
-        "title": data.title,
+        "customer_name": customer_name,
+        "customer_email": customer_email,
+        "customer_phone": customer_phone or "",
+        "title": title,
         "lines": lines,
-        "notes": data.notes,
+        "notes": notes,
         "total": _sum_lines(lines),
         "status": "draft",            # draft → sent → approved → declined
         "owner_approved": False,
         "public_token": _uuid(),
-        "expires_at": (datetime.now(timezone.utc) + timedelta(days=max(1, data.expires_in_days))).isoformat(),
+        "expires_at": (datetime.now(timezone.utc) + timedelta(days=max(1, expires_in_days))).isoformat(),
         "created_at": _now_iso(),
         "updated_at": _now_iso(),
     }
