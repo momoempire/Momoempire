@@ -47,6 +47,36 @@ def create_refresh_token(user_id: str) -> str:
     return jwt.encode(payload, _secret(), algorithm=JWT_ALGORITHM)
 
 
+TWO_FA_TTL_MIN = 5  # short-lived: password step -> TOTP challenge step
+
+
+def create_2fa_token(user_id: str) -> str:
+    """Intermediate token issued after password auth when 2FA is enabled.
+
+    NOT an auth token: only accepted by POST /auth/2fa/challenge, which
+    exchanges it + a valid TOTP/backup code for real auth cookies.
+    """
+    payload = {
+        "sub": user_id,
+        "exp": datetime.now(timezone.utc) + timedelta(minutes=TWO_FA_TTL_MIN),
+        "type": "2fa",
+    }
+    return jwt.encode(payload, _secret(), algorithm=JWT_ALGORITHM)
+
+
+def decode_2fa_token(token: str) -> str:
+    """Return the user_id from a valid 2FA token, else raise HTTPException."""
+    try:
+        payload = jwt.decode(token, _secret(), algorithms=[JWT_ALGORITHM])
+        if payload.get("type") != "2fa":
+            raise HTTPException(401, "Invalid token type")
+        return payload["sub"]
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(401, "Two-factor session expired — log in again")
+    except jwt.InvalidTokenError:
+        raise HTTPException(401, "Invalid two-factor token")
+
+
 def set_auth_cookies(response, access: str, refresh: str):
     response.set_cookie("access_token", access, httponly=True, secure=True,
                         samesite="none", max_age=ACCESS_TTL_MIN * 60, path="/")

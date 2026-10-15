@@ -35,28 +35,38 @@ log = logging.getLogger("marketing")
 
 
 class SlidingLimiter:
-    """In-memory sliding-window limiter (per process). Each instance is its own bucket."""
+    """Sliding-window bucket backed by the shared limiter (rate_limit.py).
 
-    MAX_KEYS = 50_000
+    Same .allow(key)/.reset() API and same limits as before. When REDIS_URL
+    is set the buckets are enforced in Redis (shared across workers),
+    otherwise per-process in-memory. Instances are namespaced so buckets
+    never collide with each other or with auth rate-limit buckets.
+    """
+
+    _NS_COUNTER = 0
 
     def __init__(self, limit: int, window_s: float):
         self.limit, self.window = limit, window_s
-        self.hits: dict[str, list[float]] = {}
+        SlidingLimiter._NS_COUNTER += 1
+        self._ns = f"mkt:{SlidingLimiter._NS_COUNTER}"
+        self._keys: set[str] = set()
 
     def allow(self, key: str) -> bool:
-        now = time.time()
-        if len(self.hits) > self.MAX_KEYS:  # bound memory under key-spraying
-            self.hits = {k: v for k, v in self.hits.items() if v and now - v[-1] < self.window}
-        recent = [t for t in self.hits.get(key, []) if now - t < self.window]
-        if len(recent) >= self.limit:
-            self.hits[key] = recent
-            return False
-        recent.append(now)
-        self.hits[key] = recent
-        return True
+        from rate_limit import get_rate_limiter  # lazy: tests reset the singleton
+
+        if len(self._keys) > 50_000:
+            self._keys.clear()  # bound memory under key-spraying; worst case a soft reset
+        self._keys.add(key)
+        allowed, _ = get_rate_limiter().check(f"{self._ns}:{key}", self.limit, self.window)
+        return allowed
 
     def reset(self) -> None:
-        self.hits.clear()
+        from rate_limit import get_rate_limiter
+
+        limiter = get_rate_limiter()
+        for key in list(self._keys):
+            limiter.reset(f"{self._ns}:{key}")
+        self._keys.clear()
 
 
 def client_ip(request: Request) -> str:

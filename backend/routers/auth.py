@@ -16,35 +16,33 @@ from pydantic import BaseModel
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-LOCKOUT_LIMIT = 5
-LOCKOUT_MINUTES = 15
+# Brute-force protection: 5 attempts / 15 min per (IP, account), with Retry-After.
+# Unified limiter (rate_limit.py): Redis-backed when REDIS_URL is set, in-memory
+# otherwise. Replaces the old Mongo login_attempts lockout (single mechanism).
+LOGIN_LIMIT = 5
+LOGIN_WINDOW_S = 15 * 60
 
 
-async def _check_lockout(db, identifier: str):
-    doc = await db.login_attempts.find_one({"identifier": identifier})
-    if not doc:
-        return
-    if doc.get("count", 0) >= LOCKOUT_LIMIT:
-        from timeutil import as_utc
-        until = as_utc(doc.get("locked_until"))  # stored as an ISO string; tolerant of a BSON date too
-        if until and until > datetime.now(timezone.utc):
-            raise HTTPException(429, "Too many failed attempts. Try again later.")
+def _login_key(request: Request, email: str) -> str:
+    ip = request.client.host if request.client else "unknown"
+    return f"login:{ip}:{email.lower()}"
 
 
-async def _record_failure(db, identifier: str):
-    now = datetime.now(timezone.utc)
-    doc = await db.login_attempts.find_one({"identifier": identifier})
-    count = (doc.get("count", 0) if doc else 0) + 1
-    locked_until = (now + timedelta(minutes=LOCKOUT_MINUTES)).isoformat() if count >= LOCKOUT_LIMIT else None
-    await db.login_attempts.update_one(
-        {"identifier": identifier},
-        {"$set": {"identifier": identifier, "count": count, "locked_until": locked_until, "updated_at": now.isoformat()}},
-        upsert=True,
-    )
+async def _enforce_login_limit(request: Request, email: str) -> str:
+    from rate_limit import check_rate_limit, rate_limit_headers, get_rate_limiter
+
+    key = _login_key(request, email)
+    allowed, retry_after = await check_rate_limit(key, LOGIN_LIMIT, LOGIN_WINDOW_S)
+    if not allowed:
+        raise HTTPException(429, "Too many failed attempts. Try again later.",
+                            headers=rate_limit_headers(retry_after))
+    return key
 
 
-async def _clear_failures(db, identifier: str):
-    await db.login_attempts.delete_one({"identifier": identifier})
+def _reset_login_limit(key: str) -> None:
+    from rate_limit import get_rate_limiter
+
+    get_rate_limiter().reset(key)
 
 
 @router.post("/register")
@@ -106,13 +104,10 @@ def _is_known_default(password: str) -> bool:
 async def login(data: LoginIn, request: Request, response: Response):
     db = get_db()
     email = data.email.lower()
-    ip = request.client.host if request.client else "unknown"
-    identifier = f"{ip}:{email}"
-    await _check_lockout(db, identifier)
+    limit_key = await _enforce_login_limit(request, email)
 
     user = await db.users.find_one({"email": email})
     if not user or not verify_password(data.password, user["password_hash"]):
-        await _record_failure(db, identifier)
         raise HTTPException(401, "Invalid email or password")
 
     if user.get("role") == "platform_admin" and _is_known_default(data.password):
@@ -124,10 +119,17 @@ async def login(data: LoginIn, request: Request, response: Response):
             {"$set": {"password_hash": hash_password(secrets.token_urlsafe(48)),
                       "password_unusable": True, "must_change_password": True}},
         )
-        await _record_failure(db, identifier)
         raise HTTPException(401, "Invalid email or password")
 
-    await _clear_failures(db, identifier)
+    _reset_login_limit(limit_key)
+
+    # Two-factor: password step done — hand off a short-lived 2FA token instead
+    # of auth cookies. The frontend then shows the code challenge screen.
+    if user.get("mfa_enabled"):
+        from security import create_2fa_token
+
+        return {"requires_2fa": True, "two_fa_token": create_2fa_token(user["id"])}
+
     access = create_access_token(user["id"], email, user["role"], user.get("tenant_id"))
     refresh = create_refresh_token(user["id"])
     set_auth_cookies(response, access, refresh)
