@@ -62,10 +62,18 @@
     equipment history, appointment types + durations, AI receptionist scripts and
     trade-specific triage knowledge, automation templates (seasonal reminders,
     maintenance plans), and review-request templates.
+    Unified niche list — 33 packs (bookkeeping's 20 + 13 additions):
+    1. HVAC, 2. plumbing, 3. electrical, 4. roofing, 5. appliance repair,
+    6. garage door, 7. pest control, 8. landscaping, 9. pool service, 10. painting,
+    11. handyman, 12. solar, 13. cleaning, 14. tree service, 15. fencing & concrete,
+    16. restoration, 17. auto repair, 18. barbershop, 19. real estate,
+    20. freelancer, 21. locksmith, 22. septic & well,
+    23. kitchen & bath remodeling, 24. windows & doors, 25. flooring,
+    26. foundation repair, 27. whole-home generators, 28. smart home & security,
+    29. junk removal, 30. decks & outdoor living, 31. irrigation,
+    32. siding & gutters, 33. home inspection.
     Launch order: HVAC first (Mind at Ease HVAC is the reference brand), then
-    plumbing, electrical. Follow with: roofing, appliance repair, garage doors,
-    pest control, lawn/landscaping, pool service, painting, handyman, locksmith,
-    septic & well, solar.
+    plumbing, electrical, roofing — then the rest in list order.
 
 ## Principles
 
