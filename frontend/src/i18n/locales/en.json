@@ -425,5 +425,29 @@
     "save": "Save financing settings",
     "saved": "Financing settings saved",
     "not_live": "Demo mode — connect Wisetack to offer live financing."
+  },
+  "bookkeeping": {
+    "settings_title": "Bookkeeping",
+    "settings_sub": "Link your own bookkeeping app (our QuickBooks competitor) so paid invoices sync automatically — customers, invoices and payments. No QuickBooks integration here by design.",
+    "enable_label": "Enable bookkeeping link",
+    "connected_badge": "Linked",
+    "disabled_badge": "Not linked",
+    "base_url_label": "Bookkeeping API base URL",
+    "token_label": "Bookkeeping API token",
+    "token_placeholder": "Paste your bookkeeping-app token…",
+    "token_saved_placeholder": "Token saved — paste a new one to replace it",
+    "token_hint": "Use your bookkeeping app owner's login token (from its sign-in). It is encrypted before storage and never shown again.",
+    "test_button": "Test connection",
+    "test_ok": "Connection works",
+    "test_failed": "Connection failed — see details",
+    "autosync_label": "Auto-sync when an invoice is paid",
+    "autosync_hint": "On every fully-paid invoice: push the customer, then the invoice, then the payment. Retries never duplicate — each step is recorded.",
+    "status_title": "Sync status",
+    "status_last_sync": "Last sync",
+    "status_never": "Never",
+    "status_pushed": "Pushed",
+    "status_counts": "{{customers}} customers · {{invoices}} invoices · {{payments}} payments ({{total}} total)",
+    "save": "Save bookkeeping settings",
+    "saved": "Bookkeeping settings saved"
   }
 }

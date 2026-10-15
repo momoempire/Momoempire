@@ -673,6 +673,18 @@ async def _apply_payment_success(db, pi: dict, account: str | None = None):
                           "amount_cents": amount, "created_at": _now_iso()}},
         upsert=True,
     )
+    # Bookkeeping link: auto-sync customer → invoice → payment to the tenant's
+    # OWN bookkeeping app when fully paid. Best-effort only — it never raises
+    # into the payment flow; failures are logged and recorded on the tenant's
+    # bookkeeping-link settings for the owner to see.
+    if status == "paid":
+        try:
+            from routers.bookkeeping_link import sync_invoice_paid as _bk_sync
+            inv_fresh = await db.invoices.find_one({"id": inv_id}, {"_id": 0})
+            if inv_fresh:
+                await _bk_sync(db, inv["tenant_id"], inv_fresh)
+        except Exception as e:
+            log.warning("bookkeeping-link auto-sync failed: %s", e)
     # Receipt email (best-effort)
     if status == "paid" and inv.get("customer_email"):
         try:

@@ -425,5 +425,29 @@
     "save": "Guardar configuración de financiamiento",
     "saved": "Configuración de financiamiento guardada",
     "not_live": "Modo demo — conecta Wisetack para ofrecer financiamiento real."
+  },
+  "bookkeeping": {
+    "settings_title": "Contabilidad",
+    "settings_sub": "Vincula tu propia app de contabilidad (nuestra competidora de QuickBooks) para sincronizar automáticamente las facturas pagadas: clientes, facturas y pagos. Sin integración con QuickBooks por diseño.",
+    "enable_label": "Activar vínculo de contabilidad",
+    "connected_badge": "Vinculado",
+    "disabled_badge": "Sin vincular",
+    "base_url_label": "URL base de la API de contabilidad",
+    "token_label": "Token de la API de contabilidad",
+    "token_placeholder": "Pega tu token de la app de contabilidad…",
+    "token_saved_placeholder": "Token guardado — pega uno nuevo para reemplazarlo",
+    "token_hint": "Usa el token de inicio de sesión del propietario de tu app de contabilidad. Se cifra antes de guardarse y nunca se muestra de nuevo.",
+    "test_button": "Probar conexión",
+    "test_ok": "La conexión funciona",
+    "test_failed": "La conexión falló — ver detalles",
+    "autosync_label": "Sincronizar automáticamente al pagar una factura",
+    "autosync_hint": "Con cada factura totalmente pagada: se envía el cliente, luego la factura y luego el pago. Los reintentos nunca duplican — cada paso queda registrado.",
+    "status_title": "Estado de sincronización",
+    "status_last_sync": "Última sincronización",
+    "status_never": "Nunca",
+    "status_pushed": "Enviados",
+    "status_counts": "{{customers}} clientes · {{invoices}} facturas · {{payments}} pagos ({{total}} en total)",
+    "save": "Guardar configuración de contabilidad",
+    "saved": "Configuración de contabilidad guardada"
   }
 }

@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { Copy, ExternalLink, Mail, Trash2, UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
 import FinancingSettings from "@/components/FinancingSettings";
+import BookkeepingSettings from "@/components/BookkeepingSettings";
 
 const PRESET_COLORS = ["#0A0A0A", "#2563EB", "#059669", "#DC2626", "#7C3AED", "#D97706", "#0F766E", "#DB2777"];
 
@@ -124,6 +125,7 @@ export default function Settings() {
           <TabsTrigger value="public" data-testid="settings-tab-public">Public page</TabsTrigger>
           <TabsTrigger value="security" data-testid="settings-tab-security">Security</TabsTrigger>
           <TabsTrigger value="financing" data-testid="settings-tab-financing">Financing</TabsTrigger>
+          <TabsTrigger value="bookkeeping" data-testid="settings-tab-bookkeeping">Bookkeeping</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile">
@@ -219,6 +221,9 @@ export default function Settings() {
         </TabsContent>
         <TabsContent value="financing">
           <FinancingSettings />
+        </TabsContent>
+        <TabsContent value="bookkeeping">
+          <BookkeepingSettings />
         </TabsContent>
       </Tabs>
 
