@@ -40,6 +40,7 @@ import Customers from "@/pages/dashboard/Customers";
 import Leads from "@/pages/dashboard/Leads";
 import Appointments from "@/pages/dashboard/Appointments";
 import Dispatch from "@/pages/dashboard/Dispatch";
+import Pricebook from "@/pages/dashboard/Pricebook";
 import KnowledgeBase from "@/pages/dashboard/KnowledgeBase";
 import BusinessAdvisor from "@/pages/dashboard/BusinessAdvisor";
 import Analytics from "@/pages/dashboard/Analytics";
@@ -121,6 +122,7 @@ function Router() {
       <Route path="/app/customers" element={<Protected><Customers /></Protected>} />
       <Route path="/app/appointments" element={<Protected><Appointments /></Protected>} />
       <Route path="/app/dispatch" element={<Protected><Dispatch /></Protected>} />
+      <Route path="/app/pricebook" element={<Protected><Pricebook /></Protected>} />
       <Route path="/app/services" element={<Protected><ServicesPage /></Protected>} />
       <Route path="/app/payments" element={<Protected><Payments /></Protected>} />
       <Route path="/app/website" element={<Protected><Website /></Protected>} />
