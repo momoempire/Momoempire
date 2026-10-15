@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { api, errMessage } from "@/lib/api";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, Truck, MapPin, CheckCircle2, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Truck, MapPin, CheckCircle2, Clock, Radio } from "lucide-react";
 
 const STATUS_STYLE = {
   scheduled: "bg-blue-100 text-blue-900",
@@ -41,6 +42,49 @@ function fmtTime(iso) {
   if (!iso) return "—";
   const d = new Date(iso);
   return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+}
+
+function LiveBadge({ t, pos }) {
+  // Small "live" badge per tech column: green when we have a recent position,
+  // gray when there's no GPS signal. "View map" opens the last known position
+  // in Google Maps (no map SDK — v1 keeps dependencies at zero).
+  if (!pos || pos.lat == null || pos.lng == null) {
+    return (
+      <span
+        className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-500"
+        title={t("tracking.no_signal")}
+        data-testid="live-badge-nosignal"
+      >
+        <Radio className="h-3 w-3" />
+        {t("tracking.no_signal")}
+      </span>
+    );
+  }
+  let age = "";
+  if (pos.updated_at) {
+    const mins = Math.max(0, Math.round((Date.now() - new Date(pos.updated_at).getTime()) / 60000));
+    age = mins < 1 ? t("tracking.updated_just_now") : t("tracking.updated_min_ago", { n: mins });
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5" data-testid="live-badge">
+      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] text-emerald-900">
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-60" />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600" />
+        </span>
+        {t("tracking.live")}
+        {age && <span className="text-emerald-700">· {age}</span>}
+      </span>
+      <a
+        href={`https://www.google.com/maps?q=${encodeURIComponent(`${pos.lat},${pos.lng}`)}`}
+        target="_blank"
+        rel="noreferrer"
+        className="text-[11px] text-blue-700 underline decoration-dotted"
+      >
+        {t("tracking.view_map")}
+      </a>
+    </span>
+  );
 }
 
 function JobCard({ job, onStatus, onTimeChange, onDragStart }) {
@@ -125,11 +169,25 @@ function JobCard({ job, onStatus, onTimeChange, onDragStart }) {
 }
 
 export default function Dispatch() {
+  const { t } = useTranslation();
   const todayStr = () => new Date().toISOString().slice(0, 10);
   const [date, setDate] = useState(todayStr());
   const [board, setBoard] = useState({ techs: [], unassigned: [] });
   const [loading, setLoading] = useState(true);
   const [dragJob, setDragJob] = useState(null);
+  // Live GPS positions, keyed by tech_id: { tech_id, name, lat, lng, updated_at, current_job_id }
+  const [live, setLive] = useState({});
+
+  const loadLive = useCallback(async () => {
+    try {
+      const r = await api.get("/tenants/tracking/live");
+      const byTech = {};
+      for (const tech of r.data?.techs || []) byTech[tech.tech_id] = tech;
+      setLive(byTech);
+    } catch {
+      // Live positions are best-effort; the board works without them.
+    }
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -141,11 +199,18 @@ export default function Dispatch() {
     } finally {
       setLoading(false);
     }
-  }, [date]);
+    loadLive();
+  }, [date, loadLive]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  // Refresh live positions every 30s so the "live" badges stay fresh.
+  useEffect(() => {
+    const id = setInterval(loadLive, 30000);
+    return () => clearInterval(id);
+  }, [loadLive]);
 
   const shiftDay = (n) => {
     const d = new Date(date + "T12:00:00");
@@ -270,21 +335,24 @@ export default function Dispatch() {
               <div className="text-xs text-muted-foreground px-1">Nothing waiting.</div>
             )}
           </div>
-          {board.techs.map((t) => (
+          {board.techs.map((tech) => (
             <div
-              key={t.id}
+              key={tech.id}
               className={colClass}
               onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => onDropOnTech(e, t.id)}
-              data-testid={`dispatch-col-${t.id}`}
+              onDrop={(e) => onDropOnTech(e, tech.id)}
+              data-testid={`dispatch-col-${tech.id}`}
             >
-              <div className="font-semibold text-sm px-1">
-                {t.name} <span className="text-muted-foreground">({t.jobs.length})</span>
+              <div className="font-semibold text-sm px-1 flex items-center justify-between gap-2">
+                <span>
+                  {tech.name} <span className="text-muted-foreground">({tech.jobs.length})</span>
+                </span>
+                <LiveBadge t={t} pos={live[tech.id]} />
               </div>
-              {t.jobs.map((j) => (
+              {tech.jobs.map((j) => (
                 <JobCard key={j.id} job={j} onStatus={doStatus} onTimeChange={doTimeChange} onDragStart={onDragStart} />
               ))}
-              {t.jobs.length === 0 && (
+              {tech.jobs.length === 0 && (
                 <div className="text-xs text-muted-foreground px-1">Drop jobs here.</div>
               )}
             </div>

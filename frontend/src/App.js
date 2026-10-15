@@ -28,6 +28,7 @@ import InviteAccept from "@/pages/InviteAccept";
 import ReferralLanding from "@/pages/ReferralLanding";
 import PublicQuote from "@/pages/PublicQuote";
 import PublicInvoice from "@/pages/PublicInvoice";
+import ETATracking from "@/pages/ETATracking";
 import ReviewPublic from "@/pages/ReviewPublic";
 import AuthCallback from "@/pages/AuthCallback";
 import TestimonialConsent from "@/pages/TestimonialConsent";
@@ -107,6 +108,7 @@ function Router() {
       <Route path="/r/:code" element={<ReferralLanding />} />
       <Route path="/q/:token" element={<PublicQuote />} />
       <Route path="/i/:token" element={<PublicInvoice />} />
+      <Route path="/track/:token" element={<ETATracking />} />
       <Route path="/reviews/:token" element={<ReviewPublic />} />
       <Route path="/t/consent/:token" element={<TestimonialConsent />} />
       <Route path="/payment/success" element={<PaymentSuccess />} />
