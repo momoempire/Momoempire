@@ -10,6 +10,10 @@ import "@/i18n";
 // admin, auth pages) at all, and the normal build is bundled exactly as before.
 import App from "@root-app";
 import ThemeProvider from "@/components/ThemeProvider";
+import { initSentry } from "@/lib/sentry";
+
+// Error monitoring: no-op unless REACT_APP_SENTRY_DSN is set at build time.
+initSentry();
 
 // WL-033: the waitlist build doesn't use react-query, so skip it there (build-time constant;
 // webpack then drops @tanstack/react-query from that bundle).

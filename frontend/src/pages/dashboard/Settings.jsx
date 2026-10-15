@@ -13,10 +13,13 @@ import { Copy, ExternalLink, Mail, Trash2, UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
 import FinancingSettings from "@/components/FinancingSettings";
 import BookkeepingSettings from "@/components/BookkeepingSettings";
+import TwoFactorSettings from "@/components/TwoFactorSettings";
+import { useAuth } from "@/context/AuthContext";
 
 const PRESET_COLORS = ["#0A0A0A", "#2563EB", "#059669", "#DC2626", "#7C3AED", "#D97706", "#0F766E", "#DB2777"];
 
 function SecurityTab() {
+  const { user, refresh } = useAuth();
   const [sessions, setSessions] = useState([]);
   const [workspaces, setWorkspaces] = useState([]);
   const load = () => {
@@ -60,6 +63,7 @@ function SecurityTab() {
           {workspaces.length === 0 && <li className="py-6 text-sm text-muted-foreground text-center">Just this workspace.</li>}
         </ul>
       </div>
+      <TwoFactorSettings user={user} onChanged={refresh} />
     </div>
   );
 }

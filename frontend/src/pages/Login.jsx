@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { errMessage } from "@/lib/api";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
@@ -18,7 +19,10 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const [challenge, setChallenge] = useState(null); // { two_fa_token } after password step
+  const [code, setCode] = useState("");
+  const { login, challenge2fa } = useAuth();
+  const { t } = useTranslation();
   const nav = useNavigate();
   const loc = useLocation();
   const [params] = useSearchParams();
@@ -34,20 +38,47 @@ export default function Login() {
     ? `/signup?plan=${encodeURIComponent(planFromQuery)}`
     : "/signup";
 
+  const afterLogin = async (user) => {
+    toast.success(`Welcome back, ${user.name || user.email}`);
+    try {
+      const started = await resumePendingCheckoutIfAny();
+      if (started) return;
+    } catch (checkoutErr) {
+      toast.error(errMessage(checkoutErr) || "Could not start checkout — open Billing to subscribe.");
+    }
+    const target = user.role === "platform_admin" ? "/admin" : (loc.state?.from || "/app");
+    nav(target, { replace: true });
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const user = await login(email, password);
-      toast.success(`Welcome back, ${user.name || user.email}`);
-      try {
-        const started = await resumePendingCheckoutIfAny();
-        if (started) return;
-      } catch (checkoutErr) {
-        toast.error(errMessage(checkoutErr) || "Could not start checkout — open Billing to subscribe.");
+      const result = await login(email, password);
+      if (result && result.requires_2fa) {
+        setChallenge({ two_fa_token: result.two_fa_token });
+        return;
       }
-      const target = user.role === "platform_admin" ? "/admin" : (loc.state?.from || "/app");
-      nav(target, { replace: true });
+      await afterLogin(result);
+    } catch (err) {
+      toast.error(errMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const submitChallenge = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      // A backup code looks like XXXX-XXXX; anything else is treated as a TOTP code.
+      const isBackup = code.includes("-");
+      const user = await challenge2fa(
+        challenge.two_fa_token,
+        isBackup ? null : code,
+        isBackup ? code : null
+      );
+      await afterLogin(user);
     } catch (err) {
       toast.error(errMessage(err));
     } finally {
@@ -74,6 +105,31 @@ export default function Login() {
           <Logo />
           <h1 className="font-display text-3xl tracking-tight mt-8">Welcome back</h1>
           <p className="text-muted-foreground text-sm mt-1">Log in to your workspace.</p>
+          {challenge ? (
+            <form onSubmit={submitChallenge} className="mt-8 space-y-4" data-testid="login-2fa-form">
+              <p className="text-sm text-muted-foreground">{t("two_factor.challenge_hint")}</p>
+              <div className="space-y-1.5">
+                <Label htmlFor="totp-code">{t("two_factor.challenge_title")}</Label>
+                <Input
+                  id="totp-code"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.trim())}
+                  placeholder={t("two_factor.code_placeholder")}
+                  inputMode="text"
+                  autoComplete="one-time-code"
+                  className="font-mono tracking-widest"
+                  data-testid="login-2fa-code"
+                />
+                <p className="text-[11px] text-muted-foreground">{t("two_factor.challenge_backup_hint")}</p>
+              </div>
+              <Button type="submit" className="w-full h-11 btn-tenant" disabled={loading || !code} data-testid="login-2fa-submit">
+                {loading ? "Verifying…" : t("two_factor.verify")}
+              </Button>
+              <Button type="button" variant="ghost" className="w-full" onClick={() => { setChallenge(null); setCode(""); }}>
+                {t("two_factor.cancel")}
+              </Button>
+            </form>
+          ) : (
           <form onSubmit={submit} className="mt-8 space-y-4" data-testid="login-form">
             <GoogleSignInButton label="Continue with Google" testId="login-google-btn" />
             <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
@@ -91,6 +147,7 @@ export default function Login() {
               {loading ? "Signing in…" : "Log in"}
             </Button>
           </form>
+          )}
           <div className="flex items-center justify-between mt-4 text-[13px]">
             <Link to="/forgot-password" className="text-muted-foreground hover:text-foreground" data-testid="login-forgot-link">Forgot password?</Link>
             <Link to={signupHref} className="font-medium" data-testid="login-signup-link">Create account</Link>
