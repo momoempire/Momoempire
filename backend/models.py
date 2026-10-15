@@ -198,6 +198,9 @@ class CustomerIn(BaseModel):
     phone: str = ""
     notes: str = ""
     tags: List[str] = []
+    # Optional service address (line1/line2/city/state/postal_code). Absent on
+    # older records; equipment records always carry their own service address.
+    service_address: Optional[Address] = None
 
 
 class Customer(CustomerIn):

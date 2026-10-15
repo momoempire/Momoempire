@@ -15,14 +15,21 @@
   (`models_phase2/3/4` → domain-organized `models.py`). Router audit: 0 duplicates.
 - **Dispatch board** (`feature/dispatch-board`): per-tech day board, drag-and-drop
   assign/move, status flow (scheduled → en_route → on_site → completed), 12/12 tests.
+- **Equipment history** (`feature/equipment-history`): per-customer-location equipment
+  records (make/model/serial, install date, full service address) + service
+  timeline with job linkage; adds the missing service-address field to the data
+  model (optional `service_address` on Customer; equipment always carries one).
+  13/13 tests.
 
 ## Phase A — ServiceTitan parity gaps (build in order, one per checkpoint)
 
 1. **Pricebook** — flat-rate pricebook: services, parts, labor matrices; versioned;
    feeds quotes/invoices/dispatch with consistent pricing.
-2. **Equipment history** — per-customer-location equipment records (make/model/serial,
-   install date, service history); adds the missing service-address field to the
-   data model (appointments/customers have none today).
+2. **Equipment history** ✅ done (`feature/equipment-history`) — per-customer-location
+   equipment records (make/model/serial, install date, service history);
+   adds the missing service-address field to the data model (appointments/
+   customers have none today — customers now accept an optional
+   `service_address`, equipment records always carry the full address).
 3. **GPS tech tracking** — "tech's on the way" live map + ETA texts for customers.
 4. **Financing at checkout** — customer financing offers embedded in quotes/invoices.
 5. **Bookkeeping link** — sync customers, invoices, payments with our OWN

@@ -41,6 +41,7 @@ import Leads from "@/pages/dashboard/Leads";
 import Appointments from "@/pages/dashboard/Appointments";
 import Dispatch from "@/pages/dashboard/Dispatch";
 import Pricebook from "@/pages/dashboard/Pricebook";
+import Equipment from "@/pages/dashboard/Equipment";
 import KnowledgeBase from "@/pages/dashboard/KnowledgeBase";
 import BusinessAdvisor from "@/pages/dashboard/BusinessAdvisor";
 import Analytics from "@/pages/dashboard/Analytics";
@@ -123,6 +124,7 @@ function Router() {
       <Route path="/app/appointments" element={<Protected><Appointments /></Protected>} />
       <Route path="/app/dispatch" element={<Protected><Dispatch /></Protected>} />
       <Route path="/app/pricebook" element={<Protected><Pricebook /></Protected>} />
+      <Route path="/app/equipment" element={<Protected><Equipment /></Protected>} />
       <Route path="/app/services" element={<Protected><ServicesPage /></Protected>} />
       <Route path="/app/payments" element={<Protected><Payments /></Protected>} />
       <Route path="/app/website" element={<Protected><Website /></Protected>} />

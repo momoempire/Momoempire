@@ -41,6 +41,7 @@ const GROUPS = [
       { to: "/app/repeat", icon: Repeat, label: "nav.repeat", testId: "nav-repeat" },
       { to: "/app/services", icon: Wrench, label: "nav.services", testId: "nav-services" },
       { to: "/app/pricebook", icon: BookOpen, label: "nav.pricebook", testId: "nav-pricebook" },
+      { to: "/app/equipment", icon: Wrench, label: "nav.equipment", testId: "nav-equipment" },
       { to: "/app/payments", icon: CreditCard, label: "nav.payments", testId: "nav-payments" },
       { to: "/app/website", icon: Globe, label: "nav.website", testId: "nav-website" },
       { to: "/app/customer-portal", icon: UserRound, label: "nav.customer_portal", testId: "nav-customer-portal" },
