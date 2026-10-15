@@ -20,6 +20,7 @@ import Signup from "@/pages/Signup";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 import Onboarding from "@/pages/Onboarding";
+import Revenue from "@/pages/dashboard/Revenue.jsx";
 import PublicBusiness from "@/pages/PublicBusiness";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import PaymentCancel from "@/pages/PaymentCancel";
@@ -44,6 +45,8 @@ import Dispatch from "@/pages/dashboard/Dispatch";
 import Pricebook from "@/pages/dashboard/Pricebook";
 import PhotoEstimates from "@/pages/dashboard/PhotoEstimates";
 import Marketing from "@/pages/dashboard/Marketing";
+import AiDispatcher from "@/pages/dashboard/AiDispatcher.jsx";
+import Onboarding from "@/pages/dashboard/Onboarding.jsx";
 import Equipment from "@/pages/dashboard/Equipment";
 import KnowledgeBase from "@/pages/dashboard/KnowledgeBase";
 import BusinessAdvisor from "@/pages/dashboard/BusinessAdvisor";
@@ -129,7 +132,10 @@ function Router() {
       <Route path="/app/dispatch" element={<Protected><Dispatch /></Protected>} />
       <Route path="/app/pricebook" element={<Protected><Pricebook /></Protected>} />
       <Route path="/app/photo-estimates" element={<Protected><PhotoEstimates /></Protected>} />
-      <Route path="/app/marketing" element={<Protected><Marketing /></Protected>} />
+      <Route path="/app/marketing" element={<Protected>
+      <Route path="/app/ai-dispatcher" element={<Protected>
+      <Route path="/app/onboarding" element={<Protected>
+      <Route path="/app/revenue" element={<Protected><Revenue /></Protected>} /><Onboarding /></Protected>} /><AiDispatcher /></Protected>} /><Marketing /></Protected>} />
       <Route path="/app/equipment" element={<Protected><Equipment /></Protected>} />
       <Route path="/app/services" element={<Protected><ServicesPage /></Protected>} />
       <Route path="/app/payments" element={<Protected><Payments /></Protected>} />
