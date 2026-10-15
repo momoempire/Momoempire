@@ -36,7 +36,15 @@
    customers have none today — customers now accept an optional
    `service_address`, equipment records always carry the full address).
 3. **GPS tech tracking** — "tech's on the way" live map + ETA texts for customers. **Done** (see Shipped).
-4. **Financing at checkout** — customer financing offers embedded in quotes/invoices.
+4. **Financing at checkout** ✅ done (`feature/financing`) — provider-abstracted
+   customer financing embedded in quotes/invoices: `FinancingProvider` ABC with
+   `DemoFinancingProvider` (deterministic amortization math, clearly labeled
+   demo) and a `WisetackProvider` skeleton with `TODO(LIVE)` markers (no live
+   calls). Monthly-payment offers (12/24/36/48/60-mo, incl. 0% APR promo line)
+   on the public quote/invoice pages via token-authenticated endpoints; per-
+   tenant settings (enable toggle, provider select) in Settings → Financing,
+   writes owner/admin-only. Shops will connect their OWN Wisetack merchant
+   accounts later (Stripe-Connect model) — no platform keys needed.
 5. **Bookkeeping link** — sync customers, invoices, payments with our OWN
    bookkeeping app (the QuickBooks competitor), not QuickBooks. Provider-abstracted
    adapter; per-tenant encrypted API token; auto-sync on invoice-paid. (Replaces

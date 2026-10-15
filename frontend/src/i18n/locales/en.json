@@ -403,5 +403,27 @@
     "eta_last_update": "Last update: {{time}}",
     "eta_auto_refresh": "Updates automatically every 30 seconds",
     "eta_invalid_link": "This tracking link is invalid or has expired."
+  },
+  "financing": {
+    "title": "Financing options",
+    "demo_badge": "Demo",
+    "as_low_as": "As low as {{amount}}/mo for {{months}} months",
+    "term_label": "Term",
+    "months": "{{n}} months",
+    "per_month": "{{amount}}/mo",
+    "apr": "{{rate}}% APR",
+    "demo_note": "Sample rates for illustration — not a financing offer.",
+    "settings_title": "Financing",
+    "settings_sub": "Offer customers monthly-payment plans at checkout. Demo rates are on by default.",
+    "enable_label": "Enable financing offers",
+    "provider_label": "Provider",
+    "provider_demo": "Demo (sample rates)",
+    "provider_wisetack": "Wisetack (connect your merchant account)",
+    "merchant_id_label": "Wisetack merchant ID",
+    "api_key_label": "Wisetack API key",
+    "api_key_hint": "API keys are stored when you connect your own Wisetack merchant account — not saved in this version.",
+    "save": "Save financing settings",
+    "saved": "Financing settings saved",
+    "not_live": "Demo mode — connect Wisetack to offer live financing."
   }
 }

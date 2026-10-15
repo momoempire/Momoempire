@@ -403,5 +403,27 @@
     "eta_last_update": "Última actualización: {{time}}",
     "eta_auto_refresh": "Se actualiza automáticamente cada 30 segundos",
     "eta_invalid_link": "Este enlace de rastreo no es válido o ha expirado."
+  },
+  "financing": {
+    "title": "Opciones de financiamiento",
+    "demo_badge": "Demo",
+    "as_low_as": "Desde {{amount}}/mes por {{months}} meses",
+    "term_label": "Plazo",
+    "months": "{{n}} meses",
+    "per_month": "{{amount}}/mes",
+    "apr": "{{rate}}% TAE",
+    "demo_note": "Tasas de muestra solo con fines ilustrativos — no es una oferta de financiamiento.",
+    "settings_title": "Financiamiento",
+    "settings_sub": "Ofrece a tus clientes planes de pago mensual al finalizar la compra. Las tasas de demo están activadas por defecto.",
+    "enable_label": "Activar ofertas de financiamiento",
+    "provider_label": "Proveedor",
+    "provider_demo": "Demo (tasas de muestra)",
+    "provider_wisetack": "Wisetack (conecta tu cuenta comercial)",
+    "merchant_id_label": "ID de comercio de Wisetack",
+    "api_key_label": "Clave API de Wisetack",
+    "api_key_hint": "Las claves API se guardan al conectar tu propia cuenta comercial de Wisetack — no se guardan en esta versión.",
+    "save": "Guardar configuración de financiamiento",
+    "saved": "Configuración de financiamiento guardada",
+    "not_live": "Modo demo — conecta Wisetack para ofrecer financiamiento real."
   }
 }
