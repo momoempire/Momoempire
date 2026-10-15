@@ -75,7 +75,12 @@ engine, outbound voice AI, per-job profitability, price intelligence).
    profitability optimization, human approves. (Builds on dispatch board.)
 8. **AI onboarding** — shop uploads old invoices/customer list; AI builds their
    pricebook, customers, and service history in an afternoon. Kills ServiceTitan's
-   implementation-moat advantage and becomes the #1 sales pitch.
+   implementation-moat advantage and becomes the #1 sales pitch. Includes
+   **Twilio subaccount auto-provisioning**: each new business automatically gets
+   its own Twilio subaccount + dedicated number(s) at signup (platform holds one
+   parent account); existing numbers portable in. Required for the 270-business
+   plan — one shared number cannot serve many businesses (branding, 10DLC
+   compliance, throughput, reputation isolation).
 9. **Predictive revenue engine** — equipment age + season + history → auto-generated
    replacement/upsell quotes with financing pre-attached, one tap to send.
 10. **Outbound voice AI** — missed-call callbacks in 60s, overdue-invoice calls,
