@@ -206,8 +206,16 @@ context. Nobody else is both the software and the service provider.
 - AI contains 80–90%; humans handle only escalations
 - Async-first: chat/tickets + scheduled callbacks — no live phone queues (one
   async agent covers 3–5× the volume of a phone agent)
-- Founder-led concierge for the first shops; first support hire at ~20–50 shops;
-  fractional/gig overflow after that
+- **Phase 0 — founder IS customer service.** The goal is revenue before the first
+  hire: founder on-call during waking hours; overnight the AI holds customers
+  warm ("specialist follows up by 9 AM") and the ticket is waiting at 9. Feels
+  24/7 without the founder never sleeping. Viable to ~20 shops.
+- **Phase 1 — trusted part-timers, on-call (revisit).** 1–2 known customer-service
+  people, staggered coverage windows (e.g. mornings/evenings), 15–30 min SLA on
+  escalations; hourly or retainer + per-ticket; founder remains the backup for
+  the truly weird stuff. PII guardrails: role-based access, no data exports.
+- Phase 2 — first full/part-time support hire at ~20–50 shops; fractional/gig
+  overflow after that; done-for-you BPO only if scale ever demands it
 - Flywheel: every human-resolved ticket becomes a knowledge-base article the AI
   answers next time — the human layer shrinks per-shop as the AI learns
 
