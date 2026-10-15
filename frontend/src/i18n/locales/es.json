@@ -63,7 +63,9 @@
     "repeat": "Agenda Recurrente",
     "platform_admin": "Administrador",
     "photo_estimates": "Estimados con foto",
-    "marketing": "Marketing"
+    "marketing": "Marketing",
+    "ai_dispatcher": "Despachador IA",
+    "onboarding": "Incorporación con IA"
   },
   "landing": {
     "nav_features": "Funciones",
@@ -567,5 +569,53 @@
     "add_step": "Añadir paso",
     "step_n": "Paso {{n}}",
     "delay_days": "retraso (días)"
+  },
+  "ai_dispatcher": "Despachador IA",
+  "onboarding": {
+    "eyebrow": "Configuración",
+    "title": "Incorporación con IA",
+    "description": "Sube tus facturas antiguas o tu lista de clientes — creamos tus clientes, tu catálogo de precios y tu telefonía en una tarde.",
+    "steps": {
+      "upload": "Subir",
+      "preview": "Vista previa y mapeo",
+      "import": "Importar"
+    },
+    "upload_label": "Facturas o lista de clientes (CSV)",
+    "upload_hint": "CSV funciona hoy; XLSX necesita el paquete openpyxl (no requerido). Nada se guarda hasta que confirmes la vista previa.",
+    "upload_cta": "Subir y ver vista previa",
+    "upload_ok": "Vista previa lista",
+    "mapping_title": "Mapeo de columnas",
+    "not_mapped": "Sin mapear",
+    "rows_detected": "{{count}} filas detectadas ({{type}})",
+    "customers_detected": "Clientes detectados ({{count}})",
+    "pricebook_detected": "Candidatos al catálogo ({{count}})",
+    "back": "Atrás",
+    "import_cta": "Confirmar e importar",
+    "import_ok": "Importación completa",
+    "import_done": "Tus libros están listos",
+    "customers_created": "clientes creados",
+    "items_created": "ítems del catálogo creados",
+    "replay_note": "ya importado (repetición idempotente)",
+    "telephony_title": "Teléfono del negocio",
+    "telephony_desc": "Provisionamos un número dedicado bajo la cuenta de la plataforma — conserva tu línea principal, añade una línea de IA/marketing, o ambas. La telefonía está incluida en tu tarifa plana.",
+    "telephony_mode": "Modo de número",
+    "mode_provisioned": "Número nuevo (provisionado)",
+    "mode_ported": "Portar número existente",
+    "mode_both": "Ambos — conservo el mío + añado línea nueva",
+    "port_number_label": "Número a portar",
+    "provision_cta": "Provisionar teléfono",
+    "telephony_ok": "Teléfono provisionado",
+    "subaccount": "Subcuenta",
+    "bundled_note": "Incluido en tu tarifa plana con una generosa asignación de uso. El uso se registra; los excedentes se facturan por separado.",
+    "fields": {
+      "customer_name": "Nombre del cliente",
+      "email": "Correo electrónico",
+      "phone": "Teléfono",
+      "address": "Dirección",
+      "item": "Concepto / servicio",
+      "price": "Precio / importe",
+      "quantity": "Cantidad",
+      "date": "Fecha"
+    }
   }
 }
