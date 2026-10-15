@@ -126,9 +126,5 @@ export function matchPlan(answers, plans, rules = ESTIMATOR_RULES) {
   return { status: "custom", plan: custom, exceeded, warnings };
 }
 
-/** Exact price string from cents — never rounded to whole dollars. */
-export function formatPrice(cents) {
-  const n = Number(cents);
-  if (!Number.isFinite(n)) return "";
-  return `$${(n / 100).toFixed(2)}`;
-}
+/** Exact price string from cents — never rounded (shared with every price on the site). */
+export { formatPlanPrice as formatPrice } from "./pricing";

@@ -12,14 +12,13 @@ import { useAuth } from "@/context/AuthContext";
 import { isPaidCheckoutPlan, setPendingCheckoutPlan, startStripeCheckout } from "@/lib/checkout";
 
 import { CONTACT_EMAIL } from "@/config/contact";
+import { formatPlanPrice as formatPrice } from "@/lib/pricing";
+import { localizePlan } from "@/config/planCopy";
 import ThemeToggle from "@/components/ThemeToggle";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
-// QA-PRICING: toFixed(0) showed 1999 cents as "$20" while checkout charges $19.99.
-export function formatPrice(cents) {
-  const dollars = cents / 100;
-  return `$${Number.isInteger(dollars) ? dollars.toFixed(0) : dollars.toFixed(2)}`;
-}
+// Prices come from the plan's price_cents (what checkout charges) via the shared formatter.
+export { formatPlanPrice as formatPrice } from "@/lib/pricing";
 
 export default function Pricing() {
   const [plans, setPlans] = useState([]);
@@ -42,9 +41,10 @@ export default function Pricing() {
   }, []);
   useEffect(() => { loadPlans(); }, [loadPlans]);
 
-  const payable = plans.filter((p) => p.price_cents > 0 && p.key !== "enterprise");
-  const trial = plans.find((p) => p.key === "trial");
-  const enterprise = plans.find((p) => p.key === "enterprise");
+  const shown = plans.map((p) => localizePlan(p, lang));
+  const payable = shown.filter((p) => p.price_cents > 0 && p.key !== "enterprise");
+  const trial = shown.find((p) => p.key === "trial");
+  const enterprise = shown.find((p) => p.key === "enterprise");
 
   const startPaidPlan = async (planKey) => {
     if (!isPaidCheckoutPlan(planKey)) return;

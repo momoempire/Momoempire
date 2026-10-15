@@ -9,12 +9,17 @@ import { useAuth } from "@/context/AuthContext";
 import { startStripeCheckout } from "@/lib/checkout";
 
 import { CONTACT_EMAIL } from "@/config/contact";
+import { useTranslation } from "react-i18next";
+import { formatPlanPrice } from "@/lib/pricing";
+import { localizePlan } from "@/config/planCopy";
 export default function Billing() {
   const [plans, setPlans] = useState([]);
   const [tenant, setTenant] = useState(null);
   const [overage, setOverage] = useState(null);
   const [loading, setLoading] = useState("");
   const { user } = useAuth();
+  const { i18n } = useTranslation();
+  const lang = (i18n.language || "en").slice(0, 2);
 
   useEffect(() => {
     api.get("/plans").then((r) => setPlans(r.data));
@@ -64,10 +69,10 @@ export default function Billing() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {plans.filter((p) => p.price_cents > 0 && p.key !== "enterprise").map((p) => (
+        {plans.filter((p) => p.price_cents > 0 && p.key !== "enterprise").map((p) => localizePlan(p, lang)).map((p) => (
           <div key={p.key} className="surface p-7 lift" data-testid={`plan-card-${p.key}`}>
             <div className="overline">{p.name}</div>
-            <div className="font-display text-4xl mt-3 tracking-tight">${(p.price_cents / 100).toFixed(0)}<span className="text-base text-muted-foreground font-sans">/mo</span></div>
+            <div className="font-display text-4xl mt-3 tracking-tight">{formatPlanPrice(p.price_cents)}<span className="text-base text-muted-foreground font-sans">/mo</span></div>
             {p.description && <div className="text-sm text-muted-foreground mt-2">{p.description}</div>}
             <ul className="mt-5 text-sm space-y-2 text-muted-foreground">
               {(p.features || []).slice(0, 6).map((f) => <li key={f}>· {f}</li>)}

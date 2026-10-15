@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import TurnstileWidget from "@/components/TurnstileWidget";
 import { ESTIMATOR_RULES } from "@/config/estimatorRules";
 import { matchPlan, formatPrice } from "@/lib/estimator";
+import { localizePlan } from "@/config/planCopy";
 
 // Instant-quote estimator (lead qualifier). Plans, prices and limits come from GET /api/plans;
 // mapping rules live in config/estimatorRules.js (PLACEHOLDER — Brann to confirm).
@@ -37,7 +38,8 @@ function bandLabels(bands, t) {
 }
 
 export default function Estimate() {
-  const { t } = useTranslation();
+  const { t, i18n: ui18n } = useTranslation();
+  const planName = (plan) => localizePlan(plan, ui18n.language)?.name;
   const [plans, setPlans] = useState(null);
   const [industries, setIndustries] = useState([]);
   const [answers, setAnswers] = useState({
@@ -192,7 +194,7 @@ export default function Estimate() {
               {result.status === "ok" && (
                 <>
                   <div className="overline text-white/60">{t("estimator.result.heading")}</div>
-                  <div className="font-display text-3xl mt-2" data-testid="estimate-plan-name">{result.plan.name}</div>
+                  <div className="font-display text-3xl mt-2" data-testid="estimate-plan-name">{planName(result.plan)}</div>
                   {waitlistOnly ? (
                     // TODO(Brann/marketing): "planned pricing at launch"-style wording (and whether to show
                     // the planned price at all) for waitlist-only mode. Copy not written: Brann's call.
@@ -220,7 +222,7 @@ export default function Estimate() {
               )}
               {result.status === "custom" && (
                 <>
-                  <div className="font-display text-3xl" data-testid="estimate-plan-name">{result.plan?.name || t("estimator.result.customTitle")}</div>
+                  <div className="font-display text-3xl" data-testid="estimate-plan-name">{planName(result.plan) || t("estimator.result.customTitle")}</div>
                   <p className="mt-2 text-white/70">{t("estimator.result.customBody")}</p>
                   {result.exceeded.length > 0 && (
                     <p className="mt-1 text-sm text-white/60">

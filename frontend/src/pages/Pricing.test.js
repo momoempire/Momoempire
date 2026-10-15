@@ -72,7 +72,7 @@ test("copy follows the selected language (Spanish)", async () => {
   const text = container.textContent;
   expect(text).toMatch(/Pague por la oficina/);
   expect(text).toMatch(/100 minutos de IA \/ mes/);
-  expect(text).toMatch(/Empezar Starter/);
+  expect(text).toMatch(/Empezar Inicial/);
   expect(text).toMatch(/Contactar a ventas/);
   expect(text).not.toMatch(/Pay for the office|Contact sales|AI minutes/);
 });
@@ -80,5 +80,5 @@ test("copy follows the selected language (Spanish)", async () => {
 test("formatPrice keeps cents and whole dollars", () => {
   const { formatPrice } = require("./Pricing");
   expect(formatPrice(1999)).toBe("$19.99");
-  expect(formatPrice(5000)).toBe("$50");
+  expect(formatPrice(5000)).toBe("$50.00");
 });
