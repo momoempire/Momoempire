@@ -174,6 +174,43 @@ Some endgame ideas port directly to the bookkeeping app:
 - **Autonomous categorization** — every transaction categorized at confidence;
   only low-confidence items ever surface for human review.
 
+## Customer-service excellence initiative (both layers, one brain)
+
+The moat: one AI brain serves the shop AND the shop's customers with shared
+context. Nobody else is both the software and the service provider.
+
+**Layer 1 — our support for the shops:**
+- AI first responder trained on platform docs; ticket escalation with real SLAs
+- Proactive monitoring: we detect issues (e.g. receptionist error-rate spikes)
+  and reach out before the shop notices
+- Per-shop health scores + churn prediction
+- Public status page; white-glove onboarding concierge (first 90 days)
+
+**Layer 2 — us as customer service for the shops' customers:**
+- Omnichannel inbox: voice, SMS, web chat, email, FB/IG DMs — AI on every channel
+- Real-time sentiment detection → instant human escalation with full transcript
+- Conversation intelligence: every call transcribed, scored, summarized into the
+  job record
+- Proactive outreach: missed appointments, stale quotes — AI reaches out first
+- Multilingual voice (EN/ES+); 60-second missed-call rescue (text + callback)
+
+**Shine extras (both audiences):**
+- Homeowner home-hub app (Phase D #19)
+- Benchmark reports for shops ("you answer 94% of calls vs 78% for shops like
+  yours") — feeds the price-intelligence data moat
+- Post-job satisfaction pulse feeding tech leaderboards (Phase D #24)
+- Dogfooding: our own support line answered by our AI receptionist — the demo
+  no competitor can match
+
+**The affordable human layer (model decided 2026-10-15):**
+- AI contains 80–90%; humans handle only escalations
+- Async-first: chat/tickets + scheduled callbacks — no live phone queues (one
+  async agent covers 3–5× the volume of a phone agent)
+- Founder-led concierge for the first shops; first support hire at ~20–50 shops;
+  fractional/gig overflow after that
+- Flywheel: every human-resolved ticket becomes a knowledge-base article the AI
+  answers next time — the human layer shrinks per-shop as the AI learns
+
 ## Principles
 
 - One feature per checkpoint: build → test → report → user go-ahead before the next.
