@@ -63,7 +63,8 @@
     "repeat": "Repeat Scheduling",
     "platform_admin": "Platform Admin",
     "photo_estimates": "Photo Estimates",
-    "marketing": "Marketing"
+    "marketing": "Marketing",
+    "ai_dispatcher": "AI Dispatcher"
   },
   "landing": {
     "nav_features": "Features",
@@ -567,5 +568,6 @@
     "add_step": "Add step",
     "step_n": "Step {{n}}",
     "delay_days": "delay (days)"
-  }
+  },
+  "ai_dispatcher": "AI Dispatcher"
 }

@@ -38,6 +38,7 @@ const GROUPS = [
       { to: "/app/customers", icon: Users, label: "nav.customers", testId: "nav-customers" },
       { to: "/app/appointments", icon: CalendarClock, label: "nav.appointments", testId: "nav-appointments" },
       { to: "/app/dispatch", icon: ClipboardList, label: "nav.dispatch", testId: "nav-dispatch" },
+      { to: "/app/ai-dispatcher", icon: Bot, label: "nav.ai_dispatcher", testId: "nav-ai-dispatcher" },
       { to: "/app/repeat", icon: Repeat, label: "nav.repeat", testId: "nav-repeat" },
       { to: "/app/services", icon: Wrench, label: "nav.services", testId: "nav-services" },
       { to: "/app/pricebook", icon: BookOpen, label: "nav.pricebook", testId: "nav-pricebook" },
