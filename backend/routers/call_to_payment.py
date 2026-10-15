@@ -32,7 +32,7 @@ from pydantic import BaseModel, Field, EmailStr
 
 from db import get_db
 from models import _uuid, _now_iso
-from models_phase2 import EstimateLine
+from models import EstimateLine
 from security import require_tenant_user, require_tenant_owner_or_admin
 from services.email import send_email, followup_html
 
