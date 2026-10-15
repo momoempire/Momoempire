@@ -25,7 +25,10 @@
    data model (appointments/customers have none today).
 3. **GPS tech tracking** — "tech's on the way" live map + ETA texts for customers.
 4. **Financing at checkout** — customer financing offers embedded in quotes/invoices.
-5. **QuickBooks sync** — two-way sync of customers, invoices, payments.
+5. **Bookkeeping link** — sync customers, invoices, payments with our OWN
+   bookkeeping app (the QuickBooks competitor), not QuickBooks. Provider-abstracted
+   adapter; per-tenant encrypted API token; auto-sync on invoice-paid. (Replaces
+   the earlier QuickBooks-sync plan per user directive 2026-10-15.)
 6. **AI photo estimates** — customer sends a photo, AI generates a draft estimate
    (leans on the pricebook from #1).
 
