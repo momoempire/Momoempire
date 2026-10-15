@@ -8,7 +8,7 @@ import {
   Home, Bot, PhoneCall, MessageSquare, Target, Users, CalendarClock,
   Wrench, CreditCard, Globe, UserRound, Star, LineChart, Compass,
   BookOpenText, Workflow, Plug, PhoneForwarded, Gauge, Receipt, Settings,
-  LogOut, ShieldCheck, Rocket, Repeat,
+  LogOut, ShieldCheck, Rocket, Repeat, ClipboardList,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -37,6 +37,7 @@ const GROUPS = [
       { to: "/app/leads", icon: Target, label: "nav.leads", testId: "nav-leads" },
       { to: "/app/customers", icon: Users, label: "nav.customers", testId: "nav-customers" },
       { to: "/app/appointments", icon: CalendarClock, label: "nav.appointments", testId: "nav-appointments" },
+      { to: "/app/dispatch", icon: ClipboardList, label: "nav.dispatch", testId: "nav-dispatch" },
       { to: "/app/repeat", icon: Repeat, label: "nav.repeat", testId: "nav-repeat" },
       { to: "/app/services", icon: Wrench, label: "nav.services", testId: "nav-services" },
       { to: "/app/payments", icon: CreditCard, label: "nav.payments", testId: "nav-payments" },
