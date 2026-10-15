@@ -15,22 +15,59 @@
   (`models_phase2/3/4` → domain-organized `models.py`). Router audit: 0 duplicates.
 - **Dispatch board** (`feature/dispatch-board`): per-tech day board, drag-and-drop
   assign/move, status flow (scheduled → en_route → on_site → completed), 12/12 tests.
+- **GPS tracking** (`feature/gps-tracking`): live tech locations (tenant-scoped
+  `tech_locations` collection, current + capped 50-point history), customer ETA
+  page at `/track/:token` (public, token-scoped, first-name-only, zero customer
+  PII), "tech's on the way" ETA SMS on en_route (v1: haversine at ~30mph;
+  degrades to "On the way" without coords), dispatch-board live badges. 22/22 tests.
+- **Equipment history** (`feature/equipment-history`): per-customer-location equipment
+  records (make/model/serial, install date, full service address) + service
+  timeline with job linkage; adds the missing service-address field to the data
+  model (optional `service_address` on Customer; equipment always carries one).
+  13/13 tests.
 
 ## Phase A — ServiceTitan parity gaps (build in order, one per checkpoint)
 
 1. **Pricebook** — flat-rate pricebook: services, parts, labor matrices; versioned;
    feeds quotes/invoices/dispatch with consistent pricing.
-2. **Equipment history** — per-customer-location equipment records (make/model/serial,
-   install date, service history); adds the missing service-address field to the
-   data model (appointments/customers have none today).
-3. **GPS tech tracking** — "tech's on the way" live map + ETA texts for customers.
-4. **Financing at checkout** — customer financing offers embedded in quotes/invoices.
+2. **Equipment history** ✅ done (`feature/equipment-history`) — per-customer-location
+   equipment records (make/model/serial, install date, service history);
+   adds the missing service-address field to the data model (appointments/
+   customers have none today — customers now accept an optional
+   `service_address`, equipment records always carry the full address).
+3. **GPS tech tracking** — "tech's on the way" live map + ETA texts for customers. **Done** (see Shipped).
+4. **Financing at checkout** ✅ done (`feature/financing`) — provider-abstracted
+   customer financing embedded in quotes/invoices: `FinancingProvider` ABC with
+   `DemoFinancingProvider` (deterministic amortization math, clearly labeled
+   demo) and a `WisetackProvider` skeleton with `TODO(LIVE)` markers (no live
+   calls). Monthly-payment offers (12/24/36/48/60-mo, incl. 0% APR promo line)
+   on the public quote/invoice pages via token-authenticated endpoints; per-
+   tenant settings (enable toggle, provider select) in Settings → Financing,
+   writes owner/admin-only. Shops will connect their OWN Wisetack merchant
+   accounts later (Stripe-Connect model) — no platform keys needed.
 5. **Bookkeeping link** — sync customers, invoices, payments with our OWN
    bookkeeping app (the QuickBooks competitor), not QuickBooks. Provider-abstracted
    adapter; per-tenant encrypted API token; auto-sync on invoice-paid. (Replaces
    the earlier QuickBooks-sync plan per user directive 2026-10-15.)
-6. **AI photo estimates** — customer sends a photo, AI generates a draft estimate
-   (leans on the pricebook from #1).
+6. **AI photo estimates** ✅ done (`feature/ai-photo-estimates`) — customer sends a
+   photo, AI generates a draft estimate (leans on the pricebook from #1).
+   `VisionProvider` ABC + deterministic `MockVisionProvider`; live Gemini
+   (`GEMINI_API_KEY`, free tier) and OpenAI-compatible providers are skeletons
+   with TODO(LIVE) markers and a mock fallback so the flow always works in
+   demo. `/tenants/photo-estimates`: upload (image-MIME + 10MB validation) →
+   analyze (Jaccard description-match against active pricebook rows, confidence
+   surfaced, unmatched → generic lines) → approve (human edit step) → flows
+   into the existing `_create_estimate_doc` quote-draft pipeline, nothing
+   duplicated. Part B: `llm_portable.py` now supports `GEMINI_API_KEY`
+   (google-genai==2.26.0); resolution EMERGENT → OPENAI → GEMINI → raise,
+   completing the "Claude/Gemini later" TODO for Gemini.
+   Frontend: `/app/photo-estimates` page (upload → review suggestions w/
+   confidence + pricebook matches → edit/approve → create quote draft), EN+ES.
+
+**Phase A is COMPLETE** — all 6 ServiceTitan parity gaps shipped (pricebook,
+equipment history, GPS tracking, financing, bookkeeping link, AI photo
+estimates). Next: Phase B (AI dispatcher, AI onboarding, predictive revenue
+engine, outbound voice AI, per-job profitability, price intelligence).
 
 ## Phase B — Beyond parity (the distance-makers)
 
@@ -77,6 +114,22 @@
     32. siding & gutters, 33. home inspection.
     Launch order: HVAC first (Mind at Ease HVAC is the reference brand), then
     plumbing, electrical, roofing — then the rest in list order.
+
+## Phase D — Shine-brighter differentiators (post-launch)
+
+19. **Homeowner home-hub app** — consumer-facing: systems, warranties, service
+    history, maintenance reminders, one-tap booking. Makes us a consumer brand,
+    not just shop software. Biggest swing.
+20. **Video estimates** — customer records a walkthrough video; AI extracts full
+    scope into a draft estimate. Builds on AI photo estimates.
+21. **Parts ordering from the job** — tech diagnoses, taps once, distributor order
+    placed. Kills supply-house runs.
+22. **AI collections with empathy** — persistent but polite AI follow-up on overdue
+    invoices (text → voice → escalate). No burned relationships.
+23. **Maintenance agreement autopilot** — auto-renewals, auto-scheduled tune-ups,
+    churn prediction before members cancel. Recurring-revenue machine.
+24. **Tech gamification** — leaderboards on close rate, ticket size, callbacks.
+    Retention + performance.
 
 ## Principles
 
