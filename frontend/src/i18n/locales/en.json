@@ -61,7 +61,8 @@
     "billing": "Billing",
     "settings": "Settings",
     "repeat": "Repeat Scheduling",
-    "platform_admin": "Platform Admin"
+    "platform_admin": "Platform Admin",
+    "photo_estimates": "Photo Estimates"
   },
   "landing": {
     "nav_features": "Features",
@@ -449,5 +450,35 @@
     "status_counts": "{{customers}} customers · {{invoices}} invoices · {{payments}} payments ({{total}} total)",
     "save": "Save bookkeeping settings",
     "saved": "Bookkeeping settings saved"
+  },
+  "photo_estimates": {
+    "title": "AI Photo Estimates",
+    "subtitle": "Upload a job photo — AI suggests line items from your pricebook. You review and approve before anything becomes a quote.",
+    "step_upload": "1. Upload a photo",
+    "step_review": "2. Review AI suggestions",
+    "step_approve": "3. Approve → create quote draft",
+    "pick_file_first": "Pick a photo first.",
+    "trade_placeholder": "Trade (e.g. HVAC)",
+    "notes_placeholder": "Notes about the job (optional)",
+    "upload_analyze": "Upload & analyze photo",
+    "analyzed": "Photo analyzed — review the suggestions.",
+    "via_provider": "via {{provider}}",
+    "review_hint": "Confidence is the AI's self-assessed score. Lines matched to your pricebook take their price from the catalog; unmatched lines are generic — set the price yourself.",
+    "line_desc_placeholder": "Line item description",
+    "qty": "Qty",
+    "price": "Price",
+    "price_from_book": "price from pricebook",
+    "add_line": "Add line",
+    "remove_line": "Remove line",
+    "customer_placeholder": "Customer name",
+    "customer_required": "Enter the customer name first.",
+    "title_placeholder": "Quote title (optional)",
+    "default_title": "Photo estimate",
+    "one_line_required": "Keep at least one line item.",
+    "create_draft": "Create quote draft",
+    "draft_created": "Quote draft created",
+    "draft_hint": "Draft {{quoteId}} is waiting in your normal quote-approval flow.",
+    "estimate_another": "Estimate another photo",
+    "start_over": "Start over"
   }
 }

@@ -61,7 +61,8 @@
     "billing": "Facturación",
     "settings": "Ajustes",
     "repeat": "Agenda Recurrente",
-    "platform_admin": "Administrador"
+    "platform_admin": "Administrador",
+    "photo_estimates": "Estimados con foto"
   },
   "landing": {
     "nav_features": "Funciones",
@@ -449,5 +450,35 @@
     "status_counts": "{{customers}} clientes · {{invoices}} facturas · {{payments}} pagos ({{total}} en total)",
     "save": "Guardar configuración de contabilidad",
     "saved": "Configuración de contabilidad guardada"
+  },
+  "photo_estimates": {
+    "title": "Estimados con foto por IA",
+    "subtitle": "Sube una foto del trabajo: la IA sugiere partidas de tu lista de precios. Tú revisas y apruebas antes de que se convierta en cotización.",
+    "step_upload": "1. Sube una foto",
+    "step_review": "2. Revisa las sugerencias de la IA",
+    "step_approve": "3. Aprueba → crea el borrador",
+    "pick_file_first": "Elige una foto primero.",
+    "trade_placeholder": "Oficio (p. ej. HVAC)",
+    "notes_placeholder": "Notas sobre el trabajo (opcional)",
+    "upload_analyze": "Subir y analizar foto",
+    "analyzed": "Foto analizada — revisa las sugerencias.",
+    "via_provider": "vía {{provider}}",
+    "review_hint": "La confianza es la puntuación de la propia IA. Las partidas vinculadas a tu lista de precios toman el precio del catálogo; las no vinculadas son genéricas: pon el precio tú.",
+    "line_desc_placeholder": "Descripción de la partida",
+    "qty": "Cant.",
+    "price": "Precio",
+    "price_from_book": "precio de la lista",
+    "add_line": "Agregar partida",
+    "remove_line": "Quitar partida",
+    "customer_placeholder": "Nombre del cliente",
+    "customer_required": "Escribe el nombre del cliente primero.",
+    "title_placeholder": "Título de la cotización (opcional)",
+    "default_title": "Estimado con foto",
+    "one_line_required": "Conserva al menos una partida.",
+    "create_draft": "Crear borrador de cotización",
+    "draft_created": "Borrador de cotización creado",
+    "draft_hint": "El borrador {{quoteId}} espera en tu flujo normal de aprobación.",
+    "estimate_another": "Estimar otra foto",
+    "start_over": "Empezar de nuevo"
   }
 }
