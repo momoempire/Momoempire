@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Response, Request
 from pydantic import BaseModel
 from db import get_db
 from models import _uuid, _now_iso, Lead, Customer, Appointment
-from models_phase2 import ServiceRequestIn, PortalMagicLinkIn
+from models import ServiceRequestIn, PortalMagicLinkIn
 
 router = APIRouter(prefix="/portal", tags=["portal"])
 
@@ -125,10 +125,8 @@ async def portal_me(slug: str, request: Request, token: str | None = None):
     rec = await db.portal_tokens.find_one({"token": tok, "tenant_id": t["id"]})
     if not rec:
         raise HTTPException(401, "Invalid token")
-    exp = rec["expires_at"]
-    if isinstance(exp, str):
-        exp = datetime.fromisoformat(exp)
-    if exp < datetime.now(timezone.utc):
+    from timeutil import is_expired  # EMP-W-CF-026: same naive-vs-aware crash as reset-password
+    if is_expired(rec.get("expires_at")):
         raise HTTPException(401, "Token expired")
     cust = await db.customers.find_one({"id": rec["customer_id"]}, {"_id": 0})
     if not cust:

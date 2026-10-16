@@ -1,6 +1,8 @@
 """Phase 9 features: 24h appointment auto-confirmation, review-request autopilot (2h),
 call-back scheduler, service-area heatmap, Google Calendar ICS export for standup."""
 import os
+from brand import brand_name
+from site_contact import contact_email
 import re
 import json
 import logging
@@ -224,7 +226,7 @@ async def _geocode_zip(zip_code: str, country: str = "us") -> dict | None:
             r = await hc.get(
                 "https://nominatim.openstreetmap.org/search",
                 params={"postalcode": zip_code, "country": country, "format": "json", "limit": 1},
-                headers={"User-Agent": "ai-office-platform/1.0 (contact: ops@aioffice.io)"},
+                headers={"User-Agent": f"ai-office-platform/1.0 (contact: {contact_email()})"},
             )
         rows = r.json() or []
         if not rows:
@@ -309,14 +311,14 @@ async def standup_ics(user: dict = Depends(require_tenant_user)):
         "", "Today's schedule:", *(lines or ["(no appointments)"]),
     ])
 
-    uid = f"aio-standup-{user['tenant_id']}-{now.strftime('%Y%m%d')}@aioffice"
+    uid = f"aio-standup-{user['tenant_id']}-{now.strftime('%Y%m%d')}@mindateasesolutions.com"
     dtstamp = now.strftime("%Y%m%dT%H%M%SZ")
     dtstart = now.strftime("%Y%m%dT%H%M%SZ")
     dtend = end_of_day.strftime("%Y%m%dT%H%M%SZ")
     ics = (
         "BEGIN:VCALENDAR\r\n"
         "VERSION:2.0\r\n"
-        f"PRODID:-//AI Office//Standup//EN\r\n"
+        f"PRODID:-//{brand_name()}//Standup//EN\r\n"
         "CALSCALE:GREGORIAN\r\n"
         "METHOD:PUBLISH\r\n"
         "BEGIN:VEVENT\r\n"

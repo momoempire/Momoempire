@@ -1,6 +1,6 @@
 """Post-job automation + review-response drafter + daily standup + weekly social post.
 
-Core design: everything reuses services/email + services/twilio + Emergent LLM key.
+Core design: everything reuses services/email + services/twilio + the AI key (AI_API_KEY).
 Deterministic fallbacks keep every endpoint 200-OK even when LLM/channel is missing.
 """
 import os
@@ -147,11 +147,12 @@ async def draft_review_response(data: ReviewResponseIn, user: dict = Depends(req
     tenant = await db.tenants.find_one({"id": user["tenant_id"]}, {"_id": 0, "name": 1}) or {}
     biz = tenant.get("name", "our team")
     fallback = _rule_review_response(biz, data.review_text, data.rating, data.customer_name)
-    key = os.environ.get("EMERGENT_LLM_KEY")
+    from llm_portable import ai_api_key
+    key = ai_api_key()
     if not key:
         return fallback
     try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        from llm_portable import LlmChat, UserMessage
         system = (
             "You draft public replies to customer reviews on Google/Yelp for a small service business. "
             "Rules: warm, specific, ~2 sentences, never defensive. For negative reviews: acknowledge, apologize "
@@ -282,11 +283,12 @@ async def draft_social_post(user: dict = Depends(require_tenant_user)):
         "hashtags": ["#localbusiness", f"#{biz.lower().replace(' ', '')}", "#community"],
         "method": "rules",
     }
-    key = os.environ.get("EMERGENT_LLM_KEY")
+    from llm_portable import ai_api_key
+    key = ai_api_key()
     if not key:
         return fallback
     try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        from llm_portable import LlmChat, UserMessage
         system = (
             "You write short, warm social media captions for a local service business. "
             "~2-3 sentences, 1-2 emoji, add a soft CTA at the end. Return JSON only: "

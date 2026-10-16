@@ -2,37 +2,41 @@
 from fastapi import APIRouter, Depends, HTTPException
 from db import get_db
 from models import _now_iso
-from models_phase4 import Plan, PlanIn, CostConfig, CostConfigIn
+from models import Plan, PlanIn, CostConfig, CostConfigIn
 from security import require_platform_admin
 
 router = APIRouter(prefix="/admin/plans", tags=["admin-plans"], dependencies=[Depends(require_platform_admin)])
 
 
+# Locked pricing (decided 2026-10-15): Lite $9.99 / Starter $39.99 / Pro $159 / Empire $369.
+# Telephony bundled with minute allowances; overage in cents/min or cents/sms.
+# NOTE: keys were renamed from the old growth/ai_office/high_volume scheme. On any
+# DB seeded before this change, delete the stale keys via the admin plans API.
 DEFAULT_PLANS = [
     {"key": "trial", "name": "Free Trial / Sandbox", "price_cents": 0, "trial_days": 60, "sort_order": 1,
      "description": "Two-month sandbox for testing with family, friends, or a few real calls.",
      "limits": {"ai_minutes": 30, "calls": 50, "sms": 100, "ai_interactions": 300, "locations": 1, "users": 1, "phone_numbers": 0, "personas": 1, "integrations": 1},
      "features": ["Basic AI receptionist", "Limited calls", "No branded page", "No customer portal"]},
-    {"key": "starter", "name": "Starter", "price_cents": 1999, "sort_order": 10,
+    {"key": "lite", "name": "Lite", "price_cents": 999, "sort_order": 5,
+     "description": "A taste of the AI office.",
+     "limits": {"ai_minutes": 10, "calls": 25, "sms": 50, "ai_interactions": 500, "locations": 1, "users": 1, "phone_numbers": 1, "personas": 1, "integrations": 1},
+     "overage": {"ai_minutes": 35, "calls": 5, "sms": 2},
+     "features": ["Core dispatch & scheduling", "Pricebook", "Invoicing & payments", "AI receptionist (10 min/mo)", "1 phone number"]},
+    {"key": "starter", "name": "Starter", "price_cents": 3999, "sort_order": 10,
      "description": "Say goodbye to voicemail jail.",
-     "limits": {"ai_minutes": 100, "calls": 150, "sms": 300, "ai_interactions": 1500, "locations": 1, "users": 2, "phone_numbers": 1, "personas": 1, "integrations": 2},
-     "overage": {"ai_minutes": 25, "calls": 5, "sms": 2},
-     "features": ["Basic AI receptionist", "Basic SMS", "Basic business configuration", "Basic branded presence", "Usage warnings"]},
-    {"key": "growth", "name": "Growth", "price_cents": 4999, "sort_order": 20,
-     "description": "Capture every lead, book every job.",
-     "limits": {"ai_minutes": 300, "calls": 500, "sms": 1000, "ai_interactions": 5000, "locations": 1, "users": 5, "phone_numbers": 2, "personas": 1, "integrations": 5},
-     "overage": {"ai_minutes": 20, "calls": 4, "sms": 1.5},
-     "features": ["Advanced receptionist", "Appointment booking", "Follow-ups", "Missed-call recovery", "More SMS", "More automation"]},
-    {"key": "ai_office", "name": "AI Office", "price_cents": 9999, "sort_order": 30,
-     "description": "Your full digital office.",
-     "limits": {"ai_minutes": 650, "calls": 1500, "sms": 3000, "ai_interactions": 15000, "locations": 2, "users": 10, "phone_numbers": 3, "personas": 2, "integrations": 10},
-     "overage": {"ai_minutes": 15, "calls": 3, "sms": 1},
-     "features": ["Full AI employee", "Scheduling", "Customer management", "Lead recovery", "Reviews", "Business intelligence", "AI business advisor", "Customer portal"]},
-    {"key": "high_volume", "name": "High Volume", "price_cents": 19999, "sort_order": 40,
-     "description": "For busy shops with multiple locations.",
-     "limits": {"ai_minutes": 1400, "calls": 4000, "sms": 8000, "ai_interactions": 40000, "locations": 5, "users": 25, "phone_numbers": 10, "personas": 5, "integrations": 25},
-     "overage": {"ai_minutes": 12, "calls": 2, "sms": 0.75},
-     "features": ["Higher call volume", "Multiple locations", "More phone numbers", "Advanced integrations", "Advanced automation", "Multiple AI personas", "Advanced reporting"]},
+     "limits": {"ai_minutes": 60, "calls": 150, "sms": 200, "ai_interactions": 1500, "locations": 1, "users": 2, "phone_numbers": 1, "personas": 1, "integrations": 2},
+     "overage": {"ai_minutes": 30, "calls": 5, "sms": 2},
+     "features": ["Everything in Lite", "AI photo estimates", "GPS tracking", "Review requests", "60 AI minutes/mo", "Up to 2 users"]},
+    {"key": "pro", "name": "Pro", "price_cents": 15900, "sort_order": 20,
+     "description": "Your full AI office. Unlimited users.",
+     "limits": {"ai_minutes": 300, "calls": 800, "sms": 1000, "ai_interactions": 8000, "locations": 2, "users": 25, "phone_numbers": 3, "personas": 2, "integrations": 10},
+     "overage": {"ai_minutes": 25, "calls": 4, "sms": 1.5},
+     "features": ["Everything in Starter", "Unlimited users", "Full AI receptionist", "Marketing automation", "Outbound voice AI", "3 phone numbers"]},
+    {"key": "empire", "name": "Empire", "price_cents": 36900, "sort_order": 30,
+     "description": "Superpowers for growing empires.",
+     "limits": {"ai_minutes": 1000, "calls": 2500, "sms": 5000, "ai_interactions": 25000, "locations": 10, "users": 100, "phone_numbers": 10, "personas": 5, "integrations": 25},
+     "overage": {"ai_minutes": 20, "calls": 3, "sms": 1},
+     "features": ["Everything in Pro", "Multi-location command center", "Predictive AI suite", "Cloned owner voice", "White-label experience", "AI success manager & AI staff"]},
     {"key": "enterprise", "name": "Enterprise", "price_cents": 0, "interval": "custom", "sort_order": 50,
      "description": "Custom pricing. Fair-use policies apply.",
      "limits": {}, "overage": {},
