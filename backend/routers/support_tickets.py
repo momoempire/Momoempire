@@ -35,9 +35,24 @@ Collections (all tenant-scoped):
 - `support_tickets`: the ticket doc (status, priority, assignee, timestamps,
   waiting_seconds).
 - `ticket_events`: audit trail (created, status_changed, priority_changed,
-  assignee_changed, reply_added, resolved, reopened).
+  assignee_changed, reply_added, resolved, reopened, sla_breached).
 - `ticket_replies`: public replies + internal notes (``kind``).
 - `sla_policies`: one doc per tenant with per-priority targets (auto-seeded).
+- `kb_article_drafts`: the flywheel — a ticket resolved WITH a resolution
+  note leaves a draft knowledge-base article (question = the ticket,
+  answer = the human's resolution) for owner review, so the AI support
+  agent can answer it next time.
+
+Wave 8+ hardening (wave/service-excellence-plus):
+- SLA breaches are now HANDLED, not just displayed: the first time a live
+  ticket's snapshot reads breached, the ticket is stamped
+  `sla_breach_recorded_at` and an `sla_breached` event lands in the audit
+  trail (+ stubbed supervisor notification). Recorded from the monitoring
+  surfaces (SLA overview + ticket detail); the stamp makes it idempotent.
+- Resolve also stores `resolution_note`/`resolved_by` on the ticket,
+  syncs the resolved case to the central service hub archive
+  (services/service_hub.py — env-configured, OFF by default, best-effort),
+  and dispatches a satisfaction pulse (routers/satisfaction.py).
 """
 from __future__ import annotations
 
@@ -50,6 +65,8 @@ from pydantic import BaseModel, Field
 from db import get_db
 from models import _now_iso, _uuid
 from security import require_tenant_user, require_tenant_owner_or_admin
+from routers.satisfaction import dispatch_pulse
+from services import service_hub as hub
 
 router = APIRouter(prefix="/api/support-tickets", tags=["support-tickets"])
 
@@ -296,6 +313,63 @@ def _sla_snapshot(ticket: Dict, replies: List[Dict], policies: Dict,
     }
 
 
+async def _record_breach_if_new(db, tenant_id: str, ticket: Dict, sla: Dict) -> bool:
+    """SLA breach handling: the first time a live (non-final) ticket's
+    snapshot reads breached, stamp `sla_breach_recorded_at` on the ticket
+    and write an `sla_breached` audit event (+ stubbed supervisor
+    notification). The stamp makes repeat snapshots idempotent — a breach
+    is an event, not a state we re-report on every read. Best-effort:
+    returns False instead of raising."""
+    if ticket.get("status") in FINAL_STATUSES:
+        return False
+    if sla.get("overall") != "breached" or ticket.get("sla_breach_recorded_at"):
+        return False
+    try:
+        now = _now_iso()
+        await db.support_tickets.update_one(
+            {"tenant_id": tenant_id, "id": ticket["id"]},
+            {"$set": {"sla_breach_recorded_at": now, "updated_at": now}})
+        ticket["sla_breach_recorded_at"] = now
+        await _log_event(db, tenant_id, ticket["id"], "sla_breached", None,
+                         {"first_response": sla["first_response"]["status"],
+                          "resolution": sla["resolution"]["status"],
+                          "priority": sla.get("priority")})
+        # TODO(LIVE): notify the support supervisor (SMS/Slack webhook).
+        print(f"[SUPPORT-TICKETS sla breach] tenant={tenant_id} ticket={ticket['id']} "
+              f"priority={sla.get('priority')} (supervisor notification stubbed)")
+        return True
+    except Exception:
+        return False
+
+
+async def _draft_kb_article(db, tenant_id: str, ticket: Dict,
+                            resolution_note: str, actor_id: Optional[str]) -> None:
+    """Flywheel: turn a human resolution into a draft KB article the owner
+    can review and publish into the knowledge base the AI support agent
+    retrieves from. Idempotent per ticket. Best-effort (never raises)."""
+    try:
+        existing = await db.kb_article_drafts.find_one(
+            {"tenant_id": tenant_id, "source_ticket_id": ticket["id"]})
+        if existing:
+            return
+        now = _now_iso()
+        await db.kb_article_drafts.insert_one({
+            "id": _uuid(),
+            "tenant_id": tenant_id,
+            "source_ticket_id": ticket["id"],
+            "title": ticket.get("subject") or "Support resolution",
+            "question": ticket.get("description") or ticket.get("subject") or "",
+            "answer": resolution_note,
+            "category": ticket.get("category") or "",
+            "status": "draft",
+            "created_by": actor_id,
+            "created_at": now,
+            "updated_at": now,
+        })
+    except Exception:
+        pass
+
+
 def _ticket_summary(ticket: Dict) -> Dict:
     return {
         "id": ticket.get("id"),
@@ -403,6 +477,9 @@ async def sla_overview(user: dict = Depends(require_tenant_user)):
         replies = await db.ticket_replies.find(
             {"tenant_id": tenant_id, "ticket_id": d["id"]}, {"_id": 0}).to_list(10000)
         sla = _sla_snapshot(d, replies, policies, now)
+        # Breach handling: a breach seen by the monitoring surface is
+        # recorded (stamped + audited) exactly once per ticket.
+        await _record_breach_if_new(db, tenant_id, d, sla)
         summary = {**_ticket_summary(d), "sla": sla}
         if d.get("status") == "closed":
             continue
@@ -428,6 +505,19 @@ async def sla_overview(user: dict = Depends(require_tenant_user)):
     }
 
 
+# ---------- KB drafts (flywheel) ----------
+
+@router.get("/kb-drafts")
+async def list_kb_drafts(user: dict = Depends(require_tenant_owner_or_admin)):
+    """Draft knowledge-base articles generated from resolved tickets
+    (owner/admin). Review/edit/publish flow lives with the knowledge-base
+    UI; this is the review queue the flywheel feeds."""
+    db = get_db()
+    docs = await db.kb_article_drafts.find(
+        {"tenant_id": user["tenant_id"]}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    return {"drafts": docs, "count": len(docs)}
+
+
 # ---------- detail ----------
 
 @router.get("/{ticket_id}")
@@ -443,10 +533,12 @@ async def get_ticket(ticket_id: str, user: dict = Depends(require_tenant_user)):
         {"tenant_id": tenant_id, "ticket_id": ticket_id}, {"_id": 0}
     ).sort("at", 1).to_list(10000)
     policies = await _get_policies(db, tenant_id)
+    sla = _sla_snapshot(ticket, replies, policies, datetime.now(timezone.utc))
+    await _record_breach_if_new(db, tenant_id, ticket, sla)
     ticket.pop("_id", None)
     return {
         "ticket": ticket,
-        "sla": _sla_snapshot(ticket, replies, policies, datetime.now(timezone.utc)),
+        "sla": sla,
         "replies": replies,
         "events": events,
         "reply_count": len(replies),
@@ -583,6 +675,33 @@ async def resolve_ticket(ticket_id: str, data: ResolveIn,
 
     ticket = await _transition(db, ticket, "resolved", user.get("id"))
     await _log_event(db, tenant_id, ticket_id, "resolved", user.get("id"), {})
+
+    # Store the human resolution on the ticket itself (the learning-loop
+    # payload + the KB flywheel's source material).
+    note = data.resolution_note or ""
+    await db.support_tickets.update_one(
+        {"tenant_id": tenant_id, "id": ticket_id},
+        {"$set": {"resolution_note": note, "resolved_by": user.get("id")}})
+    ticket["resolution_note"] = note
+    ticket["resolved_by"] = user.get("id")
+
+    # Flywheel: a resolution note becomes a draft KB article.
+    if note:
+        await _draft_kb_article(db, tenant_id, ticket, note, user.get("id"))
+
+    # Learning loop: sync the resolved case to the hub archive
+    # (OFF by default, best-effort — never blocks resolution).
+    try:
+        await hub.sync_ticket(db, tenant_id, ticket, note)
+    except Exception:
+        pass
+
+    # Satisfaction pulse to the shop contact (best-effort).
+    await dispatch_pulse(
+        db, tenant_id, source_type="ticket", source_id=ticket_id,
+        customer_name=ticket.get("contact_name") or "",
+        customer_contact=ticket.get("contact_email") or ticket.get("contact_phone") or "",
+        channel="email" if ticket.get("contact_email") else "sms")
     return {"ok": True, **_ticket_summary(ticket)}
 
 

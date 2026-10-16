@@ -441,8 +441,30 @@ async def ingest_check(monitor_id: str, data: MonitorCheckIn,
         monitor = {**monitor, "consecutive_failures": failures}
         incident = await _auto_open_incident(db, tenant_id, monitor, failures)
 
+    recovered_incident = None
+    if data.success and (monitor.get("consecutive_failures", 0) or 0) >= FAILURE_THRESHOLD:
+        # Recovery: the monitor had been failing hard enough to auto-open
+        # an incident. Post the recovery to that incident's public
+        # timeline and move it to "monitoring" — otherwise it sits in
+        # "investigating" forever after the system has healed.
+        for inc in await db.status_incidents.find({"tenant_id": tenant_id}, {"_id": 0}).to_list(1000):
+            if inc.get("auto_monitor_id") == monitor_id and inc.get("status") in ("investigating", "identified"):
+                await db.status_updates.insert_one({
+                    "id": _uuid(), "tenant_id": tenant_id, "incident_id": inc["id"],
+                    "status": "monitoring",
+                    "message": (f"Automated monitoring: checks for '{monitor.get('name')}' "
+                                "are passing again. Monitoring before final resolution."),
+                    "created_at": now,
+                })
+                await db.status_incidents.update_one(
+                    {"tenant_id": tenant_id, "id": inc["id"]},
+                    {"$set": {"status": "monitoring", "updated_at": now}})
+                recovered_incident = inc["id"]
+                break
+
     return {
         "ok": True, "monitor_id": monitor_id, "success": data.success,
         "consecutive_failures": failures,
         "incident": (incident["id"] if incident else None),
+        "recovered_incident": recovered_incident,
     }
