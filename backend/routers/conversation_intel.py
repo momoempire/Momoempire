@@ -19,8 +19,25 @@ Collections (all tenant-scoped):
 - `sentiment_scores`: one doc per (tenant_id, thread_id) with per-message
   scores and the thread-level rollup.
 - `escalations`: one doc per triggered rule per thread; status open/resolved.
+  Each carries a `transcript` snapshot (the initiative promises escalation
+  "with full transcript", not just an excerpt) and, once resolved, the
+  human's `resolution_note`.
 - `escalation_rules`: the tenant's rule set, seeded with defaults on first read.
-- `support_tickets`: auto-created from escalations when the rule asks for it.
+- `support_tickets`: auto-created from escalations when the rule asks for it,
+  in the canonical helpdesk shape (subject/description/priority) so the
+  support_tickets queue renders and SLA-times them like any other ticket.
+
+Wave 8+ hardening (wave/service-excellence-plus):
+- Sentiment lexicons are EN + ES (the initiative's multilingual promise):
+  Spanish customer messages now score instead of reading as neutral.
+- The churn rule matches against the FULL message text (it previously
+  searched the 160-char display excerpt and could miss late-message churn
+  language).
+- Auto-escalations sync to the central service hub archive via
+  services/service_hub.py (env-configured, OFF by default, best-effort —
+  a hub outage never touches the live path).
+- GET /benchmarks: this shop's sentiment/escalation metrics vs anonymized
+  network aggregates (privacy floor: >= 5 contributing tenants).
 """
 from __future__ import annotations
 
@@ -34,6 +51,7 @@ from pydantic import BaseModel, Field
 from db import get_db
 from models import _now_iso, _uuid
 from security import require_tenant_user, require_tenant_owner_or_admin
+from services import service_hub as hub
 
 router = APIRouter(prefix="/api/conversation-intel", tags=["conversation-intel"])
 
@@ -72,18 +90,57 @@ CHURN_WORDS: List[str] = [
     "lost my business",
 ]
 
+# ---------- Spanish lexicons (initiative: multilingual service, EN/ES+) --
+# Same contract as the EN lists: lowercase phrases, matched on word
+# boundaries. Without these, Spanish customer messages scored all-neutral
+# and genuinely angry customers never escalated.
+
+POSITIVE_WORDS_ES: List[str] = [
+    "gracias", "excelente", "perfecto", "perfecta", "maravilloso",
+    "fantástico", "fantastico", "increíble", "increible", "contento",
+    "contenta", "feliz", "satisfecho", "satisfecha", "encantado",
+    "encantada", "amable", "profesional", "rápido", "rapido", "puntual",
+    "recomiendo", "muy bien", "buen trabajo", "gran trabajo", "genial",
+    "impecable", "eficiente", "atento", "atenta", "mil gracias",
+    "muchas gracias", "de primera", "cinco estrellas", "5 estrellas",
+]
+
+NEGATIVE_WORDS_ES: List[str] = [
+    "terrible", "pésimo", "pesimo", "horrible", "enojado", "enojada",
+    "furioso", "furiosa", "decepcionado", "decepcionada", "frustrado",
+    "frustrada", "molesto", "molesta", "mal servicio", "muy mal",
+    "muy malo", "muy mala", "grosero", "grosera", "incompetente",
+    "inútil", "inutil", "lento", "tarde", "tarde otra vez", "roto",
+    "rota", "dañado", "dañada", "estafa", "mentira", "mentiroso",
+    "vergüenza", "verguenza", "desastre", "pesadilla", "sucio",
+    "inaceptable", "ridículo", "ridiculo", "pérdida de dinero",
+    "perdida de dinero", "pérdida de tiempo", "perdida de tiempo",
+    "cobrado de más", "cobrado de mas", "caro", "nunca llegó",
+    "nunca llego", "no vino", "no apareció", "no aparecio", "ignorado",
+    "ignorada", "mal trabajo", "peor", "pésima", "pesima", "deficiente",
+]
+
+CHURN_WORDS_ES: List[str] = [
+    "cancelar", "cancelo", "cancelación", "cancelacion", "reembolso",
+    "reembolsar", "devolver mi dinero", "devuélvanme", "devuelvanme",
+    "abogado", "abogada", "demanda", "demandar", "queja formal",
+    "nunca más", "nunca mas", "última vez", "ultima vez",
+    "me voy con otro", "cambiar de compañía", "cambiar de compania",
+    "ya no quiero el servicio", "dar de baja", "baja del servicio",
+]
+
 
 def _compile(phrases: List[str]) -> List[Tuple[str, "re.Pattern"]]:
     return [(p, re.compile(r"\b" + re.escape(p) + r"\b", re.IGNORECASE)) for p in phrases]
 
 
-_POS_RX = _compile(POSITIVE_WORDS)
-_NEG_RX = _compile(NEGATIVE_WORDS)
-_CHURN_RX = _compile(CHURN_WORDS)
+_POS_RX = _compile(POSITIVE_WORDS + POSITIVE_WORDS_ES)
+_NEG_RX = _compile(NEGATIVE_WORDS + NEGATIVE_WORDS_ES)
+_CHURN_RX = _compile(CHURN_WORDS + CHURN_WORDS_ES)
 
 
 def score_text(text: str) -> Dict[str, Any]:
-    """Keyword/template sentiment score for one message. No LLM call.
+    """Keyword/template sentiment score for one message (EN + ES). No LLM.
 
     Returns {pos, neg, churn[], score, label}. Churn words count as
     negative signals and always force a negative label. Documented as
@@ -130,7 +187,7 @@ def _default_rules(tenant_id: str) -> List[Dict[str, Any]]:
             "name": "Churn / cancellation language",
             "description": "Fire when a customer message contains churn language (cancel, refund, lawyer, ...).",
             "enabled": True, "severity": "critical", "auto_ticket": True,
-            "params": {"words": list(CHURN_WORDS)},
+            "params": {"words": list(CHURN_WORDS + CHURN_WORDS_ES)},
             "created_at": now, "updated_at": now,
         },
         {
@@ -179,6 +236,12 @@ class RuleIn(BaseModel):
 
 class RulesIn(BaseModel):
     rules: List[RuleIn] = Field(min_length=1)
+
+
+class ResolveIn(BaseModel):
+    # The human's resolution — the learning-loop payload. Optional for
+    # backward compatibility with clients that resolve without a body.
+    resolution_note: str = Field(default="", max_length=5000)
 
 
 # ---------- helpers ----------
@@ -248,6 +311,11 @@ def _analyze_customer_messages(msgs: List[Dict]) -> Dict[str, Any]:
             "message_id": m.get("id"),
             "created_at": m.get("created_at", ""),
             "excerpt": (m["text"] or "")[:160],
+            # Full text, internal only (stripped before persisting): rule
+            # evaluation must see the whole message, not the 160-char
+            # display excerpt — churn language late in a long message
+            # used to be invisible to the churn rule.
+            "_text": m["text"] or "",
             **s,
         })
 
@@ -297,12 +365,20 @@ def _evaluate_rules(analysis: Dict, rules: List[Dict]) -> List[Dict[str, Any]]:
                 reason = (f"{analysis['max_consecutive_negatives']} negative customer "
                           f"message(s) in a row (threshold {need})")
         elif key == "churn_keyword":
-            words = params.get("words") or CHURN_WORDS
+            # Tenant-configured words ADD to the built-in EN+ES lexicon —
+            # rules seeded before the ES lexicon existed pin an EN-only
+            # word list in params, and Spanish churn must still fire.
+            words = sorted({*(params.get("words") or []), *CHURN_WORDS, *CHURN_WORDS_ES})
             hits = [s for s in scored if any(
-                re.search(r"\b" + re.escape(w) + r"\b", s["excerpt"] or "", re.IGNORECASE)
+                re.search(r"\b" + re.escape(w) + r"\b", s.get("_text") or s["excerpt"] or "",
+                          re.IGNORECASE)
                 for w in words)]
             if hits:
-                found = sorted({w for s in hits for w in s["churn"]})
+                found = sorted({w for s in hits for w in words
+                                if re.search(r"\b" + re.escape(w) + r"\b",
+                                             s.get("_text") or "", re.IGNORECASE)})
+                if not found:  # scored churn hits are the fallback evidence
+                    found = sorted({w for s in hits for w in s["churn"]})
                 reason = f"Churn language detected: {', '.join(found)}"
         elif key == "negative_ratio":
             window = int(params.get("window", 5))
@@ -333,16 +409,59 @@ async def _flag_urgent(db, tenant_id: str, thread_id: str, source: str, urgent: 
     )
 
 
+def _transcript_snapshot(msgs: List[Dict], limit: int = 20) -> List[Dict[str, Any]]:
+    """The full-transcript promise: an escalation carries the conversation
+    itself (last `limit` messages, both roles), not just an excerpt, so the
+    human picking it up — and the hub's learning archive — sees everything."""
+    return [
+        {"role": m.get("role") or "", "text": (m.get("text") or "")[:1000],
+         "created_at": m.get("created_at", "")}
+        for m in msgs[-limit:]
+    ]
+
+
+_SEVERITY_TO_PRIORITY = {"critical": "urgent", "high": "high",
+                         "medium": "medium", "low": "low"}
+
+
+def _canonical_auto_ticket(tenant_id: str, esc: Dict, customer_name: str) -> Dict[str, Any]:
+    """Auto-tickets in the canonical helpdesk shape — identical fields to
+    routers/support_tickets.py's create path, so the ticket queue renders
+    them (subject, priority) and the SLA timers apply. (Wave 8 wrote a
+    {title, body} shape the helpdesk could not render: subject=None.)"""
+    now = _now_iso()
+    return {
+        "id": _uuid(),
+        "tenant_id": tenant_id,
+        "thread_id": esc.get("thread_id"),
+        "escalation_id": esc["id"],
+        "subject": f"[{esc['severity'].upper()}] {esc['rule_name']} — {customer_name or esc.get('thread_id')}",
+        "description": esc["reason"],
+        "priority": _SEVERITY_TO_PRIORITY.get(esc.get("severity"), "medium"),
+        "category": "customer-escalation",
+        "status": "open",
+        "assignee": None,
+        "contact_name": customer_name or "",
+        "contact_email": "",
+        "contact_phone": "",
+        "created_by": None,
+        "source": "sentiment-escalation",
+        "created_at": now,
+        "updated_at": now,
+        "status_changed_at": now,
+        "waiting_seconds": 0.0,
+        "resolved_at": None,
+    }
+
+
 # ---------- analyze ----------
 
-@router.post("/analyze/thread/{thread_id}")
-async def analyze_thread(thread_id: str, user: dict = Depends(require_tenant_user)):
-    """Score a thread's customer messages, store the result, and fire any
-    triggered escalation rules: the thread is flagged urgent, the owner is
-    notified (stubbed), and a support ticket is opened when the rule asks.
-    """
-    db = get_db()
-    tenant_id = user["tenant_id"]
+async def _run_analysis(db, tenant_id: str, thread_id: str) -> Dict[str, Any]:
+    """Core analyze + escalate pipeline. Shared by the endpoint and by
+    routers/inbox.py's ingest hooks — escalation is supposed to be
+    *instant* (initiative), so new customer messages re-analyze the thread
+    automatically instead of waiting for a human to press a button.
+    Raises HTTPException(404) when the thread does not exist."""
     thread, msgs, source = await _load_thread(db, tenant_id, thread_id)
     if thread is None:
         raise HTTPException(404, "Thread not found")
@@ -361,7 +480,9 @@ async def analyze_thread(thread_id: str, user: dict = Depends(require_tenant_use
         "counts": analysis["counts"],
         "max_consecutive_negatives": analysis["max_consecutive_negatives"],
         "churn_hits": analysis["churn_hits"],
-        "message_scores": analysis["messages"],
+        # Persisted scores exclude the internal full-text field.
+        "message_scores": [{k: v for k, v in s.items() if not k.startswith("_")}
+                           for s in analysis["messages"]],
         "message_count": len(msgs),
         "customer_message_count": len(analysis["messages"]),
         "created_at": now,
@@ -376,6 +497,7 @@ async def analyze_thread(thread_id: str, user: dict = Depends(require_tenant_use
 
     rules = await _get_rules(db, tenant_id)
     triggered = _evaluate_rules(analysis, rules)
+    transcript = _transcript_snapshot(msgs)
 
     escalations: List[Dict[str, Any]] = []
     for rule in triggered:
@@ -399,7 +521,10 @@ async def analyze_thread(thread_id: str, user: dict = Depends(require_tenant_use
             "message_excerpt": next(
                 (s["excerpt"] for s in reversed(analysis["messages"])
                  if s["label"] == "negative"), ""),
+            "transcript": transcript,
+            "resolution_note": "",
             "created_at": now,
+            "updated_at": now,
             "resolved_at": None,
             "resolved_by": None,
         }
@@ -411,17 +536,16 @@ async def analyze_thread(thread_id: str, user: dict = Depends(require_tenant_use
               f"thread={thread_id} rule={esc['rule_key']} reason={esc['reason']} "
               f"(owner notification stubbed)")
 
+        # Learning loop: mirror the escalation into the central hub
+        # archive. OFF by default, best-effort — never blocks analysis.
+        try:
+            await hub.sync_escalation(db, tenant_id, esc, transcript)
+        except Exception:
+            pass
+
         if rule.get("auto_ticket"):
-            await db.support_tickets.insert_one({
-                "id": _uuid(),
-                "tenant_id": tenant_id,
-                "thread_id": thread_id,
-                "escalation_id": esc["id"],
-                "title": f"[{esc['severity'].upper()}] {esc['rule_name']} — {doc['customer_name'] or thread_id}",
-                "body": esc["reason"],
-                "status": "open",
-                "created_at": now,
-            })
+            await db.support_tickets.insert_one(
+                _canonical_auto_ticket(tenant_id, esc, doc["customer_name"]))
 
     thread_flagged_urgent = False
     if escalations:
@@ -445,6 +569,16 @@ async def analyze_thread(thread_id: str, user: dict = Depends(require_tenant_use
         "escalations": escalations,
         "thread_flagged_urgent": thread_flagged_urgent,
     }
+
+
+@router.post("/analyze/thread/{thread_id}")
+async def analyze_thread(thread_id: str, user: dict = Depends(require_tenant_user)):
+    """Score a thread's customer messages, store the result, and fire any
+    triggered escalation rules: the thread is flagged urgent, the owner is
+    notified (stubbed), and a support ticket is opened when the rule asks.
+    (Also runs automatically on inbox ingest — see routers/inbox.py.)
+    """
+    return await _run_analysis(get_db(), user["tenant_id"], thread_id)
 
 
 # ---------- sentiment overview ----------
@@ -501,6 +635,54 @@ async def sentiment_overview(user: dict = Depends(require_tenant_user)):
     }
 
 
+# ---------- service benchmarks (vs the network) ----------
+
+BENCHMARK_MIN_TENANTS = 5  # privacy floor, mirrors price_intelligence
+
+
+def _service_metrics(score_docs: List[Dict], escalation_count: int) -> Dict[str, Any]:
+    total = len(score_docs)
+    if not total:
+        return {"threads_analyzed": 0, "avg_sentiment_score": 0.0,
+                "negative_thread_ratio": 0.0, "escalations_per_thread": 0.0}
+    negative = sum(1 for d in score_docs if d.get("overall_label") == "negative")
+    return {
+        "threads_analyzed": total,
+        "avg_sentiment_score": round(sum(d.get("avg_score", 0) for d in score_docs) / total, 3),
+        "negative_thread_ratio": round(negative / total, 3),
+        "escalations_per_thread": round(escalation_count / total, 3),
+    }
+
+
+@router.get("/benchmarks")
+async def service_benchmarks(user: dict = Depends(require_tenant_user)):
+    """Service-quality benchmarks: this shop's conversation metrics vs the
+    anonymized network (the initiative's benchmark promise, applied to
+    service — price_intelligence covers pricing). Privacy floor: NO
+    network numbers until at least 5 tenants contribute sentiment data,
+    and only aggregates are ever returned."""
+    db = get_db()
+    tenant_id = user["tenant_id"]
+
+    my_scores = await db.sentiment_scores.find(
+        {"tenant_id": tenant_id}, {"_id": 0}).to_list(10000)
+    my_escalations = await db.escalations.find(
+        {"tenant_id": tenant_id}, {"_id": 0, "id": 1}).to_list(10000)
+    mine = _service_metrics(my_scores, len(my_escalations))
+
+    all_scores = await db.sentiment_scores.find({}, {"_id": 0}).to_list(100000)
+    contributors = {d.get("tenant_id") for d in all_scores if d.get("tenant_id")}
+    if len(contributors) < BENCHMARK_MIN_TENANTS:
+        return {"mine": mine, "insufficient_data": True,
+                "contributor_count": len(contributors),
+                "note": (f"Network benchmarks unlock at {BENCHMARK_MIN_TENANTS} "
+                         "contributing shops (privacy floor).")}
+    all_escalations = await db.escalations.find({}, {"_id": 0, "id": 1}).to_list(100000)
+    network = _service_metrics(all_scores, len(all_escalations))
+    return {"mine": mine, "network": network, "insufficient_data": False,
+            "contributor_count": len(contributors)}
+
+
 # ---------- thread timeline ----------
 
 @router.get("/threads/{thread_id}/timeline")
@@ -548,9 +730,12 @@ async def list_escalations(
 
 
 @router.post("/escalations/{escalation_id}/resolve")
-async def resolve_escalation(escalation_id: str, user: dict = Depends(require_tenant_owner_or_admin)):
-    """Owner resolves an escalation. When no open escalations remain for the
-    thread, its urgent flag is cleared."""
+async def resolve_escalation(escalation_id: str, data: Optional[ResolveIn] = None,
+                             user: dict = Depends(require_tenant_owner_or_admin)):
+    """Owner resolves an escalation. The optional resolution_note records
+    what the human did — paired with the transcript it is the learning-loop
+    unit synced to the hub archive. When no open escalations remain for
+    the thread, its urgent flag is cleared."""
     db = get_db()
     tenant_id = user["tenant_id"]
     esc = await db.escalations.find_one({"tenant_id": tenant_id, "id": escalation_id})
@@ -560,11 +745,22 @@ async def resolve_escalation(escalation_id: str, user: dict = Depends(require_te
         return {"ok": True, "already": True, "id": escalation_id}
 
     now = _now_iso()
+    note = (data.resolution_note if data else "") or ""
     await db.escalations.update_one(
         {"tenant_id": tenant_id, "id": escalation_id},
         {"$set": {"status": "resolved", "resolved_at": now,
-                  "resolved_by": user.get("id")}},
+                  "resolved_by": user.get("id"), "resolution_note": note,
+                  "updated_at": now}},
     )
+    esc.update({"status": "resolved", "resolved_at": now,
+                "resolved_by": user.get("id"), "resolution_note": note,
+                "updated_at": now})
+    # Learning loop: the resolved case (escalation + human resolution)
+    # goes to the hub archive. OFF by default, best-effort.
+    try:
+        await hub.sync_escalation(db, tenant_id, esc)
+    except Exception:
+        pass
     remaining = await db.escalations.find(
         {"tenant_id": tenant_id, "thread_id": esc.get("thread_id"), "status": "open"},
         {"_id": 0, "id": 1},

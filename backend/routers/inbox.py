@@ -19,6 +19,18 @@ Live wiring (stubbed): Twilio for SMS send/receive, Twilio signature
 verification on /ingest/sms, SMTP provider for email send — all marked
 TODO(LIVE). Voice comes from the receptionist; email/web-chat ingestion
 are stubs until those channels go live.
+
+Wave 8+ hardening (wave/service-excellence-plus):
+- Inbound messages re-run conversation-intel analysis automatically
+  (routers/conversation_intel._run_analysis) — sentiment escalation is
+  supposed to be instant, not a manual button. The hook is best-effort:
+  an analysis failure never loses a customer message.
+- An inbound SMS from a caller with a queued missed-call rescue flips
+  that rescue to escalated/replied (closing outreach.py's TODO(LIVE)).
+- Resolving a thread dispatches a satisfaction pulse
+  (routers/satisfaction.py), best-effort.
+- Facebook / Instagram DM channels are registered as stubs in
+  CHANNEL_STATUS (the initiative names them; providers not wired yet).
 """
 from __future__ import annotations
 
@@ -30,10 +42,12 @@ from pydantic import BaseModel, Field
 from db import get_db
 from models import _now_iso, _uuid
 from security import require_tenant_user, require_tenant_owner_or_admin
+from routers import conversation_intel as ci
+from routers.satisfaction import dispatch_pulse
 
 router = APIRouter(prefix="/api/inbox", tags=["inbox"])
 
-CHANNELS = ("sms", "voice", "email", "chat")
+CHANNELS = ("sms", "voice", "email", "chat", "facebook", "instagram")
 STATUSES = ("open", "pending", "resolved")
 
 # Stubbed inbound channels — TODO(LIVE): wire real providers and flip to True.
@@ -42,6 +56,8 @@ CHANNEL_STATUS: List[Dict] = [
     {"channel": "voice", "connected": True, "note": "Ingested from the AI receptionist's stored transcripts"},
     {"channel": "email", "connected": False, "note": "TODO(LIVE): connect SMTP/imap provider per tenant"},
     {"channel": "chat", "connected": False, "note": "TODO(LIVE): connect web-chat widget"},
+    {"channel": "facebook", "connected": False, "note": "TODO(LIVE): connect Meta Messenger webhook per tenant"},
+    {"channel": "instagram", "connected": False, "note": "TODO(LIVE): connect Instagram DM webhook per tenant"},
 ]
 
 
@@ -132,6 +148,41 @@ async def _append_message(db, thread: Dict, *, direction: str, sender: str, body
     await db.inbox_threads.update_one({"id": thread["id"]}, {"$set": update})
     msg.pop("_id", None)
     return msg
+
+
+async def _auto_analyze(db, tenant_id: str, thread_id: str) -> Optional[Dict]:
+    """Instant-escalation hook: re-run sentiment analysis + escalation
+    rules for a thread that just received a customer message. Best-effort
+    by design — returns None on any failure; ingest must never lose a
+    customer message because analysis hiccuped."""
+    try:
+        return await ci._run_analysis(db, tenant_id, thread_id)
+    except Exception:
+        return None
+
+
+async def _flip_missed_call_rescue(db, tenant_id: str, phone: str) -> Optional[Dict]:
+    """Close outreach.py's rescue TODO(LIVE): when a rescued caller texts
+    back, flip their queued rescue to escalated/replied so the shop sees
+    the rescue worked and a human picks it up. Best-effort (None on miss)."""
+    try:
+        rescue = await db.missed_call_rescues.find_one(
+            {"tenant_id": tenant_id, "caller_phone": phone, "status": "queued"})
+        if not rescue:
+            return None
+        now = _now_iso()
+        await db.missed_call_rescues.update_one(
+            {"tenant_id": tenant_id, "id": rescue["id"]},
+            {"$set": {"status": "replied", "escalated": True,
+                      "escalated_at": now, "escalated_via": "sms_reply",
+                      "updated_at": now}})
+        # TODO(LIVE): push an in-app alert to the shop here.
+        print(f"[INBOX rescue] caller {phone} replied — rescue {rescue['id']} escalated")
+        rescue.update({"status": "replied", "escalated": True, "escalated_at": now})
+        rescue.pop("_id", None)
+        return rescue
+    except Exception:
+        return None
 
 
 def _draft_suggestions(thread: Dict, last_customer_msg: Optional[Dict], business_name: str) -> List[Dict]:
@@ -267,7 +318,14 @@ async def resolve_thread(thread_id: str, user: dict = Depends(require_tenant_use
         {"$set": {"status": "resolved", "resolved_at": _now_iso(),
                   "resolved_by": user.get("id"), "updated_at": _now_iso()}},
     )
-    return {"ok": True, "thread_id": thread_id, "status": "resolved"}
+    # Satisfaction pulse (best-effort): ask the customer how we did.
+    pulse = await dispatch_pulse(
+        db, user["tenant_id"], source_type="thread", source_id=thread_id,
+        customer_name=thread.get("customer_name") or "",
+        customer_contact=thread.get("customer_contact") or "",
+        channel=thread.get("channel") or "sms")
+    return {"ok": True, "thread_id": thread_id, "status": "resolved",
+            "satisfaction_pulse_id": pulse.get("id") if pulse else None}
 
 
 @router.post("/threads/{thread_id}/reopen")
@@ -326,10 +384,23 @@ async def ingest_sms(data: SmsIngestIn, user: dict = Depends(require_tenant_user
         customer_phone=phone,
     )
     msg = None
+    rescue = None
+    analysis = None
     if data.Body:
         msg = await _append_message(db, thread, direction="in", sender="customer", body=data.Body)
+        # If this caller was rescued from a missed call, their reply
+        # escalates the rescue to the shop (outreach TODO(LIVE), closed).
+        rescue = await _flip_missed_call_rescue(db, tenant_id, phone)
+        # Instant sentiment escalation on the new message (best-effort).
+        analysis = await _auto_analyze(db, tenant_id, thread["id"])
     thread = await db.inbox_threads.find_one({"tenant_id": tenant_id, "id": thread["id"]}, {"_id": 0})
-    return {"ok": True, "thread": thread, "message": msg}
+    return {"ok": True, "thread": thread, "message": msg,
+            "rescue_escalated": rescue is not None,
+            "analysis": ({"overall_label": analysis.get("overall_label"),
+                          "escalations_created": sum(
+                              1 for e in analysis.get("escalations", []) if e.get("created")),
+                          "thread_flagged_urgent": analysis.get("thread_flagged_urgent")}
+                         if analysis else None)}
 
 
 @router.post("/ingest/call-transcript")
@@ -374,6 +445,9 @@ async def ingest_call_transcript(data: CallTranscriptIngestIn, user: dict = Depe
             body=f"📞 Call with {caller} ({phone or 'unknown number'})\n"
                  f"Summary: {summary or 'transcript below'}\n---\n{body[:3000]}",
         )
+        # A bad call escalates the moment it lands, not when someone
+        # remembers to analyze it (best-effort).
+        await _auto_analyze(db, tenant_id, thread["id"])
     thread = await db.inbox_threads.find_one({"tenant_id": tenant_id, "id": thread["id"]}, {"_id": 0})
     return {"ok": True, "thread": thread, "message": ingested,
             "ingested": ingested is not None,
