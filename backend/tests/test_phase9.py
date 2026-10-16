@@ -8,21 +8,10 @@ import pytest
 import requests
 
 
-def _read_env(path, key, default=None):
-    try:
-        with open(path) as fh:
-            for ln in fh:
-                if ln.strip().startswith(key + "="):
-                    return ln.split("=", 1)[1].strip().strip('"')
-    except Exception:
-        return default
-    return default
 
-
-BASE = (os.environ.get("REACT_APP_BACKEND_URL") or _read_env("/app/frontend/.env", "REACT_APP_BACKEND_URL") or "").rstrip("/")
-assert BASE, "REACT_APP_BACKEND_URL not configured"
+BASE = os.environ.get("REACT_APP_BACKEND_URL", "http://127.0.0.1:9").rstrip("/")  # WL-044: env only, never a deployment file or public server
 API = f"{BASE}/api"
-CRON_SECRET = os.environ.get("WEBHOOK_CRON_SECRET") or _read_env("/app/backend/.env", "WEBHOOK_CRON_SECRET", "")
+CRON_SECRET = os.environ.get("WEBHOOK_CRON_SECRET", "")  # WL-044: env only, never the deployment's backend/.env
 
 
 @pytest.fixture(scope="session")
