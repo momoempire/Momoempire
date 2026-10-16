@@ -1,0 +1,12 @@
+# Market pack: Sweden (se)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: se
+name: "Sweden"
+flag: "🇸🇪"
+extended_network: false
+colors:
+  accent: "#006AA7"
+languages:
+  - sv
+  - en

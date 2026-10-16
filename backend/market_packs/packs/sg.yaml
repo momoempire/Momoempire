@@ -1,0 +1,13 @@
+# Market pack: Singapore (sg)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: sg
+name: "Singapore"
+flag: "🇸🇬"
+extended_network: false
+colors:
+  accent: "#EF3340"
+languages:
+  - en
+  - zh
+  - ms

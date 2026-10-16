@@ -1,0 +1,12 @@
+# Market pack: Mexico (mx)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: mx
+name: "Mexico"
+flag: "🇲🇽"
+extended_network: false
+colors:
+  accent: "#006847"
+languages:
+  - es
+  - en

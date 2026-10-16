@@ -1,0 +1,11 @@
+# Market pack: Nigeria (ng)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: ng
+name: "Nigeria"
+flag: "🇳🇬"
+extended_network: true
+colors:
+  accent: "#008751"
+languages:
+  - en

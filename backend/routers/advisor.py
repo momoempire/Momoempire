@@ -99,10 +99,10 @@ async def advisor_chat(data: AdvisorMessageIn, user: dict = Depends(require_tena
     })
 
     try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
-        key = os.environ.get("EMERGENT_LLM_KEY")
+        from llm_portable import LlmChat, UserMessage, ai_api_key
+        key = ai_api_key()
         if not key:
-            raise RuntimeError("EMERGENT_LLM_KEY missing")
+            raise RuntimeError("AI_API_KEY missing")
         chat = LlmChat(api_key=key, session_id=session_id, system_message=system).with_model("openai", "gpt-6-sol")
         reply = await chat.send_message(UserMessage(text=data.message))
         reply_text = reply if isinstance(reply, str) else getattr(reply, "content", str(reply))

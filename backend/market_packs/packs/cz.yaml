@@ -1,0 +1,12 @@
+# Market pack: Czech Republic (cz)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: cz
+name: "Czech Republic"
+flag: "🇨🇿"
+extended_network: false
+colors:
+  accent: "#D7141A"
+languages:
+  - cs
+  - en

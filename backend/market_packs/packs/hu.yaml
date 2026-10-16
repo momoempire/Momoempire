@@ -1,0 +1,12 @@
+# Market pack: Hungary (hu)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: hu
+name: "Hungary"
+flag: "🇭🇺"
+extended_network: false
+colors:
+  accent: "#477050"
+languages:
+  - hu
+  - en

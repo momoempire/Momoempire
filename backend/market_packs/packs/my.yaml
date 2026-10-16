@@ -1,0 +1,13 @@
+# Market pack: Malaysia (my)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: my
+name: "Malaysia"
+flag: "🇲🇾"
+extended_network: false
+colors:
+  accent: "#CC0001"
+languages:
+  - ms
+  - en
+  - zh

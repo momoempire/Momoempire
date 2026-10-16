@@ -1,0 +1,12 @@
+# Market pack: Norway (no)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: "no"
+name: "Norway"
+flag: "🇳🇴"
+extended_network: false
+colors:
+  accent: "#BA0C2F"
+languages:
+  - "no"
+  - en

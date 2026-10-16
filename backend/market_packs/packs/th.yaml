@@ -1,0 +1,12 @@
+# Market pack: Thailand (th)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: th
+name: "Thailand"
+flag: "🇹🇭"
+extended_network: false
+colors:
+  accent: "#A51931"
+languages:
+  - th
+  - en

@@ -1,0 +1,12 @@
+# Market pack: Denmark (dk)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: dk
+name: "Denmark"
+flag: "🇩🇰"
+extended_network: false
+colors:
+  accent: "#C8102E"
+languages:
+  - da
+  - en

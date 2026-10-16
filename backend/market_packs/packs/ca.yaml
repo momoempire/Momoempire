@@ -1,0 +1,12 @@
+# Market pack: Canada (ca)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: ca
+name: "Canada"
+flag: "🇨🇦"
+extended_network: false
+colors:
+  accent: "#D80621"
+languages:
+  - en
+  - fr

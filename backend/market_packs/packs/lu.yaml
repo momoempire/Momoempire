@@ -1,0 +1,13 @@
+# Market pack: Luxembourg (lu)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: lu
+name: "Luxembourg"
+flag: "🇱🇺"
+extended_network: false
+colors:
+  accent: "#00A1DE"
+languages:
+  - fr
+  - de
+  - en

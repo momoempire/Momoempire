@@ -1,0 +1,12 @@
+# Market pack: Netherlands (nl)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: nl
+name: "Netherlands"
+flag: "🇳🇱"
+extended_network: false
+colors:
+  accent: "#FF7F00"
+languages:
+  - nl
+  - en

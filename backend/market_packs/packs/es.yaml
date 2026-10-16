@@ -1,0 +1,12 @@
+# Market pack: Spain (es)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: es
+name: "Spain"
+flag: "🇪🇸"
+extended_network: false
+colors:
+  accent: "#AA151B"
+languages:
+  - es
+  - en

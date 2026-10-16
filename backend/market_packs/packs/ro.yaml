@@ -1,0 +1,12 @@
+# Market pack: Romania (ro)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: ro
+name: "Romania"
+flag: "🇷🇴"
+extended_network: false
+colors:
+  accent: "#002B7F"
+languages:
+  - ro
+  - en

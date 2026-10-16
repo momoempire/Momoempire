@@ -1,0 +1,14 @@
+# Market pack: Belgium (be)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: be
+name: "Belgium"
+flag: "🇧🇪"
+extended_network: false
+colors:
+  accent: "#E30613"
+languages:
+  - nl
+  - fr
+  - de
+  - en

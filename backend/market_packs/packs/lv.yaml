@@ -1,0 +1,12 @@
+# Market pack: Latvia (lv)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: lv
+name: "Latvia"
+flag: "🇱🇻"
+extended_network: false
+colors:
+  accent: "#9D2235"
+languages:
+  - lv
+  - en
