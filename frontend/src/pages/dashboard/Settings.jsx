@@ -11,10 +11,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { toast } from "sonner";
 import { Copy, ExternalLink, Mail, Trash2, UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
+import FinancingSettings from "@/components/FinancingSettings";
+import BookkeepingSettings from "@/components/BookkeepingSettings";
+import TwoFactorSettings from "@/components/TwoFactorSettings";
+import { useAuth } from "@/context/AuthContext";
 
 const PRESET_COLORS = ["#0A0A0A", "#2563EB", "#059669", "#DC2626", "#7C3AED", "#D97706", "#0F766E", "#DB2777"];
 
 function SecurityTab() {
+  const { user, refresh } = useAuth();
   const [sessions, setSessions] = useState([]);
   const [workspaces, setWorkspaces] = useState([]);
   const load = () => {
@@ -58,6 +63,7 @@ function SecurityTab() {
           {workspaces.length === 0 && <li className="py-6 text-sm text-muted-foreground text-center">Just this workspace.</li>}
         </ul>
       </div>
+      <TwoFactorSettings user={user} onChanged={refresh} />
     </div>
   );
 }
@@ -122,6 +128,8 @@ export default function Settings() {
           <TabsTrigger value="team" data-testid="settings-tab-team">Team</TabsTrigger>
           <TabsTrigger value="public" data-testid="settings-tab-public">Public page</TabsTrigger>
           <TabsTrigger value="security" data-testid="settings-tab-security">Security</TabsTrigger>
+          <TabsTrigger value="financing" data-testid="settings-tab-financing">Financing</TabsTrigger>
+          <TabsTrigger value="bookkeeping" data-testid="settings-tab-bookkeeping">Bookkeeping</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile">
@@ -214,6 +222,12 @@ export default function Settings() {
         </TabsContent>
         <TabsContent value="security">
           <SecurityTab />
+        </TabsContent>
+        <TabsContent value="financing">
+          <FinancingSettings />
+        </TabsContent>
+        <TabsContent value="bookkeeping">
+          <BookkeepingSettings />
         </TabsContent>
       </Tabs>
 
