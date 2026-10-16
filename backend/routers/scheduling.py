@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timedelta, timezone
 from db import get_db
 from models import _now_iso
-from models_phase3 import AppointmentType, AppointmentTypeIn, StaffMember, AvailabilityQuery
+from models import AppointmentType, AppointmentTypeIn, StaffMember, AvailabilityQuery
 from security import require_tenant_user, require_tenant_owner_or_admin
 
 router = APIRouter(prefix="/tenants/scheduling", tags=["scheduling"])
