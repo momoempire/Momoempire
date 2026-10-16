@@ -10,7 +10,7 @@ Flow:
    rejects. Approval → `admin_review`.
 5. Admin approves → `published` and visible on the public tenant page.
 
-The AI polish uses the Emergent LLM key with a safe deterministic fallback.
+The AI polish uses the AI key (AI_API_KEY) with a safe deterministic fallback.
 """
 import os
 import logging
@@ -62,11 +62,12 @@ async def polish_testimonial(text: str, name: str, biz: str, lang: str = "en") -
             cleaned = cleaned[:237].rsplit(" ", 1)[0] + "..."
         return cleaned
 
-    key = os.environ.get("EMERGENT_LLM_KEY")
+    from llm_portable import ai_api_key
+    key = ai_api_key()
     if not key:
         return _fallback()
     try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        from llm_portable import LlmChat, UserMessage
         if lang.startswith("es"):
             system = (
                 "Eres un editor de marketing. Convierte una reseña bruta de un cliente en un "

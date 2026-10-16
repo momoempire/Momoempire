@@ -47,6 +47,36 @@ def create_refresh_token(user_id: str) -> str:
     return jwt.encode(payload, _secret(), algorithm=JWT_ALGORITHM)
 
 
+TWO_FA_TTL_MIN = 5  # short-lived: password step -> TOTP challenge step
+
+
+def create_2fa_token(user_id: str) -> str:
+    """Intermediate token issued after password auth when 2FA is enabled.
+
+    NOT an auth token: only accepted by POST /auth/2fa/challenge, which
+    exchanges it + a valid TOTP/backup code for real auth cookies.
+    """
+    payload = {
+        "sub": user_id,
+        "exp": datetime.now(timezone.utc) + timedelta(minutes=TWO_FA_TTL_MIN),
+        "type": "2fa",
+    }
+    return jwt.encode(payload, _secret(), algorithm=JWT_ALGORITHM)
+
+
+def decode_2fa_token(token: str) -> str:
+    """Return the user_id from a valid 2FA token, else raise HTTPException."""
+    try:
+        payload = jwt.decode(token, _secret(), algorithms=[JWT_ALGORITHM])
+        if payload.get("type") != "2fa":
+            raise HTTPException(401, "Invalid token type")
+        return payload["sub"]
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(401, "Two-factor session expired — log in again")
+    except jwt.InvalidTokenError:
+        raise HTTPException(401, "Invalid two-factor token")
+
+
 def set_auth_cookies(response, access: str, refresh: str):
     response.set_cookie("access_token", access, httponly=True, secure=True,
                         samesite="none", max_age=ACCESS_TTL_MIN * 60, path="/")
@@ -59,19 +89,36 @@ def clear_auth_cookies(response):
     response.delete_cookie("refresh_token", path="/")
 
 
+# While a user must change their password, only these API paths are allowed.
+MUST_CHANGE_ALLOWED_PATHS = frozenset({
+    "/api/auth/me",
+    "/api/auth/logout",
+    "/api/auth/set-password",
+    "/api/auth/refresh",
+})
+
+
+def _enforce_must_change(request: Request, user: dict) -> dict:
+    if user and user.get("must_change_password"):
+        path = request.url.path.rstrip("/") or "/"
+        if path not in MUST_CHANGE_ALLOWED_PATHS:
+            raise HTTPException(403, "Password change required before continuing")
+    return user
+
+
 async def get_current_user(request: Request) -> dict:
+    return _enforce_must_change(request, await _load_current_user(request))
+
+
+async def _load_current_user(request: Request) -> dict:
     db = get_db()
-    # 1) Try Emergent Google session cookie first
+    # 1) Try the Google sign-in session cookie first
     session_token = request.cookies.get("session_token")
     if session_token:
         sess = await db.user_sessions.find_one({"session_token": session_token})
         if sess:
-            exp = sess.get("expires_at")
-            if isinstance(exp, str):
-                try: exp = datetime.fromisoformat(exp)
-                except Exception: exp = None
-            if exp and exp.tzinfo is None:
-                exp = exp.replace(tzinfo=timezone.utc)
+            from timeutil import as_utc  # EMP-W-CF-026: one normalizer for every stored expiry
+            exp = as_utc(sess.get("expires_at"))
             if exp and exp >= datetime.now(timezone.utc):
                 user = await db.users.find_one({"id": sess["user_id"]}, {"_id": 0, "password_hash": 0})
                 if user:
