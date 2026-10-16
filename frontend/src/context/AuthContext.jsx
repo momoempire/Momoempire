@@ -29,6 +29,13 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     const { data } = await api.post("/auth/login", { email, password });
+    if (data && data.requires_2fa) return data; // TOTP challenge next; no session yet
+    setUser(data);
+    return data;
+  };
+
+  const challenge2fa = async (two_fa_token, code, backup_code) => {
+    const { data } = await api.post("/auth/2fa/challenge", { two_fa_token, code, backup_code });
     setUser(data);
     return data;
   };
@@ -49,7 +56,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthCtx.Provider value={{ user, setUser, login, register, logout, refresh, errMessage }}>
+    <AuthCtx.Provider value={{ user, setUser, login, challenge2fa, register, logout, refresh, errMessage }}>
       {children}
     </AuthCtx.Provider>
   );
