@@ -1,0 +1,181 @@
+id: siding_gutters
+trade: Siding & Gutters
+tagline: "Your AI office, preloaded for Siding & Gutters"
+terms:
+  worker: Installer
+  worker_plural: Installers
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#64748B"
+pricebook:
+  - name: Exterior Assessment
+    category: service
+    price: 149
+    cost: 40
+    duration_min: 60
+    description: "Full exterior walk-around: siding condition, gutter pitch, fascia, and a written replacement plan."
+  - name: Vinyl Siding Install (per square)
+    category: service
+    price: 750
+    cost: 320
+    duration_min: 480
+    description: Insulated or standard vinyl siding, 100 sqft per square, with housewrap and trim package.
+  - name: Fiber Cement Siding (per square)
+    category: service
+    price: 1150
+    cost: 500
+    duration_min: 480
+    description: Premium fiber cement siding — fire-resistant, holds paint, and carries a 30-year warranty.
+  - name: Seamless Gutters (per linear ft)
+    category: service
+    price: 14
+    cost: 5
+    duration_min: 240
+    description: Seamless aluminum gutters formed on site, pitched and sealed, with hidden hangers.
+  - name: Gutter Guard Install (per linear ft)
+    category: service
+    price: 11
+    cost: 4
+    duration_min: 180
+    description: Micro-mesh gutter guards ending ladder cleanouts — sized and fitted to the existing gutters.
+  - name: Downspout Install (per downspout)
+    category: service
+    price: 175
+    cost: 60
+    duration_min: 45
+    description: New downspout with extensions routing water at least 6 feet from the foundation.
+  - name: Storm Damage Inspection Report
+    category: service
+    price: 199
+    cost: 50
+    duration_min: 60
+    description: Hail and wind damage documentation with photos, measurements, and an insurance-ready report.
+  - name: Soffit & Fascia Repair (per linear ft)
+    category: service
+    price: 22
+    cost: 8
+    duration_min: 120
+    description: Rotted or storm-damaged soffit and fascia replaced and color-matched.
+  - name: Siding Repair (per section)
+    category: service
+    price: 350
+    cost: 120
+    duration_min: 120
+    description: Cracked, melted, or wind-torn siding panels replaced and blended to the existing wall.
+  - name: Gutter Cleaning & Tune-Up
+    category: service
+    price: 189
+    cost: 55
+    duration_min: 90
+    description: Full cleanout, re-pitch, reseal of corners and end caps, and downspout flush.
+  - name: Full Gutter Replacement (typical home)
+    category: service
+    price: 2600
+    cost: 950
+    duration_min: 360
+    description: Complete tear-off and seamless gutter replacement for a typical 2,000 sqft home.
+  - name: Trim & Accent Package
+    category: addon
+    price: 1500
+    cost: 600
+    duration_min: 240
+    description: Decorative trim, gable accents, and shutter coordination for a finished designer look.
+equipment_types:
+  - name: Siding Inventory
+    fields: [brand, material, color, squares_on_hand, warehouse_location]
+  - name: Gutter Coil Stock
+    fields: [color, gauge, coil_length_ft, stock_count, warehouse_location]
+  - name: Seamless Gutter Machine
+    fields: [unit_id, profiles, last_maintenance_date, assigned_crew, condition]
+  - name: Scaffold & Ladder Sets
+    fields: [set_id, max_height_ft, assigned_crew, condition, last_inspection_date]
+  - name: Storm Damage Photo Kits
+    fields: [kit_id, camera_model, drone_unit, assigned_installer, last_checked]
+appointment_types:
+  - name: Exterior Assessment
+    duration_min: 60
+    description: Condition walk-around, measurements, material samples, and a written quote.
+  - name: Storm Damage Inspection
+    duration_min: 60
+    description: Documented damage inspection with an insurance-ready photo report.
+  - name: Install Day
+    duration_min: 480
+    description: Full siding or gutter installation day with daily cleanup.
+  - name: Final Walkthrough
+    duration_min: 45
+    description: Punch-list walk, warranty registration, and care instructions.
+receptionist_script: |
+  Greeting: "Thanks for calling {shop_name}, this is the AI assistant. Is this about siding, gutters, or storm damage?"
+
+  Common call types and what to do:
+  - New siding quote: ask the home's rough square footage or stories, current siding type, and material interest (vinyl vs fiber cement — one-line trade-off: cost vs longevity). Book an Exterior Assessment and mention the $149 assessment is credited toward the job.
+  - Gutters overflowing or sagging: ask if it is during rain only, whether guards are installed, and the home's stories. Offer the cleaning and tune-up ($189) as the first step, or full replacement if they are 20+ years old. Book accordingly.
+  - Storm damage: ask when the storm hit, what they see (dents, missing pieces, granules in gutters), and whether they have filed an insurance claim. Offer the Storm Damage Inspection Report ($199, often reimbursed) and explain the shop documents everything for the adjuster. Do not promise claim approval.
+  - Siding repair (melted panel, wind tear): confirm the siding brand/color if known for matching, and ask them to text a photo. Book a repair visit.
+  - Gutter guards: ask linear footage if known and current gutter age. Quote the per-foot ballpark and book the assessment to measure.
+
+  Booking flow:
+  1. Capture name, address, phone, and email.
+  2. Confirm project type, home stories, current materials, and insurance-claim status if storm-related.
+  3. Book the slot and text confirmation with a photo-upload link for damage or color matching.
+  4. Note gate codes, dogs, and landscaping the crew should protect.
+
+  Urgent handling: gutters detached and hanging, or siding torn off exposing sheathing before incoming rain = urgent. Offer the earliest slot, suggest a temporary tarp if they are comfortable, and flag the shop owner.
+
+  After-hours: "Thanks for calling {shop_name}. If a storm just came through, take photos of any damage from the ground — don't climb up. Leave your name, address, and whether you've filed an insurance claim, and we'll call you back first thing in the morning with an inspection slot."
+triage:
+  - id: material_interest
+    question: What siding material are you considering?
+    options: [Vinyl — budget friendly, Fiber cement — premium and long-lasting, Just repairing what I have, Not sure — advise me]
+    route: Log material_interest; repair-only routes to the photo-upload repair flow instead of a full assessment.
+  - id: storm_damage
+    question: Is this related to storm or hail damage?
+    options: [Yes — recent storm, Yes — older damage, No — just age and wear, Not sure]
+    route: Recent storm triggers the insurance-documentation talking points and offers the Storm Damage Inspection Report; 'not sure' flags the photo review step.
+  - id: linear_footage
+    question: Roughly how big is the house — this helps us ballpark gutters and siding?
+    options: ["Single story, under 1,500 sqft", "Two story, 1,500–2,500 sqft", "Two story, over 2,500 sqft", "Not sure"]
+    route: Log home_size_band for quote prep; larger homes flag the two-day install estimate in the confirmation text.
+  - id: claim_status
+    question: Have you filed an insurance claim for this?
+    options: [Yes — claim open, Planning to file, No — paying out of pocket, Not storm related]
+    route: Open or planned claims route to the adjuster-meeting coordination note; out-of-pocket triggers the financing-options mention in follow-up.
+automation_templates:
+  - name: Storm Event Outreach
+    trigger: hailstorm_or_wind_event
+    steps:
+      - Pull customer addresses in the storm's path from the weather alert polygon.
+      - Text: "Hail hit your area last night — {shop_name} is doing free storm checks this week."
+      - Book inspections directly from replies in route order.
+      - Post-inspection: send the insurance-ready photo report within 24 hours.
+      - Coordinate the adjuster meeting date and remind the customer the day before.
+  - name: Assessment to Contract Follow-up
+    trigger: exterior_assessment_completed
+    steps:
+      - Send the written quote with material samples recap and color visualizer link within 48 hours.
+      - Text the one-tap accept link.
+      - Day 5: follow up with the gutter-guard and trim-package upsells.
+      - Day 12: offer the seasonal scheduling incentive.
+      - Accepted contracts trigger material ordering with confirmed lead times.
+  - name: Install Week Coordination
+    trigger: siding_gutter_job_scheduled
+    steps:
+      - Confirm material delivery date and text the customer the staging plan.
+      - Evening-before text with crew arrival window and lead installer's name.
+      - Daily end-of-day photo update text during multi-day installs.
+      - Final day: walkthrough scheduling link plus warranty registration.
+      - Day 7 post-completion: request the review with before/after photos attached.
+review_templates:
+  - name: Post-Install Review Request
+    channel: sms
+    template: "Hi {customer_name}, your new {project_type} is done — the place looks sharp. If {tech_name} and the crew earned it, would you leave us a review? {review_link} Before-and-after photos attached — feel free to share yours! — {shop_name}"
+  - name: Storm Claim Review
+    channel: email
+    template: "Subject: Your storm restoration is complete, {customer_name}\n\nHi {customer_name},\n\nThe repairs are done and the final walkthrough checked out. Navigating the insurance side is stressful — if {shop_name} made it painless, a review here helps the next neighbor hit by a storm: {review_link}\n\nThanks,\n{tech_name} and the {shop_name} team"
+  - name: Gutter Service Review
+    channel: sms
+    template: "{customer_name}, your gutters are cleaned, re-pitched, and flowing. Next big rain, watch them work. If {tech_name} did right by you: {review_link} — {shop_name}"
