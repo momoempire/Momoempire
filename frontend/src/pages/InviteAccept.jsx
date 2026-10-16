@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { googleAuthorizeUrl, useGoogleClientId } from "@/components/GoogleSignInButton";
 
 export default function InviteAccept() {
   const [sp] = useSearchParams();
@@ -14,6 +15,7 @@ export default function InviteAccept() {
   const [form, setForm] = useState({ name: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const googleClientId = useGoogleClientId();
   const [err, setErr] = useState(null);
   const nav = useNavigate();
 
@@ -22,18 +24,18 @@ export default function InviteAccept() {
     api.get(`/public/invitations/${token}`).then((r) => setPreview(r.data)).catch((e) => setErr(errMessage(e)));
   }, [token]);
 
-  // After Google OAuth redirect we'll land back here with #session_id=
+  // After the direct Google OAuth redirect we land back here with ?code=
+  // (the invite token stays in the query string; the code is stripped after use).
   useEffect(() => {
     if (!token) return;
-    const hash = window.location.hash || "";
-    const m = hash.match(/session_id=([^&]+)/);
-    if (!m) return;
-    const session_id = decodeURIComponent(m[1]);
+    const code = sp.get("code");
+    if (!code) return;
+    const redirect_uri = window.location.origin + "/invite?token=" + encodeURIComponent(token);
     setGoogleLoading(true);
     (async () => {
       try {
-        const { data } = await api.post("/public/invitations/accept-google", { token, session_id });
-        window.history.replaceState({}, "", window.location.pathname + window.location.search);
+        const { data } = await api.post("/public/invitations/accept-google", { token, code, redirect_uri });
+        window.history.replaceState({}, "", window.location.pathname + "?token=" +encodeURIComponent(token));
         toast.success(`Welcome, ${data.name || data.email}`);
         nav("/app", { replace: true });
       } catch (e) {
@@ -42,7 +44,7 @@ export default function InviteAccept() {
         setGoogleLoading(false);
       }
     })();
-  }, [token, nav]);
+  }, [token, nav, sp]);
 
   const accept = async () => {
     setLoading(true);
@@ -55,9 +57,10 @@ export default function InviteAccept() {
   };
 
   const startGoogle = () => {
+    if (!googleClientId) return;
     // Return to this invite URL so we keep the token in query string
-    const redirect = `${window.location.origin}/invite?token=${encodeURIComponent(token)}`;
-    window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirect)}`;
+    const redirectUri = window.location.origin + "/invite?token=" + encodeURIComponent(token);
+    window.location.href = googleAuthorizeUrl({ clientId: googleClientId, redirectUri });
   };
 
   if (err) return <div className="min-h-screen grid place-items-center text-sm text-muted-foreground">{err}</div>;
@@ -69,9 +72,10 @@ export default function InviteAccept() {
         <Logo />
         <h1 className="font-display text-3xl mt-8 tracking-tight">Join {preview.tenant_name}</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          You've been invited as <span className="font-medium text-foreground">{preview.invitation.role}</span>. Accept in one click with Google:
+          You've been invited as <span className="font-medium text-foreground">{preview.invitation.role}</span>.{googleClientId ? " Accept in one click with Google:" : ""}
         </p>
 
+        {googleClientId && (<>
         <Button
           type="button"
           variant="outline"
@@ -88,6 +92,7 @@ export default function InviteAccept() {
         <p className="text-[11px] text-muted-foreground text-center mt-2">
           Your Google email must match <span className="font-mono">{preview.invitation.email}</span>.
         </p>
+        </>)}
 
         <div className="my-6 flex items-center gap-3 text-[11px] text-muted-foreground">
           <div className="flex-1 h-px bg-border" /> or create a password <div className="flex-1 h-px bg-border" />

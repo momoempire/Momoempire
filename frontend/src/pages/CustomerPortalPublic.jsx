@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { toast } from "sonner";
 import { Phone, Mail, Clock, CalendarCheck, Sparkles, MessageSquare } from "lucide-react";
 
+import { BRAND_NAME } from "@/config/brand";
 export default function CustomerPortalPublic() {
   const { slug } = useParams();
   const [biz, setBiz] = useState(null);
@@ -133,7 +134,7 @@ export default function CustomerPortalPublic() {
       <footer className="border-t border-border py-6">
         <div className="max-w-5xl mx-auto px-6 flex items-center justify-between flex-wrap gap-4 text-xs text-muted-foreground">
           <span>© {new Date().getFullYear()} {name}</span>
-          <span>Powered by AI Office</span>
+          <span>Powered by {BRAND_NAME}</span>
         </div>
       </footer>
 
