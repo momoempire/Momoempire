@@ -1,0 +1,196 @@
+id: generators
+trade: Whole-Home Generators
+tagline: "Your AI office, preloaded for Whole-Home Generators"
+terms:
+  worker: Installer
+  worker_plural: Installers
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#D97706"
+pricebook:
+  - name: Site Assessment & Load Calculation
+    category: service
+    price: 199
+    cost: 50
+    duration_min: 90
+    description: On-site load calculation, fuel-source check, and placement plan for the right generator size.
+  - name: 14kW Air-Cooled Generator Install
+    category: service
+    price: 9500
+    cost: 5200
+    duration_min: 480
+    description: Turnkey 14kW install for essentials-only backup — well pump, fridge, heat, and lights.
+  - name: 18kW Air-Cooled Generator Install
+    category: service
+    price: 11500
+    cost: 6300
+    duration_min: 540
+    description: Turnkey 18kW install covering most of a mid-size home including one AC unit.
+  - name: 22kW Air-Cooled Generator Install
+    category: service
+    price: 13500
+    cost: 7400
+    duration_min: 600
+    description: Turnkey 22kW install for whole-home coverage on homes up to about 3,500 sqft.
+  - name: 26kW Liquid-Cooled Generator Install
+    category: service
+    price: 22000
+    cost: 12500
+    duration_min: 720
+    description: Liquid-cooled 26kW system for large homes, estates, and extended outage endurance.
+  - name: Automatic Transfer Switch (200A)
+    category: part
+    price: 1800
+    cost: 700
+    duration_min: 240
+    description: 200-amp service-entrance-rated transfer switch for seamless automatic changeover.
+  - name: Concrete Pad & Grading
+    category: service
+    price: 900
+    cost: 300
+    duration_min: 240
+    description: Poured concrete pad, leveling, and site grading to manufacturer clearance specs.
+  - name: Gas Line Trenching (per linear ft)
+    category: service
+    price: 35
+    cost: 12
+    duration_min: 240
+    description: Trenched gas feed from the meter or propane tank to the generator, pressure-tested and permitted.
+  - name: Annual Maintenance Plan
+    category: service
+    price: 450
+    cost: 120
+    duration_min: 90
+    description: Yearly oil, filter, spark plug, battery test, and full exercise-cycle verification.
+  - name: Storm-Season Tune-Up
+    category: service
+    price: 275
+    cost: 80
+    duration_min: 60
+    description: "Pre-storm-season check: fluids, filters, battery load test, and transfer-switch exercise."
+  - name: Battery Replacement
+    category: part
+    price: 350
+    cost: 120
+    duration_min: 45
+    description: Generator-rated battery swap with terminal service and charger verification.
+  - name: Remote Monitoring Setup
+    category: addon
+    price: 299
+    cost: 80
+    duration_min: 45
+    description: Cellular remote monitoring module so the customer — and the shop — sees status, faults, and exercise history from anywhere.
+  - name: Whole-Home Surge Protector
+    category: addon
+    price: 650
+    cost: 180
+    duration_min: 90
+    description: Panel-mounted surge protection guarding the home's electronics during utility switching events.
+equipment_types:
+  - name: Generator Inventory
+    fields: [brand, model, kw_rating, fuel_type, serial_number, warehouse_location, status]
+  - name: Transfer Switch Inventory
+    fields: [brand, amperage, service_entrance_rated, stock_count, warehouse_location]
+  - name: Service Trucks
+    fields: [unit_id, odometer, crane_or_lift, last_service_date, assigned_installer]
+  - name: Load Test Bank
+    fields: [unit_id, capacity_kw, calibration_due, assigned_installer]
+  - name: Crane / Placement Lift
+    fields: [unit_id, lift_capacity_lbs, last_inspection_date, operator_certified]
+appointment_types:
+  - name: Site Assessment
+    duration_min: 90
+    description: Load calc, fuel and placement review, and a written turnkey quote.
+  - name: Installation Day
+    duration_min: 600
+    description: "Full-day turnkey install: pad, generator, transfer switch, gas, and startup test."
+  - name: Annual Maintenance Visit
+    duration_min: 90
+    description: Full preventive maintenance with exercise-cycle and remote monitoring check.
+  - name: Storm-Season Tune-Up
+    duration_min: 60
+    description: Pre-season readiness check before peak outage months.
+  - name: Repair / No-Start Call
+    duration_min: 120
+    description: Diagnostics and repair for fault codes, failed exercise cycles, or no-start conditions.
+receptionist_script: |
+  Greeting: "Thanks for calling {shop_name}, this is the AI assistant. Are you looking at a new whole-home generator, or do you have one that needs service?"
+
+  Common call types and what to do:
+  - New generator quote: ask home square footage, fuel source (natural gas or propane), and which circuits must stay on (well pump, medical equipment, AC). Book a Site Assessment within 7 days. Mention the $199 assessment is credited toward any install.
+  - Outage happened and they want protection before the next storm: capture urgency — ask when the last outage was and how long it lasted. Offer the earliest assessment and explain typical 2-4 week permit-to-install timeline so expectations are set.
+  - Generator not starting or showing a fault: ask the model and the fault code or light pattern if visible. If the outage is active now, treat as priority — offer same-day or next-day diagnostics. Remind them never to open panels or run portable generators indoors.
+  - Maintenance due: check the service plan — if on the annual plan, book the maintenance visit; if not, offer the Storm-Season Tune-Up.
+  - Price shoppers: give the ballpark ranges (14kW turnkey around $9,500; 22kW around $13,500) and explain sizing depends on the load calc — book the assessment to nail it.
+
+  Booking flow:
+  1. Capture name, address, phone, and email.
+  2. Confirm fuel type, panel amperage, and whether there is an HOA with placement rules.
+  3. Book the slot and text confirmation with a pre-visit checklist (clear the panel area, locate the gas meter).
+  4. Note gate codes, dogs, and who will be home.
+
+  Urgent handling: active outage with a failed generator, or a storm forecast within 48 hours with a customer who has medical equipment = urgent. Offer the soonest diagnostic slot, flag the shop owner, and give interim safety guidance.
+
+  After-hours: "Thanks for calling {shop_name}. If your power is out right now and your generator isn't running, press 1 for our on-call installer. Otherwise leave your name, address, and whether this is a new install or service — we'll call you back first thing in the morning and hold an assessment slot for you."
+triage:
+  - id: outage_profile
+    question: How often do you lose power, and how long do outages usually last?
+    options: ["A few times a year — a few hours each", "A few times a year — lasting a day or more", "Rarely — but one bad outage convinced me", "Every storm season — sometimes for days"]
+    route: Log outage_profile; multi-day outage history routes to whole-home sizing (22kW+) in the assessment notes.
+  - id: home_load
+    question: Roughly how big is the home, and what absolutely must stay on?
+    options: ["Under 2,000 sqft — essentials only", "2,000–3,500 sqft — most of the house", "Over 3,500 sqft — whole home plus", "Medical equipment must stay on"]
+    route: Log sqft band and must-run list for the load calculation; flag medical equipment as a priority scheduling note.
+  - id: fuel_source
+    question: What fuel would the generator run on?
+    options: [Natural gas — already at the house, Propane — tank on site, Propane — would need a tank installed, Not sure]
+    route: Log fuel_source; natural gas gets standard quote path, propane flags tank coordination with the install crew.
+  - id: switch_status
+    question: Do you already have an automatic transfer switch installed?
+    options: ["Yes", "No", "Not sure"]
+    route: Log transfer_switch; 'No' adds the transfer switch line item to the quote estimate range given on the call.
+automation_templates:
+  - name: Outage-Season Campaign
+    trigger: storm_season_60_days_out
+    steps:
+      - Pull past assessment quotes that never booked plus customers due for tune-ups.
+      - Send an SMS: "Storm season is 60 days out — {shop_name} has install slots left before it hits."
+      - Offer one-tap booking from the message.
+      - Follow up by email at day 14 with a storm-preparedness checklist and the tune-up offer.
+      - Booked tune-ups get a pre-visit reminder with the readiness checklist.
+  - name: Install Day Coordination
+    trigger: generator_install_confirmed
+    steps:
+      - Confirm the date and text the pre-install checklist (pad area clear, gas meter accessible, HOA approval uploaded).
+      - Auto-check permit status 5 days before; alert the office if it is still pending.
+      - Evening-before text with the crew arrival window and lead installer's name.
+      - Day of: send startup-test results and the first exercise-cycle confirmation.
+      - Send the warranty registration link and remote-monitoring activation steps.
+  - name: Post-Outage Check-In
+    trigger: major_regional_outage
+    steps:
+      - Pull all installed-generator customers in the affected zip codes.
+      - Send an SMS: "Did your system run? Reply RUN or FAULT."
+      - Any FAULT reply creates a priority diagnostic ticket automatically.
+      - After 7 days, send maintenance-plan upsell to customers who ran long hours.
+  - name: Maintenance Plan Renewal
+    trigger: annual_plan_30_days_to_expiry
+    steps:
+      - SMS the renewal offer with the locked-in price.
+      - One-tap renewal link; expired cards prompt a secure update link.
+      - On renewal, auto-schedule the yearly visit.
+      - Lapsed customers get the storm-season tune-up offer instead.
+review_templates:
+  - name: Post-Install Review Request
+    channel: sms
+    template: "Hi {customer_name}, this is {shop_name} — your generator is installed and tested. When the next storm rolls through, you'll barely notice. If {tech_name} and the crew earned it, would you leave a quick review? {review_link} Thanks for trusting us with your backup power!"
+  - name: After-First-Outage Review
+    channel: email
+    template: "Subject: Your generator did its job, {customer_name}\n\nHi {customer_name},\n\nYour {shop_name} generator just carried your home through a real outage — that's what it's for. {tech_name} sized and installed it for exactly this moment. If the install and the automatic switchover worked the way you hoped, a review helps neighbors make the same call: {review_link}\n\nStay powered,\n{shop_name}"
+  - name: Maintenance Visit Review
+    channel: sms
+    template: "{customer_name}, your annual service is done — oil, filters, battery, and exercise cycle all check out. Quick favor: if {tech_name} keeps your system storm-ready, leave us a review: {review_link} — {shop_name}"

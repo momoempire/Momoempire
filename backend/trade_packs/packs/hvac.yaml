@@ -1,0 +1,192 @@
+id: hvac
+trade: HVAC
+tagline: "Your AI office, preloaded for HVAC"
+terms:
+  worker: Technician
+  worker_plural: Technicians
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#1E6FB8"
+pricebook:
+  - name: Diagnostic Visit (No-Heat / No-Cool)
+    category: service
+    price: 89.00
+    cost: 32.00
+    duration_min: 60
+    description: "On-site troubleshooting of heating or cooling failure with written repair options"
+  - name: Preventive Maintenance Tune-Up (1 system)
+    category: service
+    price: 149.00
+    cost: 45.00
+    duration_min: 90
+    description: "21-point inspection, coil cleaning, refrigerant check, and safety tests"
+  - name: Maintenance Plan Visit (per system, plan member)
+    category: service
+    price: 99.00
+    cost: 40.00
+    duration_min: 60
+    description: "Scheduled seasonal tune-up for maintenance-plan members, priority scheduling"
+  - name: Capacitor Replacement
+    category: part
+    price: 245.00
+    cost: 38.00
+    duration_min: 45
+    description: "Replace failed start/run capacitor with OEM-spec part, includes testing"
+  - name: Contactor Replacement
+    category: part
+    price: 295.00
+    cost: 52.00
+    duration_min: 60
+    description: "Replace burned or pitted contactor, includes electrical safety check"
+  - name: Blower Motor Replacement (PSC)
+    category: part
+    price: 685.00
+    cost: 210.00
+    duration_min: 120
+    description: "Replace failed blower motor with new capacitor, amp-draw verification"
+  - name: Refrigerant Recharge (R-410A, up to 2 lbs)
+    category: service
+    price: 325.00
+    cost: 120.00
+    duration_min: 90
+    description: "Leak check, evacuate, and recharge to factory spec with superheat/subcooling readings"
+  - name: Thermostat Replacement (Smart Wi-Fi)
+    category: part
+    price: 425.00
+    cost: 165.00
+    duration_min: 60
+    description: "Install and configure smart Wi-Fi thermostat, connect to homeowner app"
+  - name: Furnace Ignitor / Flame Sensor Service
+    category: labor
+    price: 195.00
+    cost: 35.00
+    duration_min: 60
+    description: "Clean or replace flame sensor and ignitor, verify safe startup sequence"
+  - name: Duct Cleaning (per register)
+    category: addon
+    price: 32.00
+    cost: 9.00
+    duration_min: 10
+    description: "Add-on: rotary-brush duct and register cleaning while on site"
+  - name: Surge Protector (HVAC unit)
+    category: addon
+    price: 275.00
+    cost: 95.00
+    duration_min: 30
+    description: "Add-on: hard-wired surge protection for condenser and air handler"
+  - name: UV Light Install (air handler)
+    category: addon
+    price: 495.00
+    cost: 180.00
+    duration_min: 45
+    description: "Add-on: germicidal UV lamp mounted at evaporator coil for indoor air quality"
+equipment_types:
+  - name: Split System Air Conditioner
+    fields: [brand, model, serial_number, install_date, capacity_tons, refrigerant_type, seer_rating]
+  - name: Gas Furnace
+    fields: [brand, model, serial_number, install_date, btu_input, afue_rating, fuel_type]
+  - name: Heat Pump
+    fields: [brand, model, serial_number, install_date, capacity_tons, hspf_rating, backup_heat_type]
+  - name: Thermostat
+    fields: [brand, model, install_date, wifi_connected, last_battery_change]
+  - name: Air Handler / Evaporator Coil
+    fields: [brand, model, serial_number, install_date, coil_type]
+appointment_types:
+  - name: Diagnostic Visit
+    duration_min: 60
+    description: "Troubleshoot a no-heat, no-cool, or performance complaint"
+  - name: Tune-Up / Maintenance
+    duration_min: 90
+    description: "Seasonal preventive maintenance with full inspection checklist"
+  - name: System Replacement Estimate
+    duration_min: 120
+    description: "Free in-home assessment and replacement quote with load calculation"
+  - name: Repair Visit
+    duration_min: 90
+    description: "Return visit to complete an approved repair with parts on the truck"
+  - name: Indoor Air Quality Consult
+    duration_min: 45
+    description: "Evaluate filters, humidity, and air quality options for the home"
+receptionist_script: |
+  GREETING: "Thanks for calling {shop_name}, this is Momo, your virtual assistant. How can I help you today?"
+
+  COMMON CALL TYPES:
+  1. NO-HEAT / NO-COOL (priority): Say: "I'm sorry your system isn't working — let's get you taken care of. Is the system blowing any air at all, or is it completely dead?" Then: "Is this the heat or the air conditioning?" Check triage answers, then: "I can get a technician out today. I have a window between [TIME] and [TIME] — does that work?"
+  2. MAINTENANCE / TUNE-UP: Say: "Absolutely — a tune-up keeps your system efficient and catches small problems early. Our tune-up is $149 for one system. Would you like a morning or afternoon appointment?"
+  3. NEW SYSTEM QUOTE: Say: "I'd be happy to set up a free in-home estimate. It takes about two hours and includes a load calculation so the new system is sized right. What day works best for you?"
+  4. FILTER / STRANGE NOISE / ODOR: Ask: "When did you last change the filter?" If over 3 months: "A clogged filter can cause a lot of those symptoms — try swapping it first. If the problem continues, I'll book a diagnostic visit. Want me to go ahead and hold a slot?"
+  5. BILLING / INVOICE QUESTIONS: Say: "I can look that up for you. What's the name on the account?" Pull the invoice and read the total and due date. Never promise credits — offer to have the office call back.
+
+  BOOKING FLOW — always ask in this order:
+  1. "What's your name and the best callback number?"
+  2. "What's the service address?"
+  3. "Can you describe what's happening with the system?"
+  4. "Do you know the brand and roughly how old the unit is?"
+  5. Confirm: "So I have [NAME] at [ADDRESS] for a [VISIT TYPE] on [DATE] between [WINDOW]. A technician will text you when they're on the way. Sound good?"
+
+  EMERGENCY / URGENT HANDLING:
+  - No heat when outdoor temp is below 40°F, or no cooling for elderly/infant/medical customers: treat as same-day emergency. "This qualifies as an emergency visit — I can have someone there today. Is anyone in the home elderly, very young, or with a medical condition?" Book the next emergency slot immediately.
+  - Burning smell, sparking, or gas odor: "For your safety, turn the system off at the thermostat and step away from the unit. If you smell gas, leave the house and call your gas utility or 911 first, then call us back. Do you want me to alert our on-call technician now?"
+  - After-hours emergency fee applies ($149 diagnostic after 6 PM / weekends) — state it before booking: "Just so you know, our after-hours emergency visit is $149, which applies toward any repair."
+
+  AFTER-HOURS BEHAVIOR: "You've reached {shop_name} after hours. For emergencies — no heat in freezing weather, no cooling for vulnerable occupants, burning smells, or gas odors — I can dispatch our on-call technician right now. Otherwise, I'll take your details and we'll call you back first thing in the morning. Which is it?"
+triage:
+  - id: no_heat_no_cool
+    question: "Is the system completely dead, or is it running but not heating/cooling properly?"
+    options: ["Completely dead — nothing happens", "Running but blowing wrong temperature", "Runs, then shuts off quickly", "Working but making strange noises"]
+    route: "Completely dead or short-cycling: book emergency slot today if temp extreme or vulnerable occupant, otherwise next-day diagnostic"
+  - id: airflow_check
+    question: "Check your thermostat — is it set to the right mode (heat/cool) and is the display lit? When did you last change the filter?"
+    options: ["Thermostat looks fine, filter changed recently", "Thermostat display is blank", "Filter hasn't been changed in months", "Not sure / can't check"]
+    route: "Blank thermostat or old filter: walk through battery/filter reset; if no change, schedule diagnostic"
+  - id: refrigerant_symptoms
+    question: "Is there ice on the copper lines or the outdoor unit, or a hissing sound near the system?"
+    options: ["Yes — ice on lines or unit", "Yes — hissing or bubbling sound", "No ice, no hissing", "Water pooling around indoor unit"]
+    route: "Ice or hissing: possible refrigerant leak — schedule diagnostic promptly, advise to turn system off to prevent compressor damage"
+  - id: system_age
+    question: "How old is the system, and has it needed repairs in the last year?"
+    options: ["Under 8 years, no recent repairs", "8-12 years", "Over 12 years", "Multiple repairs in the last 12 months"]
+    route: "Over 12 years or repeat repairs: offer free replacement estimate alongside the repair visit"
+automation_templates:
+  - name: Seasonal Tune-Up Campaign
+    trigger: "90 days before peak season (April for cooling, September for heating)"
+    steps:
+      - "Pull all customers with systems older than 1 year and no tune-up in 12 months"
+      - "Send SMS: tune-up offer with one-tap booking link"
+      - "Follow up unopened messages with email 3 days later"
+      - "Auto-create tune-up appointments from bookings and assign to nearest technician"
+      - "Send review request after completed tune-up"
+  - name: Maintenance Plan Renewal
+    trigger: "30 days before plan expiration"
+    steps:
+      - "Send renewal reminder SMS with plan benefits recap"
+      - "If no response in 7 days, send email with renewal link"
+      - "On renewal, reset visit counter and schedule next seasonal visit"
+      - "Flag lapsed members for win-back call after 45 days"
+  - name: No-Show Rescue
+    trigger: "Customer misses scheduled appointment"
+    steps:
+      - "Send immediate SMS: 'We missed you — reschedule in one tap'"
+      - "Offer the next two available slots automatically"
+      - "If no response in 24 hours, call via AI voice follow-up"
+      - "Log outcome; flag repeat no-shows for deposit requirement"
+  - name: Filter Reminder Program
+    trigger: "90 days after tune-up or filter install"
+    steps:
+      - "Send SMS filter-change reminder with filter size on file"
+      - "Offer filter delivery add-on or technician drop-in"
+      - "Track responses to refine reminder timing per customer"
+review_templates:
+  - name: Post-Job SMS Review
+    channel: sms
+    template: "Hi {customer_name}! {tech_name} from {shop_name} just wrapped up your visit. If everything's working great, a quick Google review would mean the world to us: {review_link} — thanks for choosing {shop_name}!"
+  - name: Post-Install Email Review
+    channel: email
+    template: "Hi {customer_name}, thanks for trusting {shop_name} with your new system! {tech_name} and the team hope you're enjoying the comfort. If you have a minute, we'd love your feedback: {review_link}. And remember — your installation is backed by our satisfaction guarantee."
+  - name: Maintenance Plan Review
+    channel: sms
+    template: "Hi {customer_name}, {tech_name} finished your tune-up today and your system is running strong. Quick favor — would you share your experience with {shop_name}? {review_link} Thank you!"

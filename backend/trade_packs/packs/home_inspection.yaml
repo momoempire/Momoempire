@@ -1,0 +1,195 @@
+id: home_inspection
+trade: Home Inspection
+tagline: "Your AI office, preloaded for Home Inspection"
+terms:
+  worker: Inspector
+  worker_plural: Inspectors
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#EA580C"
+pricebook:
+  - name: General Home Inspection (under 2,000 sqft)
+    category: service
+    price: 425
+    cost: 110
+    duration_min: 150
+    description: Full top-to-bottom inspection with a photo-documented digital report delivered same day.
+  - name: General Home Inspection (2,000–3,500 sqft)
+    category: service
+    price: 525
+    cost: 130
+    duration_min: 180
+    description: Full inspection for mid-size homes with same-day digital report.
+  - name: General Home Inspection (3,500+ sqft)
+    category: service
+    price: 650
+    cost: 160
+    duration_min: 240
+    description: Extended inspection for large homes, including outbuildings walkthrough and same-day report.
+  - name: Radon Test (48-hour)
+    category: addon
+    price: 175
+    cost: 45
+    duration_min: 30
+    description: Continuous radon monitor placed for 48 hours with a certified lab-style results report.
+  - name: Termite / WDI Inspection
+    category: addon
+    price: 125
+    cost: 40
+    duration_min: 45
+    description: Wood-destroying insect inspection with the NPMA-33 style report lenders require.
+  - name: Mold Air Sampling (per sample)
+    category: addon
+    price: 150
+    cost: 55
+    duration_min: 30
+    description: Lab-analyzed air cassette sampling with results and interpretation in the final report.
+  - name: Sewer Scope Inspection
+    category: addon
+    price: 225
+    cost: 70
+    duration_min: 60
+    description: Camera scope of the main sewer lateral to the street with video link in the report.
+  - name: Thermal Imaging Scan
+    category: addon
+    price: 149
+    cost: 35
+    duration_min: 45
+    description: Infrared scan revealing hidden moisture, missing insulation, and electrical hot spots.
+  - name: Pre-Listing Inspection
+    category: service
+    price: 475
+    cost: 120
+    duration_min: 180
+    description: Seller-side inspection to find and fix deal-killers before the listing goes live.
+  - name: New Construction Phase Inspection (per phase)
+    category: service
+    price: 350
+    cost: 90
+    duration_min: 120
+    description: Pre-drywall, pre-final, or 11-month warranty inspection with a builder-ready deficiency report.
+  - name: Annual Home Maintenance Inspection
+    category: service
+    price: 375
+    cost: 100
+    duration_min: 150
+    description: Yearly checkup catching small issues before they become expensive — the homeowner's physical.
+  - name: 4-Point & Wind Mitigation Report
+    category: service
+    price: 250
+    cost: 65
+    duration_min: 90
+    description: Insurance-required 4-point and wind mitigation documentation with photos and forms.
+  - name: Rush 24-Hour Report Delivery
+    category: addon
+    price: 100
+    cost: 20
+    duration_min: 15
+    description: Guaranteed full report within 24 hours for tight contingency deadlines.
+equipment_types:
+  - name: Inspection Tool Kits
+    fields: [kit_id, contents, last_calibration_date, assigned_inspector, condition]
+  - name: Radon Monitors
+    fields: [unit_id, serial_number, calibration_due_date, status, assigned_inspector]
+  - name: Sewer Cameras
+    fields: [unit_id, cable_length_ft, camera_resolution, last_service_date, assigned_inspector]
+  - name: Inspection Drones
+    fields: [unit_id, faa_registration, insurance_current, last_flight_date, assigned_inspector]
+  - name: Inspection Vehicles
+    fields: [unit_id, odometer, last_service_date, ladder_rack, assigned_inspector]
+appointment_types:
+  - name: Buyer Home Inspection
+    duration_min: 180
+    description: Full buyer inspection with the client encouraged to attend the last 30 minutes.
+  - name: Pre-Listing Inspection
+    duration_min: 180
+    description: Seller-side inspection scheduled around the listing timeline.
+  - name: Radon Test Drop-off
+    duration_min: 30
+    description: Monitor placement with closed-house conditions explained to the occupants.
+  - name: Radon Test Pickup
+    duration_min: 30
+    description: Monitor retrieval and preliminary results discussion.
+  - name: Re-Inspection
+    duration_min: 60
+    description: Verification visit confirming seller or builder completed the agreed repairs.
+receptionist_script: |
+  Greeting: "Thanks for calling {shop_name}, this is the AI assistant. Are you buying, selling, or building — and when do you need the inspection?"
+
+  Common call types and what to do:
+  - Buyer under contract: ask the contingency or option-period deadline FIRST — everything schedules around it. Ask square footage, age, and foundation type, then book the inspection at least 48 hours before the deadline. Offer the rush report if the deadline is tight.
+  - Add-ons (radon, termite, sewer scope, mold): explain each in one line and recommend the bundle — most buyers add at least radon and termite. Confirm the home has a basement or crawl space (radon) and is on septic or sewer (sewer scope relevance).
+  - Pre-listing seller or realtor: ask the target list date and whether they want repairs prioritized by deal-killer severity. Book the pre-listing inspection and offer to coordinate directly with their realtor.
+  - New construction phase: ask which phase (pre-drywall, pre-final, 11-month warranty) and the builder's name. Book the phase inspection and note builder access requirements.
+  - Price shoppers: give the size-based pricing ($425 / $525 / $650) and explain the same-day digital report with photos is included. Book from the quote.
+  - Realtor partners: capture the agent's name, brokerage, and preferred report delivery (email + portal). Flag them for the agent-partner follow-up.
+
+  Booking flow:
+  1. Capture the buyer's name, phone, email — plus the realtor's name and contact.
+  2. Confirm property address, sqft, age, deadline, and chosen add-ons.
+  3. Book the slot and text confirmation with the inspection-day checklist (utilities on, attic/crawl access clear, pets secured).
+  4. Confirm who attends and send the realtor a courtesy confirmation.
+
+  Urgent handling: a contingency deadline within 48 hours = urgent. Offer the soonest slot plus the Rush 24-Hour Report add-on, and flag the shop owner. Never promise to "go easy" on the inspection — explain the inspector works for the buyer's information, not the deal.
+
+  After-hours: "Thanks for calling {shop_name}. If you're under contract, tell us your option or contingency deadline right in your message — we schedule around it. Leave your name, the property address, and the deadline, and we'll call you back first thing in the morning with the earliest slot that beats it."
+triage:
+  - id: contingency_deadline
+    question: Are you under contract — when is your inspection or option deadline?
+    options: [Within 48 hours, Within a week, 1–2 weeks out, Just shopping / pre-listing, New construction phase]
+    route: Log the exact deadline date; within 48 hours routes to urgent scheduling plus the Rush 24-Hour Report offer.
+  - id: home_profile
+    question: Tell me about the property.
+    options: ["Under 2,000 sqft", "2,000–3,500 sqft", "Over 3,500 sqft", "Condo or townhome", "50+ years old — any size"]
+    route: Log sqft band for pricing; 50+ years old flags the sewer-scope and electrical-panel talking points.
+  - id: addon_needs
+    question: Which additional tests do you want with the inspection?
+    options: [Radon test, Termite / WDI inspection, Sewer scope, Mold air sampling, Just the general inspection]
+    route: Log selected add-ons on the booking; radon bookings auto-schedule the 48-hour drop-off/pickup pair.
+  - id: client_role
+    question: Who is the inspection for?
+    options: [Buyer — I'm under contract, Buyer — still shopping, Seller — pre-listing, Realtor booking for a client, Builder phase inspection]
+    route: Realtor bookings capture agent details for the partner follow-up automation; seller bookings trigger the pre-listing report flow.
+automation_templates:
+  - name: Report Delivery & Buyer Follow-up
+    trigger: inspection_completed
+    steps:
+      - Deliver the digital report with photos within the promised window (same day, or 24 hours with rush).
+      - Text the buyer a 5-line plain-English summary of the top findings with severity tags.
+      - Email the full report to the buyer's realtor automatically.
+      - Day 2: check in — "Any questions on the report? Reply and the inspector will call you."
+      - Day 5: if radon was tested, send the certified results with the EPA action-level explanation.
+  - name: Realtor Partner Nurture
+    trigger: realtor_first_booking
+    steps:
+      - Tag the agent as a partner and send a thank-you text after the first on-time report.
+      - Share the agent one-pager: scheduling link, report turnaround, add-on menu.
+      - After 3 on-time deliveries, send the preferred-partner co-marketing offer.
+      - Quarterly: send the agent their booking stats and a seasonal inspection tip to share with clients.
+  - name: Radon Pickup Reminder
+    trigger: radon_monitor_placed
+    steps:
+      - Confirm closed-house conditions were explained via text at placement.
+      - Reminder text at 24 hours: keep windows closed and the monitor untouched.
+      - Auto-schedule the pickup visit at the 48-hour mark.
+      - After pickup: text the preliminary reading; certified report follows within 24 hours.
+  - name: Annual Maintenance Reminder
+    trigger: inspection_anniversary_11mo
+    steps:
+      - Text past buyers: it's been almost a year — time for the annual maintenance inspection.
+      - Offer the $375 checkup with one-tap booking.
+      - Include the seasonal tip (gutters, furnace filter, water heater) to make the message useful even if they decline.
+review_templates:
+  - name: Post-Report Review Request
+    channel: sms
+    template: "Hi {customer_name}, your inspection report is delivered — check your email for the full photo version. If {tech_name} was thorough and explained everything clearly, would you leave us a review? {review_link} Good luck with the home! — {shop_name}"
+  - name: Realtor Review Request
+    channel: email
+    template: "Subject: Report delivered on time, {customer_name}\n\nHi {customer_name},\n\nYour report beat the deadline and your realtor has the full copy. Buying a home is stressful enough — if {shop_name} made the inspection part easy, a review here helps the next buyer: {review_link}\n\n— {tech_name}, {shop_name}"
+  - name: Pre-Listing Review
+    channel: sms
+    template: "{customer_name}, your pre-listing report is in your inbox with the repairs ranked by deal-killer priority. If {tech_name} helped you list with confidence, a review means a lot: {review_link} — {shop_name}"

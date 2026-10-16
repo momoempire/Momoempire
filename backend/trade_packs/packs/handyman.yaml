@@ -1,0 +1,189 @@
+id: handyman
+trade: Handyman
+tagline: "Your AI office, preloaded for Handyman"
+terms:
+  worker: Handyman
+  worker_plural: Handymen
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#F59E0B"
+pricebook:
+  - name: "Punch List Visit (half day)"
+    category: service
+    price: 295
+    cost: 120
+    duration_min: 240
+    description: "Up to 4 hours on a punch list of small repairs; materials billed at cost plus 20%."
+  - name: "Punch List Visit (full day)"
+    category: service
+    price: 495
+    cost: 210
+    duration_min: 480
+    description: "Full 8-hour day working through a longer repair list, one trip charge included."
+  - name: "Drywall Repair (medium)"
+    category: service
+    price: 195
+    cost: 55
+    duration_min: 90
+    description: "Patch holes up to 2 sqft, texture match, prime and paint blend."
+  - name: "TV / Large Item Mounting"
+    category: service
+    price: 149
+    cost: 40
+    duration_min: 60
+    description: "Mount TV up to 75 inches or heavy item to studs; bracket not included."
+  - name: "Door Repair / Adjustment"
+    category: service
+    price: 125
+    cost: 35
+    duration_min: 60
+    description: "Rehang, plane, or adjust a sticking interior door; new hinges add $35."
+  - name: "Faucet Replacement"
+    category: service
+    price: 175
+    cost: 50
+    duration_min: 75
+    description: "Swap a like-for-like kitchen or bath faucet; customer supplies or we source."
+  - name: "Ceiling Fan Installation"
+    category: service
+    price: 195
+    cost: 55
+    duration_min: 90
+    description: "Install ceiling fan on existing rated box; brace kit add $45."
+  - name: "Caulk & Grout Refresh (bathroom)"
+    category: service
+    price: 225
+    cost: 60
+    duration_min: 120
+    description: "Strip old caulk and grout lines in one tub/shower, recaulk and seal."
+  - name: "Furniture Assembly (per item)"
+    category: service
+    price: 85
+    cost: 25
+    duration_min: 45
+    description: "Assemble one standard furniture item; large wardrobes priced on site."
+  - name: "Gutter Cleaning (single story)"
+    category: service
+    price: 175
+    cost: 50
+    duration_min: 90
+    description: "Clear gutters and downspouts on a single-story home, debris hauled."
+  - name: "Trip Charge"
+    category: addon
+    price: 65
+    cost: 20
+    duration_min: 0
+    description: "Flat trip charge for jobs under $150 within the service area."
+  - name: "Materials Markup"
+    category: part
+    price: 1.2
+    cost: 1.0
+    duration_min: 0
+    description: "Multiplier on materials we source: 20% markup over cost."
+equipment_types:
+  - name: "Power Tool Kit"
+    fields: ["tool_type", "brand", "model", "purchase_date", "last_service", "condition", "assigned_to"]
+  - name: "Ladder"
+    fields: ["type", "height_ft", "brand", "last_inspection", "condition", "assigned_to"]
+  - name: "Stud Finder / Diagnostic Kit"
+    fields: ["device_type", "brand", "last_calibration", "condition", "assigned_to"]
+  - name: "Company Vehicle"
+    fields: ["make", "model", "year", "mileage", "last_service", "insurance_expires", "assigned_to"]
+appointment_types:
+  - name: "Punch List Estimate"
+    duration_min: 30
+    description: "Walk the list with the customer, confirm scope and give a flat quote."
+  - name: "Half-Day Visit"
+    duration_min: 240
+    description: "Up to 4 hours of repair work from an approved punch list."
+  - name: "Full-Day Visit"
+    duration_min: 480
+    description: "Full day of repair work; best value for long lists."
+  - name: "Single Task Visit"
+    duration_min: 60
+    description: "One defined task like a faucet swap or TV mount."
+  - name: "Recurring Property Visit"
+    duration_min: 120
+    description: "Scheduled maintenance visit for property managers or landlords."
+receptionist_script: |
+  GREETING: "Thanks for calling {shop_name}, your local handyman team. This is the AI assistant — what can we fix for you today?"
+
+  COMMON CALL TYPES:
+  1. Punch list / multiple small repairs — capture the full list item by item; book a Punch List Estimate or, for a clear short list, a Half-Day Visit.
+  2. Single task (mount TV, fix door, swap faucet) — confirm the task, quote the flat rate, book a Single Task Visit.
+  3. Pricing questions — give flat rates from the pricebook, explain the trip charge for small jobs, and that materials are cost-plus-20%.
+  4. Property managers / landlords — capture unit count and recurring needs; route to the recurring-visit program.
+  5. Existing job questions — look up by name/address/phone; answer scheduling questions; escalate scope changes.
+
+  BOOKING FLOW:
+  1. List out each repair item the caller describes; read the list back to confirm nothing was missed.
+  2. Recommend the right visit: 1 task = Single Task Visit, 2-4 small items = Half-Day, 5+ = Full-Day; unclear lists get a Punch List Estimate first.
+  3. Collect: name, callback number, address, gate/parking/access notes, pet notes.
+  4. Confirm: date, arrival window, hourly/flat pricing explained, and that the tech will confirm scope on arrival before starting.
+  5. Send confirmation text with the visit details and the item list for the tech.
+
+  URGENT HANDLING: Active water leak, broken exterior door lock, sparking outlet, or no heat/AC in extreme weather — flag as urgent, dispatch the soonest available slot, and advise the caller on immediate safety steps (shut off water main, don't touch sparking outlets). Standard cosmetic repairs are NOT urgent.
+
+  AFTER-HOURS: Take the full item list and contact info, promise a callback by 9 AM next business day; true emergencies (water pouring, security risk) route to the on-call number.
+triage:
+  - id: handyman_task_list
+    question: "Can you walk me through everything you need fixed? I'll list each item."
+    options: ["1 task", "2-4 small items", "5+ items / whole list", "Ongoing property maintenance"]
+    route: "Size the visit: single task, half-day, full-day, or recurring program."
+  - id: handyman_trade_scope
+    question: "Does anything on the list involve major electrical, plumbing behind walls, gas, or structural work?"
+    options: ["No, all minor", "Electrical panel/breaker", "Plumbing behind walls", "Gas line", "Structural"]
+    route: "Minor work stays in-house; major electrical/plumbing/gas/structural gets referred to a licensed trade partner."
+  - id: handyman_materials
+    question: "Do you already have the parts or fixtures, or should we bring them?"
+    options: ["I'll supply", "You supply", "Mix of both", "Not sure yet"]
+    route: "Note on the job; customer-supplied items get a fit-check on arrival, we-supplied items billed cost-plus-20%."
+  - id: handyman_access
+    question: "Is anyone home during the day, or do we need lockbox or tenant coordination?"
+    options: ["Someone home", "Lockbox/code", "Tenant — need coordination", "Property manager handles"]
+    route: "Record access method on the job; tenant jobs get a confirmation call to the tenant before dispatch."
+  - id: handyman_timeline
+    question: "How soon do you need this done?"
+    options: ["ASAP / urgent", "This week", "Next 2 weeks", "Flexible"]
+    route: "Urgent items screened for safety first; otherwise book next matching visit window."
+automation_templates:
+  - name: "Punch List Confirmation"
+    trigger: "half-day or full-day visit booked"
+    steps:
+      - "Send SMS with the itemized list: 'Reply YES to confirm or add items'"
+      - "If customer adds items, update the job and re-estimate duration"
+      - "24 hours before: send reminder with arrival window and tech name"
+      - "Morning of: send 'on my way' text with live ETA when tech is en route"
+  - name: "Landlord Recurring Reminders"
+    trigger: "recurring property visit scheduled"
+    steps:
+      - "7 days before: email the property manager asking for this month's item list"
+      - "3 days before: confirm the item list received; chase if missing"
+      - "After visit: send itemized invoice per unit with photos"
+      - "Auto-propose next month's date"
+  - name: "Small-Job Review Request"
+    trigger: "single task visit marked complete"
+    steps:
+      - "1 hour after completion: SMS review request with Google review link"
+      - "Mention the specific task completed for a personal touch"
+      - "If 5-star review received, send thank-you and referral offer"
+  - name: "Abandoned Estimate Nudge"
+    trigger: "estimate sent, no response in 72 hours"
+    steps:
+      - "Send SMS: 'Still need a hand with your list? Your quote is good for 30 days.'"
+      - "Wait 5 days; send email with the itemized quote attached"
+      - "After 14 days total, mark cold and stop"
+review_templates:
+  - name: "Punch List Completion"
+    channel: sms
+    template: "Hi {customer_name}, {tech_name} from {shop_name} here — your list is all done! If you're happy with the work, a quick review would really help us out: {review_link}"
+  - name: "Single Task Email"
+    channel: email
+    template: "Subject: All fixed, {customer_name}!\n\nHi {customer_name},\n\n{tech_name} finished your repair today with {shop_name}. We hope everything's working perfectly. If you have a minute, we'd love a review: {review_link}\n\nNeed anything else fixed? Just reply to this email."
+  - name: "Property Manager Review"
+    channel: email
+    template: "Subject: This month's visit complete — {shop_name}\n\nHi {customer_name},\n\n{tech_name} completed this month's maintenance visit. The itemized report is attached. If our service keeps your properties running smoothly, a review from a fellow manager means a lot: {review_link}\n\n— {shop_name}"
