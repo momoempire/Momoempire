@@ -21,11 +21,13 @@ Collections (all tenant-scoped):
 - `support_answers`: one doc per /ask call — question, drafted answer, cited
   sources, confidence, escalated flag, asked_by.
 - `support_feedback`: one doc per (answer_id, created_by) — thumbs up/down QA.
-- `support_tickets`: human tickets created on escalation. No support_tickets
-  router exists yet, so this module defines a compatible doc shape
-  ({id, tenant_id, subject, description, status, priority, source,
-  question, confidence, answer_id, created_at, updated_at, assigned_to})
-  that a future ticket router can adopt as-is.
+- `support_tickets`: human tickets created on escalation, in the canonical
+  helpdesk shape routers/support_tickets.py creates (subject, description,
+  priority in low|medium|high|urgent, status lifecycle fields) plus the
+  AI-escalation provenance (source, question, confidence, answer_id).
+  (Wave 8 wrote priority "normal" — not a valid helpdesk priority — and
+  omitted the lifecycle fields the SLA snapshot reads; fixed in
+  wave/service-excellence-plus.)
 - `shop_health_scores`: one snapshot doc per health computation
   ({id, tenant_id, score, factors, plan_id, computed_at}).
 - `churn_flags`: one unacknowledged flag doc per (tenant, tier)
@@ -152,7 +154,9 @@ def _escalation_answer(ticket_id: str) -> str:
 
 async def _open_ticket(db, tenant_id: str, question: str, confidence: float,
                        answer_id: str, asked_by: Optional[str]) -> Dict:
-    """Write an escalation ticket in the `support_tickets` doc shape."""
+    """Write an escalation ticket in the canonical `support_tickets` shape
+    (same fields routers/support_tickets.py's create path writes, so the
+    helpdesk queue and SLA timers treat it like any other ticket)."""
     now = _now_iso()
     ticket = {
         "id": _uuid(),
@@ -160,7 +164,16 @@ async def _open_ticket(db, tenant_id: str, question: str, confidence: float,
         "subject": (question[:80] + "...") if len(question) > 80 else question,
         "description": question,
         "status": "open",
-        "priority": "normal",
+        "priority": "medium",
+        "category": "ai-escalation",
+        "assignee": None,
+        "contact_name": "",
+        "contact_email": "",
+        "contact_phone": "",
+        "created_by": asked_by,
+        "status_changed_at": now,
+        "waiting_seconds": 0.0,
+        "resolved_at": None,
         "source": "ai-support-escalation",
         "question": question,
         "confidence": confidence,

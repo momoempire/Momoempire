@@ -109,6 +109,8 @@ from routers.support_ai import router as support_ai_router
 from routers.inbox import router as inbox_router
 from routers.conversation_intel import router as conversation_intel_router
 from routers.outreach import router as outreach_router
+from routers.satisfaction import router as satisfaction_router
+from routers.service_hub import router as service_hub_router
 
 app = FastAPI(title="AI Office Platform API")
 api = APIRouter(prefix="/api")
@@ -244,6 +246,8 @@ app.include_router(support_ai_router)
 app.include_router(inbox_router)
 app.include_router(conversation_intel_router)
 app.include_router(outreach_router)
+app.include_router(satisfaction_router)
+app.include_router(service_hub_router)
 app.include_router(public_api_router)
 # Stripe is registered to deliver webhooks to /api/stripe/webhook (top-level, platform account).
 api.add_api_route("/stripe/webhook", _stripe_wh, methods=["POST"], include_in_schema=False)
