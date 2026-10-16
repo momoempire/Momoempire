@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timezone
 from db import get_db
 from models import _now_iso
-from models_phase2 import Estimate, EstimateIn, Invoice, InvoiceIn
+from models import Estimate, EstimateIn, Invoice, InvoiceIn
 from security import require_tenant_user
 
 router = APIRouter(prefix="/tenants", tags=["crm"])
@@ -44,8 +44,13 @@ async def update_estimate(eid: str, data: EstimateIn, user: dict = Depends(requi
 
 @router.post("/estimates/{eid}/send")
 async def mark_estimate_sent(eid: str, user: dict = Depends(require_tenant_user)):
+    """Send also approves (Brann, 2026-10-11, EMP-W-CF-022): the customer can then accept the
+    estimate online at /q/<public_token>. expires_at is left as it is."""
     db = get_db()
-    res = await db.estimates.update_one({"id": eid, "tenant_id": user["tenant_id"]}, {"$set": {"status": "sent", "updated_at": _now_iso()}})
+    now = _now_iso()
+    patch = {"status": "sent", "owner_approved": True, "approved_at": now,
+             "approved_by": user.get("id"), "updated_at": now}
+    res = await db.estimates.update_one({"id": eid, "tenant_id": user["tenant_id"]}, {"$set": patch})
     if res.matched_count == 0:
         raise HTTPException(404, "Not found")
     return await db.estimates.find_one({"id": eid}, {"_id": 0})

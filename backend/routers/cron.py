@@ -165,3 +165,13 @@ async def cron_repeat_reminders(request: Request):
     from routers.repeat import run_repeat_reminders
     asyncio.create_task(run_repeat_reminders())
     return {"accepted": True}
+
+
+@router.post("/overdue-reminders")
+async def cron_overdue_reminders(request: Request):
+    # Cron endpoints must ack 2xx immediately; enqueue/background the actual work.
+    if not _authorized(request):
+        raise HTTPException(401, "unauthorized")
+    from routers.call_to_payment import run_overdue_reminders
+    asyncio.create_task(run_overdue_reminders())
+    return {"accepted": True}
