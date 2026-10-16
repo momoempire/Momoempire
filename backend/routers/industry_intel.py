@@ -3,7 +3,7 @@ import os
 from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timezone, timedelta
 from db import get_db
-from models_phase3 import IndustryBrief
+from models import IndustryBrief
 from security import require_tenant_user
 
 router = APIRouter(prefix="/tenants/industry-intel", tags=["industry-intel"])
@@ -42,8 +42,8 @@ async def get_brief(user: dict = Depends(require_tenant_user), refresh: bool = F
 
     content = ""
     try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
-        key = os.environ.get("EMERGENT_LLM_KEY")
+        from llm_portable import LlmChat, UserMessage, ai_api_key
+        key = ai_api_key()
         chat = LlmChat(api_key=key, session_id=f"intel-{tid}", system_message="You produce short, data-aware industry briefs for SMB owners.").with_model("openai", "gpt-6-sol")
         raw = await chat.send_message(UserMessage(text=prompt))
         content = raw if isinstance(raw, str) else getattr(raw, "content", str(raw))

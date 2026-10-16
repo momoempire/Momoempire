@@ -137,11 +137,12 @@ async def quote_estimate(data: QuoteIn, user: dict = Depends(require_tenant_user
         "method": "rules",
     }
 
-    key = os.environ.get("EMERGENT_LLM_KEY")
+    from llm_portable import ai_api_key
+    key = ai_api_key()
     if not key:
         return fallback
     try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        from llm_portable import LlmChat, UserMessage
         system = (
             "You are a quote estimator for a service business. Given the business's services + knowledge, "
             "produce a conservative BALLPARK range. Return ONLY JSON: "
@@ -183,7 +184,8 @@ async def coach_suggestions(data: CoachIn, user: dict = Depends(require_tenant_u
     objections = await db.objections.find({"tenant_id": user["tenant_id"]}, {"_id": 0}).to_list(50)
     obj_block = "\n".join(f"- Pattern: {o['pattern']}\n  Rebuttal: {o['rebuttal']}" for o in objections[:12]) or "(none)"
 
-    key = os.environ.get("EMERGENT_LLM_KEY")
+    from llm_portable import ai_api_key
+    key = ai_api_key()
     if not key:
         # Deterministic fallback — surface objection matches
         hits = []
@@ -199,7 +201,7 @@ async def coach_suggestions(data: CoachIn, user: dict = Depends(require_tenant_u
             ]
         return {"suggestions": hits[:5], "method": "rules"}
     try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        from llm_portable import LlmChat, UserMessage
         system = (
             "You are a sales coach whispering lines to a human agent in real time. Return ONLY JSON: "
             '{"suggestions":["...","...","..."]} with 3-5 short sentences the agent can read verbatim. '

@@ -1,10 +1,11 @@
 """Team invitations (token-based)."""
 import os
 from fastapi import APIRouter, HTTPException, Depends, Response
+from pydantic import BaseModel
 from datetime import datetime, timezone, timedelta
 from db import get_db
 from models import _uuid, _now_iso
-from models_phase2 import InvitationIn, Invitation, InvitationAccept
+from models import InvitationIn, Invitation, InvitationAccept
 from security import (
     hash_password, require_tenant_owner_or_admin,
     create_access_token, create_refresh_token, set_auth_cookies,
@@ -126,39 +127,38 @@ async def accept(data: InvitationAccept, response: Response):
 
 
 # ---------- Google-based invite acceptance ----------
-import httpx
-from pydantic import BaseModel
+from google_auth import google_configured, resolve_google_identity
 
 
 class InvitationAcceptGoogle(BaseModel):
     token: str
-    session_id: str  # from Emergent OAuth callback hash
+    # Authorization-code flow (browser redirect to accounts.google.com):
+    code: str = ""
+    redirect_uri: str = ""
+    # Or a bare id_token (Google Identity Services):
+    id_token: str = ""
 
 
 @public_router.post("/accept-google")
 async def accept_google(data: InvitationAcceptGoogle, response: Response):
-    """Accept an invitation using Emergent-managed Google auth.
-    Requires the Google-authenticated email to match the invited email."""
+    """Accept an invitation using direct Google auth.
+    Requires the Google-authenticated email to match the invited email.
+    503 when Google sign-in is not configured."""
+    if not google_configured():
+        raise HTTPException(503, "Google sign-in is not configured")
     db = get_db()
     inv = await db.invitations.find_one({"token": data.token})
     if not inv or inv.get("status") != "pending":
         raise HTTPException(400, "Invite invalid or already used")
     inv_email = inv["email"].lower()
 
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as hc:
-            r = await hc.get(
-                "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
-                headers={"X-Session-ID": data.session_id},
-            )
-            r.raise_for_status()
-            info = r.json()
-    except Exception as e:
-        raise HTTPException(401, f"Google session exchange failed: {e}")
+    info = await resolve_google_identity(
+        code=data.code, id_token=data.id_token, redirect_uri=data.redirect_uri,
+    )
+    if not info:
+        raise HTTPException(401, "Google sign-in could not be verified")
 
-    google_email = (info.get("email") or "").lower()
-    if not google_email:
-        raise HTTPException(400, "No email on Google session")
+    google_email = info["email"]
     if google_email != inv_email:
         raise HTTPException(400, f"Google account '{google_email}' does not match the invited email '{inv_email}'.")
 

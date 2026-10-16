@@ -15,7 +15,7 @@ APP_ROOT = Path("/app")
 
 # What to exclude from the zip (paths or path parts)
 EXCLUDE_DIRS = {
-    "node_modules", ".git", ".emergent", "__pycache__", ".cache",
+    "node_modules", ".git", "__pycache__", ".cache",
     ".venv", "venv", "dist", "build", ".next", ".parcel-cache",
     "test_reports", "uploads", "coverage", ".pytest_cache",
 }
@@ -30,22 +30,20 @@ This is a snapshot of the full application. Follow these steps to run it anywher
 ## Stack
 - Backend: FastAPI (Python 3.11+) + MongoDB
 - Frontend: React (CRA + Craco) + Tailwind + shadcn/ui
-- Auth: JWT (email/password) + Emergent-managed Google OAuth
+- Auth: JWT (email/password) + direct Google OAuth (operator-owned GOOGLE_CLIENT_ID/SECRET)
 - Payments: Stripe Checkout (subscriptions + overage invoice items)
-- LLM: Emergent LLM key (OpenAI / Claude / Gemini via `emergentintegrations`)
+- LLM: native OpenAI / Gemini SDKs via `llm_portable` (operator-owned OPENAI_API_KEY / GEMINI_API_KEY)
 
 ## Prerequisites
 - Python 3.11, Node 18+, yarn, MongoDB 6+
 - A Stripe secret key (test or live)
-- An Emergent LLM key for AI features
+- An AI provider key for AI features (OpenAI or Google AI Studio)
 
 ## Backend
 ```bash
 cd backend
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-# install emergentintegrations
-pip install emergentintegrations --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/
 
 cp .env.example .env            # fill in values below
 uvicorn server:app --host 0.0.0.0 --port 8001 --reload
@@ -58,7 +56,11 @@ DB_NAME=aioffice
 JWT_SECRET=<long random>
 STRIPE_SECRET_KEY=sk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
-EMERGENT_LLM_KEY=<provided by Emergent>
+AI_API_KEY=<your AI provider key>
+OPENAI_API_KEY=<or your OpenAI key>
+GEMINI_API_KEY=<or your Google AI Studio key>
+GOOGLE_CLIENT_ID=<for Google sign-in>
+GOOGLE_CLIENT_SECRET=<for Google sign-in>
 FRONTEND_URL=http://localhost:3000
 ```
 
@@ -79,7 +81,7 @@ REACT_APP_BACKEND_URL=http://localhost:8001
 
 ## First-run
 - Backend auto-seeds industries, countries, plans and the admin user on startup.
-- Default admin: `ramonajefferson10@gmail.com` / `AdminPass123!`
+- Platform admin: set `ADMIN_EMAIL` (and optionally a strong `ADMIN_PASSWORD`) before first start; there is no default admin or password
 - Visit `/pricing` to see live tiered plans (reads `/api/plans`).
 
 ## Admin workflow
@@ -107,7 +109,7 @@ DB_NAME=aioffice
 JWT_SECRET=replace-with-long-random-string
 STRIPE_SECRET_KEY=sk_test_replace_me
 STRIPE_WEBHOOK_SECRET=whsec_replace_me
-EMERGENT_LLM_KEY=replace-with-your-emergent-llm-key
+AI_API_KEY=replace-with-your-ai-key
 FRONTEND_URL=http://localhost:3000
 """
 

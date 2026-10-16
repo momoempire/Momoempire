@@ -3,13 +3,15 @@ import os
 import socket
 from fastapi import APIRouter, HTTPException, Depends
 from db import get_db
-from models_phase2 import Domain, DomainIn
+from models import Domain, DomainIn
 from models import _now_iso
 from security import require_tenant_owner_or_admin
 
 router = APIRouter(prefix="/tenants/domains", tags=["domains"])
 
-APEX_HOST = os.environ.get("CNAME_TARGET_HOST", "office-engine.preview.emergentagent.com")
+# Custom domains are env-configured only: the operator points CNAME_TARGET_HOST
+# at their own deployment's apex host. Unset -> the feature reports unconfigured.
+APEX_HOST = os.environ.get("CNAME_TARGET_HOST", "")
 
 
 @router.get("")
@@ -21,6 +23,8 @@ async def list_domains(user: dict = Depends(require_tenant_owner_or_admin)):
 @router.post("")
 async def add_domain(data: DomainIn, user: dict = Depends(require_tenant_owner_or_admin)):
     db = get_db()
+    if not APEX_HOST:
+        raise HTTPException(503, "Custom domains are not configured (CNAME_TARGET_HOST is not set)")
     domain = data.domain.strip().lower().removeprefix("http://").removeprefix("https://").split("/")[0]
     if not domain or "." not in domain:
         raise HTTPException(400, "Invalid domain")
@@ -41,6 +45,15 @@ async def verify_domain(domain_id: str, user: dict = Depends(require_tenant_owne
         raise HTTPException(404, "Domain not found")
     status = "failed"
     detail = ""
+    if not APEX_HOST:
+        detail = "Custom domains are not configured (CNAME_TARGET_HOST is not set)"
+        await db.domains.update_one(
+            {"id": domain_id},
+            {"$set": {"status": status, "last_checked_at": _now_iso()}},
+        )
+        out = await db.domains.find_one({"id": domain_id}, {"_id": 0})
+        out["detail"] = detail
+        return out
     try:
         # Try to resolve CNAME chain → verify ends at APEX_HOST
         target = d["domain"]
