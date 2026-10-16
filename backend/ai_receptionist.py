@@ -238,11 +238,12 @@ async def receptionist_reply(tenant: dict, industry: dict | None, services: list
             "Translate names, service terms, and any English snippets. Keep tone identical to the English version."
         )
 
-    key = os.environ.get("EMERGENT_LLM_KEY")
+    from llm_portable import ai_api_key
+    key = ai_api_key()
     try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        from llm_portable import LlmChat, UserMessage
         if not key:
-            raise RuntimeError("EMERGENT_LLM_KEY missing")
+            raise RuntimeError("AI_API_KEY missing")
 
         # Build a single turn that includes the compressed transcript so the model has context.
         transcript = "\n".join([f"{m['role'].upper()}: {m['content']}" for m in history[-10:]])

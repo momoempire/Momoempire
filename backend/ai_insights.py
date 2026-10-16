@@ -1,8 +1,8 @@
 """AI insights: lead scoring, CRM auto-fill, upsell matching.
 
-All functions return structured JSON. Each prefers the Emergent LLM key when
-available but ships a deterministic keyword-based fallback so the UI never
-breaks on quota / network failures.
+All functions return structured JSON. Each prefers the AI key (AI_API_KEY)
+when available but ships a deterministic keyword-based fallback so the UI
+never breaks on quota / network failures.
 """
 import os
 import json
@@ -47,12 +47,13 @@ def _rule_based_score(transcript: str) -> Dict[str, Any]:
 
 async def score_lead_from_transcript(transcript: str, caller_name: str = "", industry: str = "") -> Dict[str, Any]:
     """Returns {label: hot|warm|cold, score: 0-100, reason, signals[]}."""
-    key = os.environ.get("EMERGENT_LLM_KEY")
+    from llm_portable import ai_api_key
+    key = ai_api_key()
     base = _rule_based_score(transcript)
     if not key or not transcript or len(transcript) < 20:
         return base
     try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        from llm_portable import LlmChat, UserMessage
         system = (
             "You are a sales intelligence engine. Given a short call transcript, classify the lead as "
             "'hot', 'warm', or 'cold'. Also give an integer score 0-100 and a one-sentence human reason. "
@@ -104,12 +105,13 @@ def _rule_based_extract(transcript: str) -> Dict[str, Any]:
 
 async def extract_crm_fields(transcript: str, industry: str = "") -> Dict[str, Any]:
     """LLM-powered field extraction. Falls back to regex rules."""
-    key = os.environ.get("EMERGENT_LLM_KEY")
+    from llm_portable import ai_api_key
+    key = ai_api_key()
     base = _rule_based_extract(transcript)
     if not key or not transcript or len(transcript) < 20:
         return base
     try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        from llm_portable import LlmChat, UserMessage
         system = (
             "You extract CRM fields from a service call transcript. "
             "Return ONLY valid JSON with keys: address, phone, email, service_requested, urgency "
