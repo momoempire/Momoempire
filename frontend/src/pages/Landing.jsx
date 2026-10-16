@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Logo } from "@/components/Logo";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -24,6 +24,10 @@ import { CONTACT_EMAIL } from "@/config/contact";
 import RoiCalculator from "../components/roi/RoiCalculator";
 import WorkflowDiagrams from "../components/roi/WorkflowDiagrams";
 import { ROI_PAGES } from "../config/roi";
+
+// Mae, the AI-assistant mascot (conversational lead capture). Lazy so the landing page's
+// initial bundle is unchanged; it feeds the same /public/waitlist lead path as the form below.
+const LeadAssistant = lazy(() => import("@/components/LeadAssistant"));
 const PILLAR_META = [
   { icon: Bot, titleKey: "landing.pillar_receptionist_title", descKey: "landing.pillar_receptionist_desc", testid: "pillar-receptionist" },
   { icon: Target, titleKey: "landing.pillar_sales_title", descKey: "landing.pillar_sales_desc", testid: "pillar-sales" },
@@ -59,6 +63,7 @@ const STEP_META = [
 ];
 
 export default function Landing({ industry = null }) {
+  const navigate = useNavigate();
   const { t: tCurrent, i18n } = useTranslation();
   // EMP-WL-016: the waitlist page is English-only for now (most of its copy isn't translated), so
   // its few translated labels stay English too, even for a Spanish browser or a saved "es" choice.
@@ -83,6 +88,20 @@ export default function Landing({ industry = null }) {
     if (section && section.scrollIntoView) section.scrollIntoView({ behavior: "smooth", block: "start" });
     if (wlEmailRef.current) wlEmailRef.current.focus({ preventScroll: true });
   };
+
+  // Mae's "just browsing" branch: a #pricing section if a page ever grows one, the pricing
+  // route in the full build, and the features section in the early-access build (no pricing
+  // page exists there). Her error fallback scrolls to this page's own lead form.
+  const scrollToId = (id) => {
+    const el = document.getElementById(id);
+    if (el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  const mascotShowPricing = () => {
+    if (document.getElementById("pricing")) { scrollToId("pricing"); return; }
+    if (waitlistOnly) scrollToId("features");
+    else navigate("/pricing");
+  };
+  const mascotShowForm = () => scrollToId("waitlist");
 
   useEffect(() => {
     if (isWaitlistOnly()) return; // no /api/plans call in the waitlist-only build
@@ -430,6 +449,16 @@ export default function Landing({ industry = null }) {
         </div>
         <div className="max-w-7xl mx-auto px-6 pb-8 text-[11px] text-white/60">© {new Date().getFullYear()} {BRAND_NAME} · {t("landing.footer_rights")}</div>
       </footer>
+
+      <Suspense fallback={null}>
+        <LeadAssistant
+          t={t}
+          presetIndustry={industry ? industry.copy.formIndustry : ""}
+          waitlistOnly={waitlistOnly}
+          onShowPricing={mascotShowPricing}
+          onShowForm={mascotShowForm}
+        />
+      </Suspense>
     </div>
   );
 }
