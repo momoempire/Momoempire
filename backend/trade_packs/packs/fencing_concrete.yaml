@@ -1,0 +1,194 @@
+id: fencing_concrete
+trade: Fencing & Concrete
+tagline: "Your AI office, preloaded for Fencing & Concrete"
+terms:
+  worker: Installer
+  worker_plural: Installers
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#78716C"
+pricebook:
+  - name: "Wood Privacy Fence (per linear ft)"
+    category: service
+    price: 32
+    cost: 16
+    duration_min: 8
+    description: "6-ft cedar or pressure-treated privacy fence, posts set in concrete."
+  - name: "Vinyl Fence (per linear ft)"
+    category: service
+    price: 55
+    cost: 30
+    duration_min: 10
+    description: "6-ft white or tan vinyl privacy fence with post caps."
+  - name: "Chain Link Fence (per linear ft)"
+    category: service
+    price: 18
+    cost: 9
+    duration_min: 5
+    description: "4-ft galvanized chain link; 6-ft and privacy slats available."
+  - name: "Walk Gate"
+    category: addon
+    price: 275
+    cost: 120
+    duration_min: 90
+    description: "4-ft wide gate with hinges, latch and post reinforcement."
+  - name: "Double Drive Gate"
+    category: addon
+    price: 650
+    cost: 300
+    duration_min: 180
+    description: "10–12 ft double swing gate for driveways, includes heavy-duty hardware."
+  - name: "Fence Repair (per section)"
+    category: service
+    price: 225
+    cost: 85
+    duration_min: 120
+    description: "Replace up to 8 ft of damaged pickets/rails and re-secure posts."
+  - name: "Concrete Driveway (per sqft)"
+    category: service
+    price: 12
+    cost: 6.5
+    duration_min: 4
+    description: "4-inch driveway pour with rebar, includes demo of old slab."
+  - name: "Concrete Patio (per sqft)"
+    category: service
+    price: 11
+    cost: 6
+    duration_min: 4
+    description: "4-inch patio slab with broom finish; stamped finish add $4/sqft."
+  - name: "Sidewalk / Walkway (per sqft)"
+    category: service
+    price: 10
+    cost: 5.5
+    duration_min: 4
+    description: "4-inch walkway pour, includes forming and expansion joints."
+  - name: "Concrete Repair / Mudjacking (per slab)"
+    category: service
+    price: 350
+    cost: 140
+    duration_min: 90
+    description: "Lift and level one settled slab section; full replacement quoted if cracked through."
+  - name: "Retaining Wall (per sqft face)"
+    category: service
+    price: 28
+    cost: 14
+    duration_min: 12
+    description: "Segmental block retaining wall with drainage, per square foot of face."
+  - name: "Permit Handling"
+    category: addon
+    price: 150
+    cost: 60
+    duration_min: 0
+    description: "We pull the fence or flatwork permit; city fees passed through at cost."
+equipment_types:
+  - name: "Post Hole Auger"
+    fields: ["type", "brand", "bit_size_in", "purchase_date", "last_service", "condition", "assigned_to"]
+  - name: "Concrete Mixer"
+    fields: ["brand", "capacity_cuft", "purchase_date", "last_service", "condition", "assigned_to"]
+  - name: "Plate Compactor"
+    fields: ["brand", "model", "purchase_date", "last_service", "condition", "assigned_to"]
+  - name: "Laser Level / Transit"
+    fields: ["brand", "model", "last_calibration", "condition", "assigned_to"]
+  - name: "Company Truck & Trailer"
+    fields: ["make", "model", "year", "mileage", "last_service", "insurance_expires", "assigned_to"]
+appointment_types:
+  - name: "Free Estimate"
+    duration_min: 60
+    description: "Measure the line or area, discuss materials, check grade and access, written quote."
+  - name: "Fence Install Day"
+    duration_min: 480
+    description: "Full crew install; most residential fences complete in 1–3 days."
+  - name: "Concrete Pour Day"
+    duration_min: 420
+    description: "Form, pour and finish day; customer must keep traffic off 48 hours after."
+  - name: "Repair Visit"
+    duration_min: 120
+    description: "Fence section repair or small concrete fix."
+  - name: "Final Walkthrough"
+    duration_min: 30
+    description: "Walk the finished work with the customer, confirm punch items."
+receptionist_script: |
+  GREETING: "Thanks for calling {shop_name}, your fencing and concrete pros. This is the AI assistant — what project are you thinking about?"
+
+  COMMON CALL TYPES:
+  1. New fence quote — capture: linear footage if known (or lot size), material (wood/vinyl/chain link), height, gates needed, HOA rules. Book a Free Estimate.
+  2. Concrete project — capture: driveway/patio/walkway, approximate dimensions, new pour vs replacement, timeline. Book a Free Estimate.
+  3. Fence repair — capture: what failed (leaning, broken pickets, gate won't close), storm damage, photos if possible. Often bookable as a Repair Visit.
+  4. Pricing questions — give per-linear-foot and per-sqft ranges, explain that final pricing needs measurements; offer the free estimate.
+  5. Existing job questions — look up by name/address/phone; answer schedule questions (cure times, crew arrival); escalate changes.
+
+  BOOKING FLOW:
+  1. Identify the project: fence install, concrete pour, or repair.
+  2. Capture measurements if the caller knows them; otherwise note 'measure on site'.
+  3. Ask about HOA: many HOAs dictate fence material/height and require approval — offer to provide specs for the application.
+  4. Ask about utilities: remind them we call 811 before digging; note any known sprinkler lines or septic.
+  5. Offer the next Free Estimate slot; for simple repairs, offer a Repair Visit directly.
+  6. Collect: name, callback number, address, gate/access notes.
+  7. Confirm and send a text with the appointment and a note to have pets secured for the walk.
+
+  URGENT HANDLING: Fence down blocking a pool (safety/code issue), driveway collapsed or impassable, or concrete washout undermining a foundation — flag as priority, offer the soonest repair slot, and advise keeping people and pets clear. New-install quotes are NEVER urgent.
+
+  AFTER-HOURS: Take the full intake, promise a callback by 9 AM next business day; safety hazards (pool fence down, collapsed drive) route to the on-call number.
+triage:
+  - id: fencing_project_type
+    question: "Is this a new fence, a concrete project, or a repair?"
+    options: ["New fence", "Concrete pour", "Fence repair", "Concrete repair", "Retaining wall"]
+    route: "New installs go to free estimate; simple repairs can book a repair visit directly."
+  - id: fencing_material
+    question: "For fences: what material are you thinking?"
+    options: ["Wood privacy", "Vinyl", "Chain link", "Not sure / need advice"]
+    route: "Note material for the estimator; 'not sure' gets samples brought to the estimate."
+  - id: fencing_measurements
+    question: "Do you know the approximate length for a fence, or dimensions for concrete?"
+    options: ["Yes, I measured", "Rough guess", "No idea"]
+    route: "'Yes' pre-fills the estimate worksheet; others flagged for on-site measurement."
+  - id: fencing_hoa_utilities
+    question: "Any HOA rules on this, and do you know where your utility/s sprinkler lines run?"
+    options: ["HOA — need specs", "No HOA", "Sprinkler lines present", "Septic nearby"]
+    route: "HOA gets a spec packet offer; utilities trigger the 811 call reminder on the job."
+  - id: fencing_timeline
+    question: "When are you hoping to get this done?"
+    options: ["ASAP", "This month", "Next 1–2 months", "Just pricing for now"]
+    route: "ASAP checks crew openings; 'just pricing' still gets the free estimate with no pressure."
+automation_templates:
+  - name: "Estimate Prep Packet"
+    trigger: "free estimate booked"
+    steps:
+      - "Send SMS: 'Reply with a photo of the area and any HOA docs: {link}'"
+      - "Attach received photos/docs to the job for the estimator"
+      - "24 hours before: reminder with arrival window"
+      - "After estimate: written quote emailed within 24 hours, SMS confirmation"
+  - name: "HOA Spec Packet"
+    trigger: "customer indicates HOA approval needed"
+    steps:
+      - "Email material specs, height drawings and color samples list"
+      - "Include a letter template for the HOA application"
+      - "Follow up in 7 days on approval status"
+      - "On approval, prioritize scheduling the install"
+  - name: "Concrete Cure Care"
+    trigger: "concrete pour day marked complete"
+    steps:
+      - "Same evening: SMS cure instructions (no traffic 48h, watering in heat)"
+      - "Day 3: SMS 'okay to walk on, vehicles after day 7' reminder"
+      - "Day 8: review request SMS"
+      - "Day 30: check-in text offering sealing service"
+  - name: "Quote Follow-Up"
+    trigger: "quote sent, no response in 7 days"
+    steps:
+      - "Day 7: SMS with quote summary and 'questions? reply here'"
+      - "Day 14: email with project photos of similar completed work"
+      - "Day 21: final check-in; mark warm for seasonal follow-up"
+review_templates:
+  - name: "Project Completion"
+    channel: sms
+    template: "Hi {customer_name}, {tech_name} from {shop_name} here — your project is finished! We hope you love how it turned out. A quick review would mean the world: {review_link}"
+  - name: "Final Walkthrough Email"
+    channel: email
+    template: "Subject: Your {shop_name} project is complete!\n\nHi {customer_name},\n\n{tech_name} just wrapped your final walkthrough. Thanks for trusting {shop_name} with your project! If you're happy with the work, we'd love a review: {review_link}\n\nP.S. — Don't forget the care instructions we left for your concrete."
+  - name: "Repair Visit Follow-Up"
+    channel: sms
+    template: "Hi {customer_name}, {tech_name} from {shop_name} — your repair is done. If the fix is holding up well, a quick review helps neighbors find us: {review_link}"

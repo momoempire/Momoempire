@@ -1,0 +1,175 @@
+id: appliance_repair
+trade: Appliance Repair
+tagline: "Your AI office, preloaded for Appliance Repair"
+terms:
+  worker: Technician
+  worker_plural: Technicians
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#7B4FD6"
+pricebook:
+  - name: Diagnostic Visit (waived with repair)
+    category: service
+    price: 89.00
+    cost: 30.00
+    duration_min: 45
+    description: "Diagnose any appliance; fee waived when you approve the repair"
+  - name: Refrigerator — Compressor Start Relay
+    category: part
+    price: 265.00
+    cost: 55.00
+    duration_min: 60
+    description: "Replace failed start relay/overload on fridge not cooling, includes temp verification"
+  - name: Refrigerator — Defrost System Repair
+    category: part
+    price: 345.00
+    cost: 85.00
+    duration_min: 90
+    description: "Replace defrost heater, thermostat, or control for ice-buildup / warm-fridge issues"
+  - name: Washer — Drain Pump Replacement
+    category: part
+    price: 295.00
+    cost: 70.00
+    duration_min: 75
+    description: "Replace failed drain pump for washer not draining, includes hose inspection"
+  - name: Washer — Lid Switch / Door Lock
+    category: part
+    price: 225.00
+    cost: 48.00
+    duration_min: 45
+    description: "Replace faulty lid switch or door lock for washer not starting or spinning"
+  - name: Dryer — Heating Element / Gas Valve Coils
+    category: part
+    price: 275.00
+    cost: 65.00
+    duration_min: 60
+    description: "Restore heat to dryer not drying, includes vent airflow check"
+  - name: Dryer Vent Cleaning
+    category: service
+    price: 149.00
+    cost: 35.00
+    duration_min: 60
+    description: "Full vent line cleaning to prevent fires and restore drying performance"
+  - name: Oven — Igniter Replacement (gas)
+    category: part
+    price: 245.00
+    cost: 55.00
+    duration_min: 45
+    description: "Replace weak igniter for oven not heating, includes burner calibration"
+  - name: Dishwasher — Control Board
+    category: part
+    price: 385.00
+    cost: 140.00
+    duration_min: 75
+    description: "Replace failed control board, includes full cycle test"
+  - name: Ice Maker Replacement
+    category: part
+    price: 325.00
+    cost: 110.00
+    duration_min: 60
+    description: "Install new ice maker assembly with water line inspection"
+  - name: Maintenance Plan Visit (per appliance)
+    category: addon
+    price: 69.00
+    cost: 20.00
+    duration_min: 30
+    description: "Add-on: preventive check of additional appliances while on site"
+equipment_types:
+  - name: Refrigerator
+    fields: [brand, model, serial_number, install_year, type, ice_maker]
+  - name: Washer
+    fields: [brand, model, serial_number, install_year, load_type, last_service_date]
+  - name: Dryer
+    fields: [brand, model, serial_number, install_year, fuel_type, vent_length_ft]
+  - name: Range / Oven
+    fields: [brand, model, serial_number, install_year, fuel_type]
+  - name: Dishwasher
+    fields: [brand, model, serial_number, install_year]
+appointment_types:
+  - name: Diagnostic Visit
+    duration_min: 45
+    description: "Diagnose any major appliance issue; fee waived with approved repair"
+  - name: Repair Visit
+    duration_min: 75
+    description: "Complete an approved repair with parts on the truck"
+  - name: Dryer Vent Cleaning
+    duration_min: 60
+    description: "Dedicated vent cleaning appointment for fire safety and performance"
+  - name: Multi-Appliance Checkup
+    duration_min: 90
+    description: "Preventive inspection of all major appliances in one visit"
+receptionist_script: |
+  GREETING: "Thanks for calling {shop_name}, this is Momo, your virtual assistant. Which appliance is giving you trouble today?"
+
+  COMMON CALL TYPES:
+  1. FRIDGE NOT COOLING: Say: "A warm fridge is urgent — let's save your food. First, check: is the fridge running at all — do you hear it humming? And is the freezer cold while the fridge is warm, or both warm?" If both warm: "Move perishables to a cooler with ice if you have one. I can get a technician out today — our diagnostic is $89, waived with the repair."
+  2. WASHER NOT DRAINING/SPINNING: Ask: "Is it stuck full of water, or does it drain but not spin? Any error code on the display?" Then: "Don't keep running cycles — it can burn out the pump. I can book a diagnostic visit; most washer repairs run $225 to $295 flat-rate."
+  3. DRYER NOT HEATING: Ask: "Is it tumbling but the clothes stay damp? When did you last clean the vent?" Then: "A clogged vent is the #1 cause and a fire risk — our vent cleaning is $149 and often fixes it. Want me to book that, or a full diagnostic?"
+  4. OVEN NOT HEATING: Ask: "Gas or electric? For gas — does the broiler work? If the broiler works but the bake doesn't, it's usually the igniter, about $245." Book diagnostic.
+  5. DISHWASHER ISSUES: Ask: "Not draining, not cleaning, or leaking? Check the filter at the bottom of the tub — a clogged filter causes most 'not cleaning' complaints." Book if filter cleaning doesn't resolve.
+
+  BOOKING FLOW — always ask in this order:
+  1. "What's your name and the best callback number?"
+  2. "What's the service address?"
+  3. "Which appliance, and what's it doing — or not doing?"
+  4. "Do you know the brand and roughly how old it is? Any error code on the display?"
+  5. Confirm: "So I have [NAME] at [ADDRESS] for a diagnostic on your [APPLIANCE] on [DATE] between [WINDOW]. The $89 diagnostic is waived if you approve the repair. You'll get a text when the technician is on the way. Sound good?"
+
+  EMERGENCY / URGENT HANDLING:
+  - Refrigerator completely warm: same-day priority — food safety. "Get perishables into coolers with ice — food above 40°F for over 2 hours should be tossed."
+  - Gas smell from range/oven: "Turn off the appliance, don't touch electrical switches, leave the house and call your gas utility or 911."
+  - Water leaking from washer/dishwasher onto floors: "Turn off the water supply valves behind the unit if you can reach them safely." Book urgent visit.
+  - After-hours: warm-fridge calls get the on-call technician; everything else books next available.
+
+  AFTER-HOURS BEHAVIOR: "You've reached {shop_name} after hours. If your refrigerator is warm and food is at risk, I can reach our on-call technician now. For other appliances, leave your details and we'll call first thing in the morning. Is it the fridge?"
+triage:
+  - id: fridge_cooling
+    question: "Is the refrigerator running (humming) but warm, completely silent, or is only the freezer cold?"
+    options: ["Running but warm inside", "Completely silent / no power", "Freezer cold, fridge warm", "Fridge cold, freezer warm"]
+    route: "Silent: check breaker/outlet then book urgent; freezer-cold-fridge-warm: likely defrost failure — book diagnostic; both warm: same-day priority"
+  - id: washer_symptom
+    question: "What exactly is the washer doing — stuck full of water, won't spin, won't start, or showing an error code?"
+    options: ["Stuck full of water", "Drains but won't spin", "Won't start at all", "Error code on display"]
+    route: "Full of water: likely drain pump — book repair visit; won't start: check lid switch/door lock and breaker first"
+  - id: dryer_heat
+    question: "Is the dryer tumbling with no heat, not tumbling at all, or taking multiple cycles to dry?"
+    options: ["Tumbling, no heat", "Not tumbling", "Takes 2-3 cycles to dry", "Burning smell"]
+    route: "No heat: book diagnostic; multiple cycles or burning smell: recommend vent cleaning urgently (fire risk)"
+  - id: appliance_age
+    question: "How old is the appliance, and has it been repaired before?"
+    options: ["Under 5 years", "5-10 years", "Over 10 years", "Repaired in the last year"]
+    route: "Over 10 years or repeat failures: give honest replace-vs-repair guidance and offer replacement referral"
+automation_templates:
+  - name: Dryer Vent Safety Campaign
+    trigger: "Annually, fall season"
+    steps:
+      - "Pull customers with dryers 2+ years since vent cleaning"
+      - "Send SMS: fire-safety vent cleaning offer ($149)"
+      - "Follow up with email: lint-fire statistics + booking link"
+      - "Book in route batches; update vent_length_ft on file"
+  - name: Post-Repair Follow-Up
+    trigger: "7 days after completed repair"
+    steps:
+      - "Send SMS: 'Is your [appliance] still running right?'"
+      - "If issue reported, auto-book warranty recheck at no charge"
+      - "If all good, send review request"
+  - name: Aging Appliance Watch
+    trigger: "Appliance on file reaches 10 years old"
+    steps:
+      - "Send email: replace-vs-repair cost breakdown for that appliance type"
+      - "Offer free replacement consultation with partner retailers"
+      - "Flag for technician to mention at next visit"
+review_templates:
+  - name: Post-Repair SMS Review
+    channel: sms
+    template: "Hi {customer_name}! {tech_name} from {shop_name} just fixed your {appliance}. If it's running like new, we'd love a quick review: {review_link} — thanks for calling {shop_name}!"
+  - name: Fridge-Save Email Review
+    channel: email
+    template: "Hi {customer_name}, glad {tech_name} got your fridge cooling again before the food went bad! When appliances quit at the worst time, reviews help neighbors find {shop_name} fast: {review_link}. Thanks for trusting us."
+  - name: Vent Cleaning SMS Review
+    channel: sms
+    template: "Hi {customer_name}, your dryer vent is clean and your home is safer — nice work getting that done! Quick review for {shop_name}? {review_link} — {tech_name}"
