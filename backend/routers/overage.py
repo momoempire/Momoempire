@@ -20,7 +20,9 @@ from routers.usage import _usage_totals, period_key, _get_plan_limits
 from models import _uuid, _now_iso
 
 import stripe
-stripe.api_key = os.environ.get("STRIPE_SECRET_KEY") or "sk_test_emergent"
+from services.stripe_config import configure_stripe_api_key
+
+configure_stripe_api_key()
 
 METERED = ["ai_minutes", "calls", "sms", "ai_interactions"]
 
@@ -88,6 +90,9 @@ async def _charge_overage_to_stripe(tenant: dict, items: list) -> list:
     db = get_db()
     cust = tenant.get("stripe_customer_id")
     if not cust:
+        return []
+    if not configure_stripe_api_key():
+        # Never use a placeholder key; production logs an error from configure_stripe_api_key.
         return []
     charged = []
     for row in items:
