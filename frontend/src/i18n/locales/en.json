@@ -1967,7 +1967,12 @@
     "score": "score",
     "customer_messages": "customer messages",
     "churn": "Churn",
-    "how_it_works": "Sentiment is scored keyword-by-keyword (template-based, no LLM): only customer messages count, business replies never do. Escalation rules fire on analyze — the thread is flagged urgent, the owner is paged, and a support ticket can open automatically."
+    "how_it_works": "Sentiment is scored keyword-by-keyword (template-based, no LLM): only customer messages count, business replies never do. Escalation rules fire on analyze — the thread is flagged urgent, the owner is paged, and a support ticket can open automatically.",
+    "threads_analyzed": "Threads analyzed",
+    "critical": "Critical",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
   },
   "outreach": {
     "title": "Proactive Outreach",
@@ -2022,5 +2027,18 @@
   "nav.support_ai": "AI Support",
   "nav.inbox": "Inbox",
   "nav.conversation_intel": "Conversation Intel",
-  "nav.outreach": "Outreach"
+  "nav.outreach": "Outreach",
+  "marketPacks": {
+    "title": "Market packs",
+    "description": "46 Stripe-supported markets. Pick a trade + a market to preview the combined face.",
+    "trade": "Trade",
+    "market": "Market",
+    "resolve": "Preview face",
+    "resolving": "Resolving…",
+    "all_markets": "All markets ({{n}})",
+    "loading": "Loading markets…",
+    "extended": "Extended network",
+    "pricebook_items": "{{n}} pricebook items"
+  },
+  "nav.market_packs": "Market packs"
 }
