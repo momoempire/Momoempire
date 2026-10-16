@@ -1,0 +1,183 @@
+id: roofing
+trade: Roofing
+tagline: "Your AI office, preloaded for Roofing"
+terms:
+  worker: Roofer
+  worker_plural: Roofers
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#8B3A2B"
+pricebook:
+  - name: Roof Inspection (with written report)
+    category: service
+    price: 149.00
+    cost: 45.00
+    duration_min: 60
+    description: "Full roof and attic inspection with photos and written condition report"
+  - name: Free Replacement Estimate
+    category: service
+    price: 0.00
+    cost: 60.00
+    duration_min: 90
+    description: "No-cost in-person estimate with measurements, material options, and firm pricing"
+  - name: Emergency Tarp Service
+    category: service
+    price: 395.00
+    cost: 110.00
+    duration_min: 90
+    description: "Same-day emergency tarping to stop active leaks, credited toward repair"
+  - name: Leak Repair (minor, shingle roof)
+    category: labor
+    price: 450.00
+    cost: 130.00
+    duration_min: 120
+    description: "Locate and repair active leak: flashing, boot, or shingle repair with sealant"
+  - name: Pipe Boot Replacement (each)
+    category: part
+    price: 225.00
+    cost: 45.00
+    duration_min: 45
+    description: "Replace cracked vent pipe boot — the most common leak source"
+  - name: Shingle Repair (up to 1 square)
+    category: labor
+    price: 550.00
+    cost: 160.00
+    duration_min: 120
+    description: "Replace missing or wind-damaged shingles up to 100 sq ft, color-matched"
+  - name: Ridge Vent Install (per linear ft)
+    category: part
+    price: 18.00
+    cost: 6.00
+    duration_min: 5
+    description: "Add continuous ridge ventilation, priced per linear foot"
+  - name: Gutter Cleaning (single story)
+    category: service
+    price: 175.00
+    cost: 50.00
+    duration_min: 90
+    description: "Clean gutters and downspouts, flush and check drainage"
+  - name: Gutter Guard Install (per linear ft)
+    category: addon
+    price: 12.00
+    cost: 4.50
+    duration_min: 3
+    description: "Add-on: micro-mesh gutter guards, priced per linear foot"
+  - name: Skylight Replacement (curb-mount, standard)
+    category: part
+    price: 1250.00
+    cost: 520.00
+    duration_min: 180
+    description: "Remove old skylight, install new energy-efficient unit with flashing kit"
+  - name: Attic Ventilation Assessment
+    category: addon
+    price: 99.00
+    cost: 25.00
+    duration_min: 30
+    description: "Add-on: attic temp/humidity readings with ventilation recommendations"
+equipment_types:
+  - name: Roof System
+    fields: [material_type, install_year, squares, layers, warranty_years, last_inspection_date, leak_history]
+  - name: Gutters
+    fields: [material, linear_feet, stories, guard_type, last_cleaning_date]
+  - name: Skylight
+    fields: [brand, size, install_year, curb_or_deck_mount, leak_history]
+  - name: Attic / Ventilation
+    fields: [ventilation_type, insulation_r_value, ridge_vent_lf, soffit_vent_count, last_assessment_date]
+appointment_types:
+  - name: Roof Inspection
+    duration_min: 60
+    description: "Full inspection with photos and written report"
+  - name: Replacement Estimate
+    duration_min: 90
+    description: "Free in-home estimate with measurements and material options"
+  - name: Leak Repair
+    duration_min: 120
+    description: "Active leak diagnosis and repair"
+  - name: Storm Damage Assessment
+    duration_min: 60
+    description: "Post-storm inspection with insurance-claim documentation"
+  - name: Maintenance Visit
+    duration_min: 90
+    description: "Gutter cleaning, sealant touch-ups, and minor repairs"
+receptionist_script: |
+  GREETING: "Thanks for calling {shop_name}, this is Momo, your virtual assistant. How can I help with your roof today?"
+
+  COMMON CALL TYPES:
+  1. ACTIVE LEAK: Say: "I'm sorry — a leak is stressful, let's get it stopped. Is water coming in right now, and where — a ceiling stain, dripping, or through a light fixture?" If through a fixture: "Turn off power to that room at the breaker and put a bucket under it — don't touch the fixture." Then: "I can get someone out today for an emergency tarp or repair. What's your address?"
+  2. STORM DAMAGE: Ask: "When was the storm, and what are you seeing — missing shingles, dents, granules in the gutters, or leaks inside?" Then: "We do free storm-damage assessments with full photo documentation for insurance. I can schedule that — and if you file a claim, we'll meet your adjuster on site. Want me to book it?"
+  3. ROOF REPLACEMENT QUOTE: Say: "Our estimates are free and take about 90 minutes — we measure, walk you through material options, and give you a firm price on the spot. How old is your current roof, and have you had leaks?" Book the estimate.
+  4. MISSING SHINGLES / WIND DAMAGE: Say: "Wind damage is usually a quick repair if we catch it before water gets in. I can schedule a repair visit — and we'll check the surrounding shingles while we're up there. Morning or afternoon better?"
+  5. GUTTERS: Say: "We do gutter cleaning for $175 single-story, and we can add gutter guards while we're there. Want me to bundle that into a maintenance visit?"
+
+  BOOKING FLOW — always ask in this order:
+  1. "What's your name and the best callback number?"
+  2. "What's the property address?"
+  3. "What are you seeing — active leak, storm damage, missing shingles, or are you thinking replacement?"
+  4. "How old is the roof, and do you know the material — shingle, metal, tile?"
+  5. Confirm: "So I have [NAME] at [ADDRESS] for a [VISIT TYPE] on [DATE]. We'll text you when the crew is on the way. Sound good?"
+
+  EMERGENCY / URGENT HANDLING:
+  - Active leak with water intrusion: same-day emergency tarp ($395, credited toward repair). "We'll get it tarped today to stop the damage, then schedule the permanent repair."
+  - Water through electrical fixtures: "Kill power to that area at the breaker and don't touch the fixture."
+  - After a major storm: triage by severity — active leaks first, then visible damage, then preventive inspections.
+  - NEVER promise insurance claim approval — say: "We'll document everything for your claim and meet your adjuster, but approval is up to your carrier."
+
+  AFTER-HOURS BEHAVIOR: "You've reached {shop_name} after hours. If water is actively coming in, I can dispatch our emergency crew for tarping right now. Otherwise, leave your details and photos if you have them, and we'll call first thing in the morning. Is water coming in now?"
+triage:
+  - id: leak_active
+    question: "Is water actively coming in right now, or is it a stain from a past leak?"
+    options: ["Actively dripping or flowing", "Stain but dry now", "Only leaks in heavy rain", "Water through a light fixture"]
+    route: "Active leak: emergency tarp today; fixture: kill power + emergency; stain only: schedule inspection"
+  - id: storm_damage
+    question: "Was there a recent storm? What do you see — missing shingles, hail dents, granules in gutters?"
+    options: ["Missing or lifted shingles", "Hail dents on vents/gutters", "Granules washing out of gutters", "No storm, just age"]
+    route: "Storm signs: free storm-damage assessment with insurance documentation; age: replacement estimate"
+  - id: roof_age
+    question: "How old is the roof, and what material is it?"
+    options: ["Under 10 years, shingle", "10-20 years, shingle", "Over 20 years", "Metal or tile"]
+    route: "Over 20 years or 10-20 with issues: replacement estimate; under 10: repair-focused inspection"
+  - id: insurance_claim
+    question: "Are you thinking about filing an insurance claim for this?"
+    options: ["Yes", "Not sure — want advice", "No, paying out of pocket", "Claim already filed"]
+    route: "Yes/unsure: book storm assessment, offer adjuster meeting; already filed: schedule adjuster coordination"
+automation_templates:
+  - name: Post-Storm Outreach
+    trigger: "Hail or high-wind event in service area"
+    steps:
+      - "Pull all customers in affected ZIP codes"
+      - "Send SMS: free storm-damage inspection offer"
+      - "Prioritize bookings reporting active leaks"
+      - "Generate photo documentation packets for insurance claims"
+      - "Follow up unbooked leads after 5 days"
+  - name: Aging Roof Campaign
+    trigger: "Roof on file reaches 18 years old"
+    steps:
+      - "Send email: roof lifespan explainer with replacement financing options"
+      - "Follow up with SMS inspection offer 7 days later"
+      - "Book free replacement estimates; track close rate"
+  - name: Annual Maintenance Reminder
+    trigger: "12 months after install or last maintenance"
+    steps:
+      - "Send SMS: annual roof checkup reminder (gutters, sealant, flashing)"
+      - "One-tap booking for maintenance visit"
+      - "After visit, update roof record and reset timer"
+  - name: Gutter Cleaning Season
+    trigger: "October 1 each year (fall leaf season)"
+    steps:
+      - "Send SMS to all customers: fall gutter cleaning offer"
+      - "Bundle gutter guard upsell in booking flow"
+      - "Schedule in route-optimized batches by neighborhood"
+review_templates:
+  - name: Post-Repair SMS Review
+    channel: sms
+    template: "Hi {customer_name}! The {shop_name} crew just finished your roof repair. If you're staying dry, we'd love a quick review: {review_link} — thanks for trusting {shop_name}!"
+  - name: Post-Replacement Email Review
+    channel: email
+    template: "Hi {customer_name}, your new roof is on and built to last! Thanks for choosing {shop_name} — {tech_name} and the crew appreciated working on your home. If you're happy, a review here helps neighbors find us: {review_link}. Your warranty paperwork is attached."
+  - name: Storm-Help SMS Review
+    channel: sms
+    template: "Hi {customer_name}, glad we could get your storm damage documented and handled quickly. If {shop_name} made a stressful situation easier, please share: {review_link} Thank you!"
