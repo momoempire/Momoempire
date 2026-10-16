@@ -1,0 +1,12 @@
+# Market pack: United Arab Emirates (ae)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: ae
+name: "United Arab Emirates"
+flag: "🇦🇪"
+extended_network: false
+colors:
+  accent: "#00732F"
+languages:
+  - ar
+  - en

@@ -1,0 +1,13 @@
+# Market pack: South Africa (za)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: za
+name: "South Africa"
+flag: "🇿🇦"
+extended_network: true
+colors:
+  accent: "#007A4D"
+languages:
+  - en
+  - af
+  - zu

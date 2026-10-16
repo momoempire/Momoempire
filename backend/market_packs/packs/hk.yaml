@@ -1,0 +1,12 @@
+# Market pack: Hong Kong (hk)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: hk
+name: "Hong Kong"
+flag: "🇭🇰"
+extended_network: false
+colors:
+  accent: "#DE2910"
+languages:
+  - zh
+  - en

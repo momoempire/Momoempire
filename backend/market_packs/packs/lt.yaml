@@ -1,0 +1,12 @@
+# Market pack: Lithuania (lt)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: lt
+name: "Lithuania"
+flag: "🇱🇹"
+extended_network: false
+colors:
+  accent: "#006A44"
+languages:
+  - lt
+  - en

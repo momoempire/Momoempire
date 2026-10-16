@@ -1,0 +1,12 @@
+# Market pack: Italy (it)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: it
+name: "Italy"
+flag: "🇮🇹"
+extended_network: false
+colors:
+  accent: "#009246"
+languages:
+  - it
+  - en

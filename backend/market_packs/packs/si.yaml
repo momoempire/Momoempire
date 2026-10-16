@@ -1,0 +1,12 @@
+# Market pack: Slovenia (si)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: si
+name: "Slovenia"
+flag: "🇸🇮"
+extended_network: false
+colors:
+  accent: "#005DA4"
+languages:
+  - sl
+  - en

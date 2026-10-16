@@ -1,0 +1,11 @@
+# Market pack: Ireland (ie)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: ie
+name: "Ireland"
+flag: "🇮🇪"
+extended_network: false
+colors:
+  accent: "#169B62"
+languages:
+  - en

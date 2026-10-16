@@ -1,0 +1,11 @@
+# Market pack: Ghana (gh)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: gh
+name: "Ghana"
+flag: "🇬🇭"
+extended_network: true
+colors:
+  accent: "#CE1126"
+languages:
+  - en

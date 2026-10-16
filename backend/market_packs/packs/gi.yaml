@@ -1,0 +1,12 @@
+# Market pack: Gibraltar (gi)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: gi
+name: "Gibraltar"
+flag: "🇬🇮"
+extended_network: false
+colors:
+  accent: "#D52B1E"
+languages:
+  - en
+  - es

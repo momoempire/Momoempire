@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import CanonicalLink from "@/components/CanonicalLink";
 import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "@/components/ui/sonner";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -8,18 +9,30 @@ import AdminLayout from "@/components/layouts/AdminLayout";
 // Public
 import Landing from "@/pages/Landing";
 import Pricing from "@/pages/Pricing";
+import Estimate from "@/pages/Estimate";
 import { Privacy, Terms } from "@/pages/Legal";
+import IndustryLanding from "@/pages/IndustryLanding";
+import SleepCheck from "@/pages/SleepCheck";
+import { INDUSTRY_SLUGS } from "@/config/industries";
 import Login from "@/pages/Login";
+import SetPassword from "@/pages/SetPassword";
 import Signup from "@/pages/Signup";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 import Onboarding from "@/pages/Onboarding";
+import Revenue from "@/pages/dashboard/Revenue.jsx";
+import Locations from "@/pages/dashboard/Locations.jsx";
+import VoiceCampaigns from "@/pages/dashboard/VoiceCampaigns.jsx";
 import PublicBusiness from "@/pages/PublicBusiness";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import PaymentCancel from "@/pages/PaymentCancel";
 import CustomerPortalPublic from "@/pages/CustomerPortalPublic";
+import HomeHubView from "@/pages/HomeHubView";
 import InviteAccept from "@/pages/InviteAccept";
 import ReferralLanding from "@/pages/ReferralLanding";
+import PublicQuote from "@/pages/PublicQuote";
+import PublicInvoice from "@/pages/PublicInvoice";
+import ETATracking from "@/pages/ETATracking";
 import ReviewPublic from "@/pages/ReviewPublic";
 import AuthCallback from "@/pages/AuthCallback";
 import TestimonialConsent from "@/pages/TestimonialConsent";
@@ -31,6 +44,47 @@ import ServicesPage from "@/pages/dashboard/Services";
 import Customers from "@/pages/dashboard/Customers";
 import Leads from "@/pages/dashboard/Leads";
 import Appointments from "@/pages/dashboard/Appointments";
+import Dispatch from "@/pages/dashboard/Dispatch";
+import Pricebook from "@/pages/dashboard/Pricebook";
+import TradePacks from "@/pages/TradePacks";
+import PhotoEstimates from "@/pages/dashboard/PhotoEstimates";
+import Marketing from "@/pages/dashboard/Marketing";
+import Profitability from "@/pages/dashboard/Profitability.jsx";
+import PriceIntel from "@/pages/dashboard/PriceIntel.jsx";
+import AiDispatcher from "@/pages/dashboard/AiDispatcher.jsx";
+import OnboardingDash from "@/pages/dashboard/Onboarding.jsx";
+import CallCoaching from "@/pages/dashboard/CallCoaching.jsx";
+import HomeHub from "@/pages/dashboard/HomeHub";
+import VideoEstimates from "@/pages/dashboard/VideoEstimates";
+import PartsOrdering from "@/pages/dashboard/PartsOrdering";
+import AICollections from "@/pages/dashboard/AICollections.jsx";
+import MaintenanceAutopilot from "@/pages/dashboard/MaintenanceAutopilot.jsx";
+import Gamification from "@/pages/dashboard/Gamification";
+import ZeroTouch from "@/pages/dashboard/ZeroTouch";
+import DynamicPricing from "@/pages/dashboard/DynamicPricing";
+import SelfHealing from "@/pages/dashboard/SelfHealing";
+import CashFlow from "@/pages/dashboard/CashFlow";
+import Compliance from "@/pages/dashboard/Compliance";
+import Reputation from "@/pages/dashboard/Reputation";
+import FailureAlerts from "@/pages/dashboard/FailureAlerts";
+import HomeReports from "@/pages/dashboard/HomeReports";
+import HomeProfiles from "@/pages/dashboard/HomeProfiles";
+import SupportTickets from "@/pages/dashboard/SupportTickets";
+import PlatformStatus from "@/pages/dashboard/PlatformStatus";
+import SupportAI from "@/pages/dashboard/SupportAI";
+import Inbox from "@/pages/dashboard/Inbox";
+import ConversationIntel from "@/pages/dashboard/ConversationIntel";
+import Outreach from "@/pages/dashboard/Outreach";
+import MarketPacks from "@/pages/dashboard/MarketPacks";
+import Warranty from "@/pages/dashboard/Warranty.jsx";
+import SupplierPricing from "@/pages/dashboard/SupplierPricing.jsx";
+import TriageSettings from "@/pages/dashboard/TriageSettings.jsx";
+import Subcontractors from "@/pages/dashboard/Subcontractors.jsx";
+import TimeTracking from "@/pages/dashboard/TimeTracking.jsx";
+import Inventory from "@/pages/dashboard/Inventory.jsx";
+import Developer from "@/pages/dashboard/Developer.jsx";
+import Checklists from "@/pages/dashboard/Checklists.jsx";
+import Equipment from "@/pages/dashboard/Equipment";
 import KnowledgeBase from "@/pages/dashboard/KnowledgeBase";
 import BusinessAdvisor from "@/pages/dashboard/BusinessAdvisor";
 import Analytics from "@/pages/dashboard/Analytics";
@@ -79,8 +133,12 @@ function Router() {
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/pricing" element={<Pricing />} />
+      <Route path="/estimate" element={<Estimate />} />
       <Route path="/privacy" element={<Privacy />} />
+      <Route path="/sleep-check" element={<SleepCheck />} />
       <Route path="/terms" element={<Terms />} />
+      {INDUSTRY_SLUGS.map((s) => <Route key={s} path={`/${s}`} element={<IndustryLanding slug={s} />} />)}
+      {INDUSTRY_SLUGS.map((s) => <Route key={`es-${s}`} path={`/es/${s}`} element={<IndustryLanding slug={s} lang="es" />} />)}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -88,13 +146,18 @@ function Router() {
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/b/:slug" element={<PublicBusiness />} />
       <Route path="/portal/:slug" element={<CustomerPortalPublic />} />
+      <Route path="/home-hub/:token" element={<HomeHubView />} />
       <Route path="/invite" element={<InviteAccept />} />
       <Route path="/r/:code" element={<ReferralLanding />} />
+      <Route path="/q/:token" element={<PublicQuote />} />
+      <Route path="/i/:token" element={<PublicInvoice />} />
+      <Route path="/track/:token" element={<ETATracking />} />
       <Route path="/reviews/:token" element={<ReviewPublic />} />
       <Route path="/t/consent/:token" element={<TestimonialConsent />} />
       <Route path="/payment/success" element={<PaymentSuccess />} />
       <Route path="/payment/cancel" element={<PaymentCancel />} />
 
+      <Route path="/set-password" element={<ProtectedRoute><SetPassword /></ProtectedRoute>} />
       <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
 
       <Route path="/app" element={<Protected><Home /></Protected>} />
@@ -104,6 +167,50 @@ function Router() {
       <Route path="/app/leads" element={<Protected><Leads /></Protected>} />
       <Route path="/app/customers" element={<Protected><Customers /></Protected>} />
       <Route path="/app/appointments" element={<Protected><Appointments /></Protected>} />
+      <Route path="/app/dispatch" element={<Protected><Dispatch /></Protected>} />
+      <Route path="/app/pricebook" element={<Protected><Pricebook /></Protected>} />
+      <Route path="/app/trade-packs" element={<Protected><TradePacks /></Protected>} />
+      <Route path="/app/photo-estimates" element={<Protected><PhotoEstimates /></Protected>} />
+      <Route path="/app/marketing" element={<Protected><Marketing /></Protected>} />
+      <Route path="/app/profitability" element={<Protected><Profitability /></Protected>} />
+      <Route path="/app/price-intel" element={<Protected><PriceIntel /></Protected>} />
+      <Route path="/app/ai-dispatcher" element={<Protected><AiDispatcher /></Protected>} />
+      <Route path="/app/onboarding" element={<Protected><OnboardingDash /></Protected>} />
+      <Route path="/app/revenue" element={<Protected><Revenue /></Protected>} />
+      <Route path="/app/voice" element={<Protected><VoiceCampaigns /></Protected>} />
+      <Route path="/app/call-coaching" element={<Protected><CallCoaching /></Protected>} />
+      <Route path="/app/home-hub" element={<Protected><HomeHub /></Protected>} />
+      <Route path="/app/video-estimates" element={<Protected><VideoEstimates /></Protected>} />
+      <Route path="/app/parts-ordering" element={<Protected><PartsOrdering /></Protected>} />
+      <Route path="/app/ai-collections" element={<Protected><AICollections /></Protected>} />
+      <Route path="/app/maintenance" element={<Protected><MaintenanceAutopilot /></Protected>} />
+      <Route path="/app/gamification" element={<Protected><Gamification /></Protected>} />
+      <Route path="/app/zero-touch" element={<Protected><ZeroTouch /></Protected>} />
+      <Route path="/app/dynamic-pricing" element={<Protected><DynamicPricing /></Protected>} />
+      <Route path="/app/self-healing" element={<Protected><SelfHealing /></Protected>} />
+      <Route path="/app/cash-flow" element={<Protected><CashFlow /></Protected>} />
+      <Route path="/app/compliance" element={<Protected><Compliance /></Protected>} />
+      <Route path="/app/reputation" element={<Protected><Reputation /></Protected>} />
+      <Route path="/app/failure-alerts" element={<Protected><FailureAlerts /></Protected>} />
+      <Route path="/app/home-reports" element={<Protected><HomeReports /></Protected>} />
+      <Route path="/app/home-profiles" element={<Protected><HomeProfiles /></Protected>} />
+      <Route path="/app/support-tickets" element={<Protected><SupportTickets /></Protected>} />
+      <Route path="/app/platform-status" element={<Protected><PlatformStatus /></Protected>} />
+      <Route path="/app/support-ai" element={<Protected><SupportAI /></Protected>} />
+      <Route path="/app/inbox" element={<Protected><Inbox /></Protected>} />
+      <Route path="/app/conversation-intel" element={<Protected><ConversationIntel /></Protected>} />
+      <Route path="/app/outreach" element={<Protected><Outreach /></Protected>} />
+      <Route path="/app/market-packs" element={<Protected><MarketPacks /></Protected>} />
+      <Route path="/app/warranty" element={<Protected><Warranty /></Protected>} />
+      <Route path="/app/supplier-pricing" element={<Protected><SupplierPricing /></Protected>} />
+      <Route path="/app/triage" element={<Protected><TriageSettings /></Protected>} />
+      <Route path="/app/subcontractors" element={<Protected><Subcontractors /></Protected>} />
+      <Route path="/app/time-tracking" element={<Protected><TimeTracking /></Protected>} />
+      <Route path="/app/inventory" element={<Protected><Inventory /></Protected>} />
+      <Route path="/app/developers" element={<Protected><Developer /></Protected>} />
+      <Route path="/app/checklists" element={<Protected><Checklists /></Protected>} />
+      <Route path="/app/locations" element={<Protected><Locations /></Protected>} />
+      <Route path="/app/equipment" element={<Protected><Equipment /></Protected>} />
       <Route path="/app/services" element={<Protected><ServicesPage /></Protected>} />
       <Route path="/app/payments" element={<Protected><Payments /></Protected>} />
       <Route path="/app/website" element={<Protected><Website /></Protected>} />
@@ -142,6 +249,7 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <CanonicalLink />
         <Router />
       </BrowserRouter>
       <Toaster position="top-right" richColors />

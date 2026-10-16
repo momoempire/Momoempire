@@ -1,0 +1,12 @@
+# Market pack: Germany (de)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: de
+name: "Germany"
+flag: "🇩🇪"
+extended_network: false
+colors:
+  accent: "#FFCC00"
+languages:
+  - de
+  - en

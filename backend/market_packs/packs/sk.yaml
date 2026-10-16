@@ -1,0 +1,12 @@
+# Market pack: Slovakia (sk)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: sk
+name: "Slovakia"
+flag: "🇸🇰"
+extended_network: false
+colors:
+  accent: "#0B4EA2"
+languages:
+  - sk
+  - en

@@ -1,0 +1,12 @@
+# Market pack: Kenya (ke)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: ke
+name: "Kenya"
+flag: "🇰🇪"
+extended_network: true
+colors:
+  accent: "#BB0000"
+languages:
+  - en
+  - sw

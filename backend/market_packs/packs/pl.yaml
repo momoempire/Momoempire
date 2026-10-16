@@ -1,0 +1,12 @@
+# Market pack: Poland (pl)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: pl
+name: "Poland"
+flag: "🇵🇱"
+extended_network: false
+colors:
+  accent: "#DC143C"
+languages:
+  - pl
+  - en

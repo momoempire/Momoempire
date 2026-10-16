@@ -1,0 +1,13 @@
+# Market pack: Finland (fi)
+# Lean schema: colors (theme accent), languages (AI receptionist), flag.
+# Pics/media: none — default is no media; add a `media:` key only where genuinely needed.
+id: fi
+name: "Finland"
+flag: "🇫🇮"
+extended_network: false
+colors:
+  accent: "#002F6C"
+languages:
+  - fi
+  - sv
+  - en
