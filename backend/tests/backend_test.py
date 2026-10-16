@@ -11,11 +11,11 @@ import time
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://office-engine.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "http://127.0.0.1:9").rstrip("/")  # WL-044: never a public server by default
 API = f"{BASE_URL}/api"
 
-ADMIN_EMAIL = "admin@aioffice.io"
-ADMIN_PASSWORD = "AdminPass123!"
+ADMIN_EMAIL = os.environ.get("TEST_ADMIN_EMAIL", "")  # test-only: set for the server under test
+ADMIN_PASSWORD = os.environ.get("TEST_ADMIN_PASSWORD", "")
 
 
 def _client():
@@ -28,6 +28,8 @@ def _client():
 @pytest.fixture(scope="session")
 def admin_session():
     s = _client()
+    if not (ADMIN_EMAIL and ADMIN_PASSWORD):
+        pytest.skip("set TEST_ADMIN_EMAIL / TEST_ADMIN_PASSWORD for the server under test")
     r = s.post(f"{API}/auth/login", json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD})
     assert r.status_code == 200, f"Admin login failed: {r.status_code} {r.text}"
     assert r.json().get("role") == "platform_admin"
@@ -71,7 +73,7 @@ class TestHealth:
         assert r.status_code == 200
         body = r.json()
         assert body.get("status") == "ok"
-        assert body.get("db") == "ok"
+        assert "db" not in body  # PR #10: health no longer names the database
 
 
 # ---------- Auth ----------
@@ -329,9 +331,10 @@ class TestPayments:
         r = requests.get(f"{API}/payments/plans")
         assert r.status_code == 200
         rows = r.json()
-        ids = {p["id"] for p in rows}
-        assert {"starter", "growth", "scale"}.issubset(ids)
+        keys = {p.get("key") for p in rows}
+        assert {"starter", "growth", "ai_office", "high_volume"}.issubset(keys)
 
+    @pytest.mark.skipif(not os.environ.get("STRIPE_SECRET_KEY"), reason="Stripe test keys not set (STRIPE_SECRET_KEY)")
     def test_checkout_as_owner(self, owner_session_a):
         r = owner_session_a.post(f"{API}/payments/checkout", json={
             "plan_id": "starter",
