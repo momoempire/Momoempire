@@ -1967,7 +1967,12 @@
     "score": "puntuación",
     "customer_messages": "mensajes del cliente",
     "churn": "Abandono",
-    "how_it_works": "El sentimiento se puntúa palabra por palabra (por plantillas, sin IA): solo cuentan los mensajes del cliente, nunca las respuestas del negocio. Las reglas de escalación se activan al analizar — la conversación se marca urgente, se avisa al dueño y se puede abrir un ticket de soporte automáticamente."
+    "how_it_works": "El sentimiento se puntúa palabra por palabra (por plantillas, sin IA): solo cuentan los mensajes del cliente, nunca las respuestas del negocio. Las reglas de escalación se activan al analizar — la conversación se marca urgente, se avisa al dueño y se puede abrir un ticket de soporte automáticamente.",
+    "threads_analyzed": "Conversaciones analizadas",
+    "critical": "Crítica",
+    "high": "Alta",
+    "medium": "Media",
+    "low": "Baja"
   },
   "outreach": {
     "title": "Alcance proactivo",
@@ -2022,5 +2027,18 @@
   "nav.support_ai": "Soporte IA",
   "nav.inbox": "Bandeja",
   "nav.conversation_intel": "Intel. conversacional",
-  "nav.outreach": "Alcance"
+  "nav.outreach": "Alcance",
+  "marketPacks": {
+    "title": "Paquetes de mercado",
+    "description": "46 mercados soportados por Stripe. Elige un oficio y un mercado para ver la cara combinada.",
+    "trade": "Oficio",
+    "market": "Mercado",
+    "resolve": "Ver cara",
+    "resolving": "Resolviendo…",
+    "all_markets": "Todos los mercados ({{n}})",
+    "loading": "Cargando mercados…",
+    "extended": "Red extendida",
+    "pricebook_items": "{{n}} artículos en el catálogo"
+  },
+  "nav.market_packs": "Paquetes de mercado"
 }
