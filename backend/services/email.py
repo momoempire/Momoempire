@@ -1,5 +1,7 @@
-"""Email service — Emergent-managed Resend proxy. Follow playbook guardrails."""
+"""Email service — direct Resend API with the operator's own key. Follow playbook guardrails."""
 import os
+
+from brand import brand_name
 import re
 import ipaddress
 import logging
@@ -10,14 +12,15 @@ from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
-# Emergent managed email proxy — hardcoded constant per playbook.
-EMAIL_BASE_URL = "https://integrations.emergentagent.com"
+# Direct Resend API (operator-owned account + key).
+EMAIL_BASE_URL = "https://api.resend.com"
 
 
 def _cfg():
     return {
-        "key": os.environ.get("EMERGENT_EMAIL_KEY"),
-        "from_name": os.environ.get("EMAIL_FROM_NAME") or "AI Office",
+        "key": os.environ.get("RESEND_API_KEY"),
+        "from_email": os.environ.get("RESEND_FROM_EMAIL"),
+        "from_name": os.environ.get("EMAIL_FROM_NAME") or brand_name(),
         "reply_to": os.environ.get("EMAIL_REPLY_TO"),
     }
 
@@ -97,26 +100,29 @@ def _assert_safe_email(subject: str, html: str) -> None:
 
 async def send_email(*, to: str, subject: str, html: str,
                      from_name: str | None = None, reply_to: str | None = None) -> str | None:
-    """Send a transactional email through Emergent's managed proxy. Returns email id or None if the key is unset (soft fallback)."""
+    """Send a transactional email through the operator's own Resend account.
+    Returns the Resend email id, or None when email is unconfigured
+    (RESEND_API_KEY / RESEND_FROM_EMAIL unset) — soft fallback, callers
+    treat None as queued/no-op."""
     cfg = _cfg()
-    if not cfg["key"]:
-        logger.warning("EMERGENT_EMAIL_KEY not set — skipping email send to %s (%s)", to, subject)
+    if not cfg["key"] or not cfg["from_email"]:
+        logger.warning("RESEND_API_KEY/RESEND_FROM_EMAIL not set — skipping email send to %s (%s)", to, subject)
         print(f"[EMAIL skipped] to={to} subj={subject!r}")
         return None
     _assert_safe_email(subject, html)
     payload = {
+        "from": f"{(from_name or cfg['from_name'])[:60]} <{cfg['from_email']}>",
         "to": [to],
         "subject": subject,
         "html": html,
-        "from_name": (from_name or cfg["from_name"])[:60],
     }
     if reply_to or cfg["reply_to"]:
-        payload["contact_email"] = reply_to or cfg["reply_to"]
+        payload["reply_to"] = reply_to or cfg["reply_to"]
     try:
         async with httpx.AsyncClient(timeout=20) as client:
             resp = await client.post(
-                f"{EMAIL_BASE_URL}/api/v1/email/send",
-                headers={"X-Email-Key": cfg["key"]},
+                f"{EMAIL_BASE_URL}/emails",
+                headers={"Authorization": f"Bearer {cfg['key']}"},
                 json=payload,
             )
         resp.raise_for_status()
@@ -130,8 +136,9 @@ async def send_email(*, to: str, subject: str, html: str,
 
 
 # ---------- Templates (server-side, never caller-supplied) ----------
-def _frame(body_html: str, app_name: str = "AI Office") -> str:
+def _frame(body_html: str, app_name: str | None = None) -> str:
     """Shared email wrapper. Inline styles only."""
+    app_name = app_name or brand_name()
     return (
         '<table role="presentation" width="100%" style="background:#f6f7f9;padding:24px 0">'
         '<tr><td align="center">'
