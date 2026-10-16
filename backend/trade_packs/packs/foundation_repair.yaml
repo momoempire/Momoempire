@@ -1,0 +1,194 @@
+id: foundation_repair
+trade: Foundation Repair
+tagline: "Your AI office, preloaded for Foundation Repair"
+terms:
+  worker: Specialist
+  worker_plural: Specialists
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#7C4A21"
+pricebook:
+  - name: Foundation Inspection & Assessment
+    category: service
+    price: 299
+    cost: 75
+    duration_min: 90
+    description: Full visual and measured foundation assessment with a written findings report and repair recommendations.
+  - name: Epoxy Crack Injection (per crack)
+    category: service
+    price: 450
+    cost: 80
+    duration_min: 60
+    description: Low-pressure epoxy injection to structurally seal poured-wall cracks up to 1/8 inch.
+  - name: Polyurethane Foam Injection (per crack)
+    category: service
+    price: 650
+    cost: 120
+    duration_min: 60
+    description: Expanding polyurethane foam injection to seal active or leaking cracks and stop water entry.
+  - name: Carbon Fiber Strap (per strap)
+    category: service
+    price: 850
+    cost: 250
+    duration_min: 90
+    description: High-strength carbon fiber strap bonded to bowed walls to halt further inward movement.
+  - name: Wall Anchor (per anchor)
+    category: service
+    price: 950
+    cost: 400
+    duration_min: 150
+    description: Steel wall anchor installed through the wall to stable exterior soil to straighten and stabilize bowing walls.
+  - name: Steel Push Pier (per pier)
+    category: service
+    price: 1450
+    cost: 600
+    duration_min: 180
+    description: Steel pier driven to bedrock or load-bearing strata to lift and stabilize settled foundations.
+  - name: Helical Pier (per pier)
+    category: service
+    price: 1850
+    cost: 750
+    duration_min: 180
+    description: Screw-type helical pier for lighter soils and porches, decks, and additions needing engineered support.
+  - name: Interior Drain Tile System (per linear ft)
+    category: service
+    price: 85
+    cost: 30
+    duration_min: 480
+    description: Perimeter interior drain tile tied to a sump pit to keep basements dry year-round.
+  - name: Exterior Waterproofing Membrane (per linear ft)
+    category: service
+    price: 120
+    cost: 45
+    duration_min: 480
+    description: Excavated exterior wall sealed with waterproof membrane, drainage board, and new footer drains.
+  - name: Crawl Space Encapsulation (per sqft)
+    category: service
+    price: 12
+    cost: 4
+    duration_min: 480
+    description: Sealed vapor barrier, sealed vents, and insulated walls converting a damp crawl space into conditioned space.
+  - name: Sump Pump Installation
+    category: service
+    price: 1200
+    cost: 450
+    duration_min: 240
+    description: Primary sump pump with sealed pit, check valve, and discharge line routed safely away from the foundation.
+  - name: Crawl Space Dehumidifier Install
+    category: service
+    price: 1800
+    cost: 700
+    duration_min: 180
+    description: Commercial-grade dehumidifier with condensate pump to hold crawl space humidity under 55%.
+  - name: Structural Engineer Review (per project)
+    category: addon
+    price: 495
+    cost: 150
+    duration_min: 120
+    description: Licensed engineer evaluation and stamped letter for lender, insurance, or peace-of-mind documentation.
+equipment_types:
+  - name: Pier Driver Rig
+    fields: [rig_id, pier_type, depth_capacity_ft, hydraulic_pressure_rating, last_service_date, assigned_specialist]
+  - name: Mini Excavator
+    fields: [unit_id, weight_tons, dig_depth_ft, hour_meter, last_service_date, assigned_specialist]
+  - name: Steel Pier Inventory
+    fields: [batch_id, pier_type, length_ft, count_on_hand, warehouse_location]
+  - name: Inspection Kit
+    fields: [kit_id, laser_level_model, crack_monitor_count, manometer_count, last_calibrated, assigned_specialist]
+  - name: Carbon Fiber Strap Kits
+    fields: [kit_id, strap_width_in, kits_on_hand, adhesive_batch, warehouse_location]
+appointment_types:
+  - name: Foundation Assessment
+    duration_min: 90
+    description: On-site inspection with measurements, moisture readings, and a written repair plan.
+  - name: Pre-Repair Consultation
+    duration_min: 60
+    description: Walk through the quote, timeline, permits, and warranty with the customer before work is scheduled.
+  - name: Pier Installation Day
+    duration_min: 480
+    description: Full-day pier driving with lift verification and post-install elevation survey.
+  - name: Waterproofing Project Day
+    duration_min: 480
+    description: Full-day drain tile or exterior membrane installation with cleanup.
+  - name: Follow-up Crack Check
+    duration_min: 30
+    description: Post-repair re-measure to verify cracks are stable and work is holding.
+receptionist_script: |
+  Greeting: "Thanks for calling {shop_name}, this is the AI assistant. Are you calling about cracks, water, or something shifting in your foundation?"
+
+  Common call types and what to do:
+  - Crack in a basement or foundation wall: ask whether the crack is hairline, wider than a quarter inch, stair-stepping through mortar, horizontal, or leaking. Log crack_type and width_estimate, then book a Foundation Assessment within 5 business days. Mention the $299 inspection and that it is credited toward any repair work.
+  - Water in the basement or crawl space: ask if water is coming in now, after heavy rain only, or as chronic dampness. Active water intrusion = priority: offer the next available appointment within 48 hours and explain the drain tile/sump options briefly.
+  - Doors or windows sticking, sloping floors: flag as settlement signals. Ask how long it has been noticed and whether it is getting worse, then book a Foundation Assessment.
+  - Bowing or leaning wall: treat as higher priority. Ask if the bow is visible to the eye and whether there is water outside against that wall. Offer an assessment within 72 hours; do not downplay.
+  - Quote comparison: offer the free quote review — ask who else quoted and offer to schedule our assessment so the customer can compare line by line.
+
+  Booking flow:
+  1. Capture name, address, phone, and email.
+  2. Confirm foundation type (poured concrete, block, slab, crawl space) and home age if known.
+  3. Book the assessment slot and text the confirmation with a photo-upload link so the specialist sees the cracks beforehand.
+  4. Note gate codes, pets, and basement access details.
+
+  Urgent handling: sudden large cracks after a storm, a wall that visibly moved, or flooding in the basement = urgent. Offer the soonest slot, give the customer emergency mitigation steps (move valuables, check the sump, shut off water if a pipe is involved), and flag the shop owner immediately.
+
+  After-hours: "Thanks for calling {shop_name}. If water is entering your home right now, press 1 to be connected to our on-call specialist. Otherwise, leave your name, address, and what you're seeing — we'll call you back first thing in the morning and hold an assessment slot for you."
+triage:
+  - id: crack_profile
+    question: What kind of crack are you seeing in the foundation?
+    options: [Hairline vertical crack, Crack wider than a quarter inch, Stair-step crack through mortar joints, Horizontal crack along the wall, Leaking or seeping crack]
+    route: Log crack_profile on the intake record; route leaking or horizontal cracks to a priority assessment slot within 72 hours.
+  - id: settlement_signs
+    question: Are you noticing any of these inside the home?
+    options: [Doors or windows sticking, Sloping or uneven floors, Cracks above door frames, Gaps around windows or trim, None of these]
+    route: Log selected signs; any settlement sign upgrades the call to a specialist callback the same day.
+  - id: water_intrusion
+    question: Is water getting into the basement or crawl space?
+    options: ["Yes — actively right now", "Only after heavy rain", "Chronic dampness or musty smell", "No water issues"]
+    route: Active water gets a 48-hour priority slot plus emergency mitigation steps; rain-only and dampness go to a standard assessment with a sump/drainage consult.
+  - id: repair_timeline
+    question: How soon are you hoping to get this handled?
+    options: [As soon as possible, Within the next month, Just gathering quotes, Not sure yet]
+    route: ASAP books the next open slot immediately; gathering quotes triggers the quote-comparison follow-up automation.
+automation_templates:
+  - name: Assessment to Quote Follow-up
+    trigger: foundation_assessment_completed
+    steps:
+      - Generate the written findings report and quote within 24 hours of the visit.
+      - Text the customer a link to the report with a 3-line summary of the top issue.
+      - Follow up by SMS on day 3 if the quote has not been viewed.
+      - Follow up by phone or email on day 7 with a comparison offer to review competing quotes line by line.
+      - After 21 days of no response, mark the opportunity dormant and send a seasonal check-in later.
+  - name: Pier Install Day Prep
+    trigger: pier_job_confirmed
+    steps:
+      - Confirm the date by SMS and ask about exterior access, landscaping near the dig zone, and underground utilities.
+      - Auto-run a utility-locate ticket 72 hours before the dig.
+      - Text the crew arrival window the evening before.
+      - Day of: send the specialist's name and photo to the customer.
+      - After completion: send the elevation survey results and warranty certificate.
+  - name: Waterproofing Season Nudge
+    trigger: heavy_rain_season_start
+    steps:
+      - Pull customers with past water-intrusion assessments who never booked.
+      - Send an SMS offering a discounted reassessment before storm season.
+      - Book directly from the reply with no phone tag.
+  - name: Warranty Anniversary Check
+    trigger: job_completed_anniversary_1yr
+    steps:
+      - Send a reminder that the annual crack re-measure is free under warranty.
+      - Offer two scheduling options by SMS.
+      - After the check, update the warranty record and ask for a review.
+review_templates:
+  - name: Post-Repair Review Request
+    channel: sms
+    template: "Hi {customer_name}, this is {shop_name}. Your foundation work is wrapped up and the final measurements look solid. If {tech_name} and the crew did right by you, would you leave us a quick review? {review_link} — it helps neighbors trust the work. Thanks!"
+  - name: Assessment Experience Review
+    channel: email
+    template: "Subject: How was your foundation assessment, {customer_name}?\n\nHi {customer_name},\n\n{tech_name} from {shop_name} stopped by to assess your foundation. Whether you move forward with us or not, a short review of your experience helps other homeowners find honest answers. Leave one here: {review_link}\n\nThanks,\n{shop_name}"
+  - name: Warranty Check Review
+    channel: sms
+    template: "{customer_name}, it's been a year since {shop_name} stabilized your foundation — and today's re-check confirms everything is holding. If you'd vouch for {tech_name}'s work, we'd be grateful: {review_link}"

@@ -1,0 +1,215 @@
+id: flooring
+trade: Flooring
+tagline: "Your AI office, preloaded for Flooring pros"
+terms:
+  worker: Installer
+  worker_plural: Installers
+  shop: business
+  job: project
+  job_plural: projects
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#92400E"
+pricebook:
+  - name: LVP Installation (per 500 sq ft)
+    category: service
+    price: 3500
+    cost: 2100
+    duration_min: 480
+    description: Luxury vinyl plank installed with underlayment and trim.
+  - name: Hardwood Installation (per 500 sq ft)
+    category: service
+    price: 4750
+    cost: 2900
+    duration_min: 480
+    description: Nail-down solid hardwood with transitions and shoe molding.
+  - name: Hardwood Refinish (per 500 sq ft)
+    category: service
+    price: 2250
+    cost: 1100
+    duration_min: 360
+    description: Sand, stain, and 3 coats of polyurethane — like-new floors.
+  - name: Tile Installation (per 300 sq ft)
+    category: service
+    price: 2700
+    cost: 1500
+    duration_min: 480
+    description: Tile set on level substrate with premium grout and seal.
+  - name: Carpet Installation (per room, up to 200 sq ft)
+    category: service
+    price: 650
+    cost: 380
+    duration_min: 180
+    description: Carpet with new pad, stretched and trimmed, furniture moved.
+  - name: Subfloor Repair (per 100 sq ft)
+    category: service
+    price: 450
+    cost: 220
+    duration_min: 240
+    description: Replace damaged subfloor and level before new flooring.
+  - name: Floor Tear-Out & Disposal (per 500 sq ft)
+    category: labor
+    price: 750
+    cost: 350
+    duration_min: 240
+    description: Remove old flooring and haul away, dust-controlled.
+  - name: Staircase Flooring (per step)
+    category: service
+    price: 85
+    cost: 45
+    duration_min: 30
+    description: Treads and risers matched to your new floor.
+  - name: Baseboard Installation (per linear ft)
+    category: service
+    price: 4.5
+    cost: 2.0
+    duration_min: 5
+    description: New baseboard, caulked and ready for paint.
+  - name: Moisture Testing
+    category: service
+    price: 95
+    cost: 30
+    duration_min: 30
+    description: Slab moisture test before install — protects your warranty.
+  - name: Transition Strips
+    category: addon
+    price: 120
+    cost: 50
+    duration_min: 30
+    description: Custom transitions between flooring types, per doorway.
+  - name: Grout Sealing
+    category: addon
+    price: 180
+    cost: 60
+    duration_min: 60
+    description: Penetrating sealer on all grout lines for stain protection.
+equipment_types:
+  - name: Tile Wet Saw
+    fields: [brand, blade_size_in, purchase_date, last_blade_change, condition]
+  - name: Floor Sander
+    fields: [brand, type, purchase_date, last_belt_change, dust_bag_condition, condition]
+  - name: Nail Gun & Compressor Set
+    fields: [brand, gauge, purchase_date, last_service, condition, truck_assigned]
+  - name: Moisture Meter
+    fields: [brand, purchase_date, last_calibration, condition]
+  - name: Transition & Trim Inventory
+    fields: [location, profiles_stocked, inventory_value, restock_date]
+  - name: Delivery Truck
+    fields: [make_model, year, mileage, insurance_renewal, liftgate, condition]
+appointment_types:
+  - name: In-Home Estimate
+    duration_min: 60
+    description: Measure, assess subfloor, and sample materials — free.
+  - name: Material Selection
+    duration_min: 45
+    description: Guided choice of flooring, color, and finish with samples.
+  - name: Installation Day
+    duration_min: 480
+    description: Full crew install with dust control and final walkthrough.
+  - name: Refinish Day
+    duration_min: 360
+    description: Sand and finish day — home must be clear of furniture.
+  - name: Repair Visit
+    duration_min: 90
+    description: Fix scratches, loose planks, cracked tile, or squeaks.
+receptionist_script: |
+  GREETING:
+  "Thanks for calling {shop_name}! This is the {shop_name} assistant. Are you
+  looking for new floors, refinishing, or a repair?"
+
+  COMMON CALL TYPES:
+  1. NEW FLOORING: Ask which rooms, approximate square footage, material they
+     have in mind (or offer guidance), and timeline. Book a free in-home estimate.
+  2. PRICE QUESTIONS: Give honest ranges — "LVP typically runs $7-$9 per square
+     foot installed, hardwood $9-$12." Explain that the free estimate produces
+     the exact quote after measuring and checking the subfloor.
+  3. REFINISHING: Ask the wood type if known, current finish condition, and
+     square footage. Mention dust-controlled sanding and same-week scheduling.
+  4. REPAIR: Ask what's wrong (scratches, water damage, loose boards, cracked
+     tile) and how large the area is. Book a repair visit with photos requested.
+  5. EXISTING PROJECT: Look up the job, report the phase and next milestone.
+     Be honest about any delays with the revised date.
+
+  BOOKING FLOW:
+  1. Collect: name, phone, email, address, rooms, approx. sq ft, material
+     preference, timeline.
+  2. Book the free estimate and note access, pets, and parking.
+  3. Send confirmation with a prep note: "Clear small items from the rooms
+     helps our estimator — we'll handle the heavy furniture on install day."
+  4. Say: "The estimate is free and the quote is good for 30 days. We'll bring
+     samples so you can see everything in your own lighting!"
+
+  URGENT HANDLING:
+  - Active water leak damaging floors: advise shutting the water source, offer
+    emergency tear-out and dry-out scheduling, document for insurance.
+  - Trip hazard (buckled board, loose tile): prioritize within 48 hours,
+    offer a temporary fix on the first visit.
+  - Install-day problem (wrong material delivered): own it immediately, give
+    the corrected timeline, offer a discount for the inconvenience.
+
+  AFTER-HOURS:
+  "You've reached {shop_name}. If you have water actively damaging your floors,
+  say 'emergency' and I'll arrange urgent help. Otherwise, I can book your free
+  estimate for tomorrow — new floors are exciting, let's get started!"
+triage:
+  - id: square_footage
+    question: About how much area are we covering?
+    options: ["Under 200 sq ft", "200-500 sq ft", "500-1,000 sq ft", "Whole house (1,000+ sq ft)"]
+    route: 1,000+ → whole-house pricing tier and a senior estimator.
+  - id: material_preference
+    question: What material are you leaning toward?
+    options: [Luxury vinyl plank, Hardwood, Tile, Carpet, Not sure — advise me]
+    route: Not sure → estimator brings full sample kit; note lifestyle factors (pets, kids).
+  - id: subfloor_condition
+    question: What's under the current floor, if you know?
+    options: [Concrete slab, Plywood subfloor, Existing hardwood, Not sure]
+    route: Slab → flag moisture testing; unknown → estimator assesses on visit.
+  - id: timeline
+    question: When do you want this done?
+    options: [ASAP, 1-3 months, 3-6 months, Just getting ideas]
+    route: ASAP → check crew availability; ideas → send inspiration gallery.
+  - id: furniture
+    question: Will the rooms be clear of furniture on install day?
+    options: [Yes, No — need help moving it, Partially]
+    route: Need help → quote the furniture-moving add-on; note it on the job.
+automation_templates:
+  - name: Estimate Follow-Up Sequence
+    trigger: estimate delivered, no signed contract
+    steps:
+      - "Send thank-you SMS the same evening with the quote and sample photos."
+      - "Day 3: email comparing their top 2 material options (cost, durability)."
+      - "Day 7: human follow-up call task."
+      - "Day 14: send a 5% book-this-month incentive before the quote expires."
+      - "Day 30: quote expires — offer a free re-measure."
+  - name: Install Day Prep & Confirm
+    trigger: installation scheduled
+    steps:
+      - "Send confirmation with date, crew arrival window, and prep checklist."
+      - "Evening before: reminder SMS with crew lead name and start time."
+      - "Morning of: crew-on-the-way text with live ETA."
+      - "After install: care-instruction email and walkthrough sign-off."
+  - name: Post-Install Care & Review
+    trigger: installation completed
+    steps:
+      - "Send material-specific care guide (cleaners to use/avoid)."
+      - "Day 3: check-in SMS asking how the floors feel."
+      - "Request a Google review with a direct link."
+      - "Enroll in the referral program ($100 per signed referral)."
+  - name: Hardwood Refinish Upsell
+    trigger: 5 years after hardwood install
+    steps:
+      - "Send “your floors may be ready for a refresh” email with before/afters."
+      - "Offer a free refinishing assessment."
+      - "Quote the refinish at a loyalty discount."
+      - "Book the refinish day with dust-control prep instructions."
+review_templates:
+  - name: Post-Install SMS Review Ask
+    channel: sms
+    template: "Hi {customer_name}, {tech_name} from {shop_name} here — your new floors are in and they look fantastic! If the crew was clean, on time, and careful with your home, a quick review helps us keep growing: {review_link}"
+  - name: Care Guide Email Review Ask
+    channel: email
+    template: "Hi {customer_name}, your {shop_name} care guide is attached — follow it and your floors will look new for years. {tech_name} wanted to make sure you're thrilled with everything. If we earned 5 stars, we'd love your review: {review_link}. Enjoy those beautiful floors!"
+  - name: Repair Visit Review Ask
+    channel: sms
+    template: "Hey {customer_name}, {shop_name} here — glad {tech_name} got that repair handled for you today! If the fix was fast and fair, tap here to leave us a review: {review_link}"

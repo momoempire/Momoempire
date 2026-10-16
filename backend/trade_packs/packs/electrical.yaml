@@ -1,0 +1,189 @@
+id: electrical
+trade: Electrical
+tagline: "Your AI office, preloaded for Electrical"
+terms:
+  worker: Electrician
+  worker_plural: Electricians
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#F5A623"
+pricebook:
+  - name: Diagnostic / Troubleshooting Visit
+    category: service
+    price: 99.00
+    cost: 35.00
+    duration_min: 60
+    description: "Troubleshoot outages, dead circuits, or electrical faults with repair options on the spot"
+  - name: Panel Upgrade (100A to 200A)
+    category: part
+    price: 2850.00
+    cost: 1100.00
+    duration_min: 360
+    description: "Full service upgrade to 200A with new panel, breakers, grounding, and permit"
+  - name: Breaker Replacement (single-pole)
+    category: part
+    price: 185.00
+    cost: 32.00
+    duration_min: 45
+    description: "Replace failed or undersized breaker with correct amperage, includes load check"
+  - name: GFCI / AFCI Outlet Install (each)
+    category: part
+    price: 165.00
+    cost: 42.00
+    duration_min: 30
+    description: "Install code-required GFCI or AFCI protection, includes testing"
+  - name: EV Charger Install (Level 2, up to 50A)
+    category: part
+    price: 1450.00
+    cost: 620.00
+    duration_min: 240
+    description: "Dedicated 240V circuit and Level 2 charger install with permit and load calculation"
+  - name: Ceiling Fan Install (with existing box)
+    category: labor
+    price: 245.00
+    cost: 60.00
+    duration_min: 60
+    description: "Install customer-supplied fan on existing rated box, balance and test"
+  - name: Recessed Lighting (per can, retrofit)
+    category: labor
+    price: 195.00
+    cost: 55.00
+    duration_min: 45
+    description: "Install LED retrofit recessed light, includes dimmer compatibility check"
+  - name: Whole-Home Surge Protector
+    category: part
+    price: 495.00
+    cost: 175.00
+    duration_min: 60
+    description: "Panel-mounted surge protection for the entire home, includes warranty registration"
+  - name: Smoke / CO Detector Install (each, hardwired)
+    category: part
+    price: 145.00
+    cost: 48.00
+    duration_min: 30
+    description: "Install interconnected hardwired smoke/CO detector to meet code"
+  - name: Dedicated Circuit (20A, up to 50 ft)
+    category: labor
+    price: 625.00
+    cost: 150.00
+    duration_min: 180
+    description: "Run new dedicated 20A circuit for appliance or workshop, includes breaker and receptacle"
+  - name: Outlet / Switch Replacement (each)
+    category: addon
+    price: 95.00
+    cost: 18.00
+    duration_min: 20
+    description: "Add-on: replace worn outlet or switch while on site"
+  - name: Electrical Safety Inspection
+    category: service
+    price: 149.00
+    cost: 40.00
+    duration_min: 90
+    description: "Whole-home inspection: panel, grounding, GFCIs, smoke detectors, with written report"
+equipment_types:
+  - name: Electrical Panel
+    fields: [brand, amperage, install_year, breaker_spaces_total, breaker_spaces_free, last_inspection_date]
+  - name: EV Charger
+    fields: [brand, model, install_date, amperage, circuit_size, wifi_connected]
+  - name: Generator (Standby)
+    fields: [brand, model, serial_number, install_date, kw_rating, fuel_type, last_exercise_date]
+  - name: Smoke / CO Detectors
+    fields: [location_count, hardwired, install_date, last_test_date]
+appointment_types:
+  - name: Troubleshooting Visit
+    duration_min: 60
+    description: "Diagnose outages, tripping breakers, dead outlets, or faulty wiring"
+  - name: Panel Upgrade Estimate
+    duration_min: 60
+    description: "Free assessment for panel upgrades, EV chargers, and generators"
+  - name: Installation Visit
+    duration_min: 120
+    description: "Scheduled install of lighting, fans, chargers, or detectors"
+  - name: Safety Inspection
+    duration_min: 90
+    description: "Whole-home electrical safety inspection with written report"
+  - name: Generator Maintenance
+    duration_min: 60
+    description: "Annual standby generator service and load test"
+receptionist_script: |
+  GREETING: "Thanks for calling {shop_name}, this is Momo, your virtual assistant. What electrical issue can I help with today?"
+
+  COMMON CALL TYPES:
+  1. POWER OUTAGE (whole house or partial): Ask: "Is it the whole house or just some rooms? Have you checked with neighbors — are their lights on?" If neighbors have power: "Check your main breaker — is it tripped to the middle or off? Don't reset it more than once." Then: "This sounds like something we should look at today. I can get an electrician out — morning or afternoon better?"
+  2. BREAKER KEEPS TRIPPING: Ask: "Which breaker is tripping, and what were you running when it tripped — a space heater, microwave, hair dryer?" Then: "That usually means the circuit is overloaded. Until we come out, unplug the heavy items from that circuit and don't keep resetting it — repeated trips can damage wiring."
+  3. SPARKING OUTLET / BURNING SMELL: Say: "Turn off that breaker right now and don't use that outlet. If you see smoke or flames, call 911. This is urgent — I can dispatch someone today. Is anyone able to flip the breaker off safely?"
+  4. EV CHARGER / PANEL UPGRADE QUOTE: Say: "Great — we do free estimates for EV chargers and panel upgrades. I'll need to know your panel's amperage if you can check, but our electrician will verify on site. What day works for the estimate?"
+  5. LIGHTING / FAN / SMALL INSTALLS: Say: "We can absolutely handle that. Our minimum service visit is $99, and most installs are flat-rate — I'll have the electrician confirm the price before any work starts. When works for you?"
+
+  BOOKING FLOW — always ask in this order:
+  1. "What's your name and the best callback number?"
+  2. "What's the service address?"
+  3. "Describe the electrical issue — outage, tripping breaker, sparking, or an install?"
+  4. "Is there anything sparking, smoking, or smelling like burning right now?"
+  5. Confirm: "So I have [NAME] at [ADDRESS] for a [VISIT TYPE] on [DATE] between [WINDOW]. You'll get a text when the electrician is on the way. Sound good?"
+
+  EMERGENCY / URGENT HANDLING:
+  - Sparking, arcing, burning smell, smoke, or shock from an appliance/switch: emergency. "Turn off the breaker for that circuit immediately. If there's smoke or fire, call 911 first. I can get an electrician out today — are you safe right now?"
+  - Complete power loss with medical equipment in the home: emergency, same-day priority.
+  - After-hours emergency diagnostic is $149 — state it before booking: "Our after-hours emergency visit is $149, which applies toward the repair."
+  - NEVER advise the caller to open the panel, touch bare wires, or work in the breaker box themselves.
+
+  AFTER-HOURS BEHAVIOR: "You've reached {shop_name} after hours. If you have sparking, a burning smell, smoke, or a total outage affecting medical equipment, I can dispatch our on-call electrician now. Otherwise, leave your details and we'll call first thing in the morning. Is this an emergency?"
+triage:
+  - id: outage_scope
+    question: "Is the outage affecting your whole house, part of it, or just one outlet or light?"
+    options: ["Whole house", "Several rooms", "One outlet or light", "Flickering lights"]
+    route: "Whole house: check utility outage + main breaker, emergency if medical equipment; partial: schedule troubleshooting"
+  - id: breaker_behavior
+    question: "Is a breaker tripped, and does it trip again right after you reset it?"
+    options: ["Tripped once, stays on after reset", "Trips again immediately", "Breaker feels hot", "No breakers tripped"]
+    route: "Trips immediately or hot breaker: do not reset again, book urgent visit; single trip: monitor, schedule if recurs"
+  - id: safety_hazard
+    question: "Do you see sparks, smell burning plastic, or feel warmth at any outlet, switch, or the panel?"
+    options: ["Yes — sparks or burning smell", "Outlet or switch is warm", "No, nothing like that", "Buzzing sound from panel"]
+    route: "Sparks/burning/buzzing panel: emergency — shut off breaker, same-day dispatch; warm outlet: urgent visit"
+  - id: panel_capacity
+    question: "Do you know your panel's amperage, and are you adding something big like an EV charger, hot tub, or addition?"
+    options: ["100A or less, adding big load", "200A, adding big load", "Just curious about capacity", "Fuses instead of breakers"]
+    route: "Adding load on 100A or fuse box: book free upgrade estimate; otherwise schedule assessment"
+automation_templates:
+  - name: Safety Inspection Campaign
+    trigger: "Home on file with panel 25+ years old and no inspection in 3 years"
+    steps:
+      - "Pull target customers and send SMS inspection offer ($149, credited toward work)"
+      - "Follow up with email: aging-panel fire-risk explainer"
+      - "Book inspections; auto-generate written report after visit"
+      - "Quote panel upgrades from inspection findings with one-tap approval"
+  - name: Smoke Detector Compliance Reminder
+    trigger: "Annually, per local code cycle"
+    steps:
+      - "Send SMS: detector test and replacement reminder"
+      - "Offer hardwired detector package with one-tap booking"
+      - "After install, log locations and set next test reminder"
+  - name: Post-Storm Surge Check
+    trigger: "Major storm or outage event in service area"
+    steps:
+      - "Send SMS to all customers: 'Storm passed through — any flickering or dead outlets?'"
+      - "Offer surge-protector installs at campaign price"
+      - "Prioritize bookings reporting damage"
+  - name: EV Charger Lead Nurture
+    trigger: "Estimate given but not approved within 7 days"
+    steps:
+      - "Send SMS: utility rebate reminder + financing options"
+      - "Email: EV charger buyer's guide with load-calc results"
+      - "Offer limited-time install scheduling bonus"
+      - "Close loop: mark lost with reason after 30 days"
+review_templates:
+  - name: Post-Job SMS Review
+    channel: sms
+    template: "Hi {customer_name}! {tech_name} from {shop_name} just finished your electrical work. If everything's powered up and working, we'd appreciate a quick review: {review_link} — thanks for choosing {shop_name}!"
+  - name: Panel Upgrade Email Review
+    channel: email
+    template: "Hi {customer_name}, your new 200A panel is in and your home is ready for whatever comes next — EV charger, addition, you name it. {tech_name} and the {shop_name} team would love your feedback: {review_link}. Thanks for trusting us with your home's power."
+  - name: Safety Inspection SMS Review
+    channel: sms
+    template: "Hi {customer_name}, {tech_name} completed your home electrical safety inspection today. Glad we could give you peace of mind! A quick review helps other homeowners find {shop_name}: {review_link}"
