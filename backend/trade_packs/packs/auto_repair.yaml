@@ -1,0 +1,194 @@
+id: auto_repair
+trade: Auto Repair
+tagline: "Your AI office, preloaded for Auto Repair"
+terms:
+  worker: Technician
+  worker_plural: Technicians
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#DC2626"
+pricebook:
+  - name: "Full Synthetic Oil Change"
+    category: service
+    price: 79
+    cost: 32
+    duration_min: 45
+    description: "Up to 5 quarts full synthetic, filter, fluid top-off and 21-point inspection."
+  - name: "Brake Pads & Rotors (per axle)"
+    category: service
+    price: 349
+    cost: 150
+    duration_min: 120
+    description: "Pads and rotors on one axle, includes hardware and brake fluid check."
+  - name: "Diagnostic Scan"
+    category: service
+    price: 129
+    cost: 45
+    duration_min: 60
+    description: "Full computer scan, code analysis and written findings; credited toward the repair."
+  - name: "Alternator Replacement"
+    category: service
+    price: 549
+    cost: 260
+    duration_min: 150
+    description: "New alternator with 2-year warranty, includes belt inspection."
+  - name: "Starter Replacement"
+    category: service
+    price: 425
+    cost: 200
+    duration_min: 120
+    description: "New starter motor, battery and cable check included."
+  - name: "Transmission Fluid Service"
+    category: service
+    price: 199
+    cost: 85
+    duration_min: 90
+    description: "Fluid exchange and filter where applicable; not a flush on high-mileage units without inspection."
+  - name: "Tire Rotation & Balance"
+    category: service
+    price: 69
+    cost: 25
+    duration_min: 45
+    description: "Rotate and balance all four, includes tread and pressure check."
+  - name: "Wheel Alignment"
+    category: service
+    price: 119
+    cost: 45
+    duration_min: 60
+    description: "4-wheel computerized alignment with before/after printout."
+  - name: "Battery Replacement"
+    category: part
+    price: 219
+    cost: 130
+    duration_min: 30
+    description: "Battery matched to vehicle spec, includes terminal cleaning and charging system test."
+  - name: "AC Recharge & Leak Check"
+    category: service
+    price: 179
+    cost: 70
+    duration_min: 75
+    description: "Evacuate, leak-test and recharge; dye added to trace slow leaks."
+  - name: "Timing Belt Kit"
+    category: service
+    price: 899
+    cost: 420
+    duration_min: 360
+    description: "Belt, tensioners, water pump and seals; critical maintenance at manufacturer interval."
+  - name: "State Inspection"
+    category: service
+    price: 45
+    cost: 15
+    duration_min: 30
+    description: "State safety/emissions inspection where applicable."
+equipment_types:
+  - name: "Vehicle Lift"
+    fields: ["lift_id", "type", "capacity_lbs", "last_inspection", "certification_expires", "condition", "assigned_to"]
+  - name: "Diagnostic Scanner"
+    fields: ["brand", "model", "software_version", "subscription_expires", "condition", "assigned_to"]
+  - name: "Alignment Rack"
+    fields: ["brand", "model", "last_calibration", "condition", "assigned_to"]
+  - name: "Tire Machine & Balancer"
+    fields: ["brand", "model", "last_service", "condition", "assigned_to"]
+  - name: "AC Recovery Machine"
+    fields: ["brand", "model", "last_service", "certification_expires", "condition", "assigned_to"]
+appointment_types:
+  - name: "Diagnostic Appointment"
+    duration_min: 60
+    description: "Scan and inspection to identify the problem; findings and quote before any work."
+  - name: "Maintenance Visit"
+    duration_min: 60
+    description: "Oil change, rotation, filters — routine maintenance by the book."
+  - name: "Repair Appointment"
+    duration_min: 180
+    description: "Scheduled repair with parts pre-ordered; loaner/shuttle arranged if needed."
+  - name: "Drop-Off (all day)"
+    duration_min: 480
+    description: "Leave the vehicle for the day; we call with findings and authorization before work."
+  - name: "State Inspection"
+    duration_min: 30
+    description: "Quick inspection appointment; repairs quoted separately if it fails."
+receptionist_script: |
+  GREETING: "Thanks for calling {shop_name}, your auto repair team. This is the AI assistant — what’s going on with your vehicle?"
+
+  COMMON CALL TYPES:
+  1. Problem description (noise, light, leak, won't start) — capture: year/make/model, mileage, symptoms, when it started, any warning lights. Book a Diagnostic Appointment.
+  2. Maintenance due — capture: vehicle info, mileage, what's due (oil, brakes, tires). Book a Maintenance Visit, often same-day.
+  3. Quote on known repair — capture: vehicle info and the repair needed; give the pricebook range, confirm parts availability, book the Repair Appointment.
+  4. Breakdown / tow-in — capture: location, vehicle info, symptoms; arrange tow if needed and book a Drop-Off.
+  5. Existing job questions — look up by name/phone/vehicle; status updates, authorization for additional findings, pickup times.
+
+  BOOKING FLOW:
+  1. Capture the vehicle: year, make, model, mileage, and VIN if the caller has it (helps parts lookup).
+  2. Capture symptoms in the caller's words plus: warning lights on, noises, leaks, when it started, still drivable.
+  3. Recommend: unknown problem → Diagnostic Appointment; routine service → Maintenance Visit; known repair → Repair Appointment with parts check.
+  4. Explain the process: we diagnose first, call with findings and a written quote, and never do work without authorization.
+  5. Collect: name, callback number, shuttle/loaner/wait preference.
+  6. Confirm: date, time, what to bring (keys, any prior records), and send a confirmation text.
+
+  URGENT HANDLING: Vehicle overheating, brake failure symptoms, steering problems, fuel leaks, or the vehicle died in traffic — advise pulling over safely and shutting off the engine for overheating; do NOT drive with brake or steering issues. Arrange tow-in and prioritize the diagnostic. A check-engine light with no drivability symptoms is NOT urgent; book the next diagnostic.
+
+  AFTER-HOURS: Take the full intake including vehicle details, promise a callback by 9 AM next business day; breakdowns needing a tow get the tow line / on-call number.
+triage:
+  - id: auto_vehicle_info
+    question: "What are we working on — year, make, and model?"
+    options: ["Car / sedan", "SUV / crossover", "Truck", "Van", "Other / not sure"]
+    route: "Record vehicle type; 'not sure' prompts for a photo of the VIN plate or registration."
+  - id: auto_symptom
+    question: "What's going on with the vehicle?"
+    options: ["Warning light on", "Strange noise", "Won't start", "Leak underneath", "Routine maintenance due", "Vibration / handling issue"]
+    route: "Warning lights and no-starts get symptom detail questions; routine maintenance books direct."
+  - id: auto_drivability
+    question: "Is the vehicle safe to drive right now?"
+    options: ["Yes, drives fine", "Drivable but something's off", "No — shouldn't drive it", "Already at the shop / towed"]
+    route: "'Shouldn't drive' triggers tow arrangement and priority intake; others book normally."
+  - id: auto_warning_lights
+    question: "Are any dashboard warning lights on? Which ones?"
+    options: ["Check engine", "Oil / temperature", "Brake / ABS", "Battery / charging", "Tire pressure", "None"]
+    route: "Oil/temperature and brake lights flagged as do-not-drive until checked; others noted for the diagnostic."
+  - id: auto_history
+    question: "Has this been looked at before, or is there a repair history we should know?"
+    options: ["First time for this issue", "Was repaired before", "Another shop looked at it", "Under warranty / recall"]
+    route: "Prior-repair info attached to the job; warranty/recall cases checked against coverage before quoting."
+automation_templates:
+  - name: "Diagnostic Authorization Flow"
+    trigger: "diagnostic findings ready"
+    steps:
+      - "Build the digital inspection with photos and line-item quote"
+      - "SMS customer: findings summary + approve/decline link"
+      - "If approved: order parts and schedule the repair; if declined: $129 diag fee invoiced"
+      - "If no response in 4 hours: one follow-up call before end of day"
+  - name: "Maintenance Reminders"
+    trigger: "90 days or 3,000 miles after oil change (whichever first)"
+    steps:
+      - "Send SMS: 'Time for your next service — reply to book'"
+      - "Include last mileage to make it personal"
+      - "If no booking in 14 days: email with a $10-off maintenance coupon"
+      - "Log declined reminders to avoid over-messaging"
+  - name: "Repair Status Updates"
+    trigger: "job status changes"
+    steps:
+      - "Vehicle checked in: SMS confirmation with advisor name"
+      - "Work started: SMS that the tech is on it"
+      - "Work complete: SMS 'ready for pickup' with total and payment link"
+      - "Next day: thank-you text + review request"
+  - name: "Declined Work Follow-Up"
+    trigger: "customer declines recommended repair"
+    steps:
+      - "Note safety-critical declines prominently on the invoice"
+      - "30 days later: SMS check-in on the declined item"
+      - "60 days later: email with educational content on the repair"
+      - "Stop after 90 days unless safety-critical"
+review_templates:
+  - name: "Repair Completion"
+    channel: sms
+    template: "Hi {customer_name}, {tech_name} from {shop_name} here — your vehicle is ready and running great! If you're happy with the service, a quick review would mean a lot: {review_link}"
+  - name: "Post-Visit Email"
+    channel: email
+    template: "Subject: Your vehicle is ready — {shop_name}\n\nHi {customer_name},\n\n{tech_name} finished the work on your vehicle today. Your digital inspection report is attached for your records. If our team earned your trust, we'd love a review: {review_link}\n\nSee you at the next service!"
+  - name: "Maintenance Visit"
+    channel: sms
+    template: "Hi {customer_name}, {tech_name} from {shop_name} — your maintenance visit is done! Everything checked out. A quick review helps other drivers find honest service: {review_link}"

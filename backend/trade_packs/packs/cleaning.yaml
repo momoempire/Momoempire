@@ -1,0 +1,190 @@
+id: cleaning
+trade: Cleaning
+tagline: "Your AI office, preloaded for Cleaning"
+terms:
+  worker: Cleaner
+  worker_plural: Cleaners
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#14B8A6"
+pricebook:
+  - name: "Standard Home Clean (up to 2,000 sqft)"
+    category: service
+    price: 175
+    cost: 70
+    duration_min: 150
+    description: "Recurring-style clean: all rooms, kitchens, baths, floors, dusting throughout."
+  - name: "Large Home Clean (2,000–3,500 sqft)"
+    category: service
+    price: 265
+    cost: 105
+    duration_min: 210
+    description: "Standard clean for larger homes; team of two for efficiency."
+  - name: "Deep Clean (first-time)"
+    category: service
+    price: 349
+    cost: 140
+    duration_min: 300
+    description: "Top-to-bottom detail clean required as the first visit before recurring service."
+  - name: "Move-Out / Move-In Clean"
+    category: service
+    price: 399
+    cost: 160
+    duration_min: 360
+    description: "Empty-home detail clean: inside cabinets, appliances, baseboards, windows sills."
+  - name: "Office Clean (per visit)"
+    category: service
+    price: 225
+    cost: 90
+    duration_min: 180
+    description: "Commercial office clean: restrooms, break room, trash, dusting, floors."
+  - name: "Post-Construction Clean"
+    category: service
+    price: 0.35
+    cost: 0.14
+    duration_min: 1
+    description: "Per-sqft dust and debris detail after remodels; priced on walkthrough."
+  - name: "Inside Oven Detail"
+    category: addon
+    price: 45
+    cost: 15
+    duration_min: 30
+    description: "Add-on deep clean of oven interior during any home visit."
+  - name: "Inside Fridge Detail"
+    category: addon
+    price: 35
+    cost: 12
+    duration_min: 25
+    description: "Add-on cleanout and wipe-down of refrigerator interior."
+  - name: "Interior Windows (per home)"
+    category: addon
+    price: 75
+    cost: 25
+    duration_min: 45
+    description: "Streak-free interior window cleaning added to any visit."
+  - name: "Laundry & Fold (per load)"
+    category: addon
+    price: 25
+    cost: 10
+    duration_min: 20
+    description: "Wash, dry and fold one load during the visit."
+  - name: "Recurring Discount (weekly)"
+    category: addon
+    price: 0
+    cost: 0
+    duration_min: 0
+    description: "Weekly recurring clients save a flat $15 per visit off standard pricing."
+  - name: "Pet Hair Surcharge"
+    category: addon
+    price: 25
+    cost: 10
+    duration_min: 15
+    description: "Extra time for heavy pet hair; applied per visit when needed."
+equipment_types:
+  - name: "Vacuum"
+    fields: ["type", "brand", "model", "purchase_date", "last_filter_change", "condition", "assigned_to"]
+  - name: "Cleaning Caddy / Kit"
+    fields: ["kit_id", "contents_checked", "last_restock", "assigned_to"]
+  - name: "Steam Mop / Floor Machine"
+    fields: ["brand", "model", "purchase_date", "last_service", "condition", "assigned_to"]
+  - name: "Company Vehicle"
+    fields: ["make", "model", "year", "mileage", "last_service", "insurance_expires", "assigned_to"]
+appointment_types:
+  - name: "First-Time Deep Clean"
+    duration_min: 300
+    description: "Required first visit; detailed top-to-bottom clean before recurring service."
+  - name: "Recurring Home Clean"
+    duration_min: 150
+    description: "Standard recurring visit; duration adjusts to home size."
+  - name: "Move-Out Clean"
+    duration_min: 360
+    description: "Empty-home detail clean, often scheduled around lease end."
+  - name: "Office Clean"
+    duration_min: 180
+    description: "Commercial visit; can be scheduled after business hours."
+  - name: "Walkthrough / Quote"
+    duration_min: 30
+    description: "In-person or video walkthrough for large homes, offices, or post-construction."
+receptionist_script: |
+  GREETING: "Thanks for calling {shop_name}, your cleaning pros. This is the AI assistant — how can I help you get sparkling today?"
+
+  COMMON CALL TYPES:
+  1. New home cleaning — capture: home size (beds/baths or sqft), pets, first-time deep clean vs recurring, preferred day/time. First visits always book the deep clean.
+  2. Recurring schedule — confirm frequency (weekly/biweekly/monthly), preferred day and arrival window, key/entry instructions.
+  3. Move-out/move-in — capture: move date, home size, empty or furnished, realtor/landlord checklist requirements.
+  4. Office/commercial — capture: square footage, restroom count, frequency, after-hours needs. Offer a walkthrough for larger spaces.
+  5. Existing client changes — look up by name/address/phone; handle reschedules, skips, add-ons, and feedback.
+
+  BOOKING FLOW:
+  1. Determine the service: recurring home, one-time deep clean, move-out, or office.
+  2. Capture home details: bedrooms, bathrooms, sqft if known, pets, special requests (oven, fridge, windows).
+  3. New clients: book the First-Time Deep Clean, then set up the recurring cadence from the second visit.
+  4. Collect: name, callback number, address, entry instructions (key, code, garage, doorman), alarm notes, pet notes.
+  5. Confirm: date, arrival window, pricing, what's included, and the 24-hour cancellation policy.
+  6. Send confirmation text with the checklist of what's included so expectations are clear.
+
+  URGENT HANDLING: Move-out with a lease deadline within 48 hours, pre-event cleaning (party, photos, showing), or post-incident cleanup — flag as priority, offer the soonest opening, and confirm the hard deadline. Standard recurring cleans are NOT urgent.
+
+  AFTER-HOURS: Take the full intake, promise a callback by 9 AM next business day; urgent move-out deadlines get routed to the on-call number for a same-night callback.
+triage:
+  - id: cleaning_service_type
+    question: "What kind of cleaning do you need?"
+    options: ["Recurring home cleaning", "One-time deep clean", "Move-out / move-in", "Office / commercial", "Post-construction"]
+    route: "New home clients route to first-time deep clean; commercial and post-construction route to walkthrough quotes."
+  - id: cleaning_home_size
+    question: "How big is the home?"
+    options: ["Under 1,500 sqft", "1,500–2,500 sqft", "2,500–3,500 sqft", "Over 3,500 sqft"]
+    route: "Sizes pricing and team; over 3,500 sqft gets a walkthrough or video quote."
+  - id: cleaning_frequency
+    question: "How often would you like service?"
+    options: ["Weekly", "Every 2 weeks", "Monthly", "Just this once"]
+    route: "Weekly gets the recurring discount; one-time books deep clean or move-out pricing."
+  - id: cleaning_addons
+    question: "Any extras — inside oven, inside fridge, interior windows, or laundry?"
+    options: ["Inside oven", "Inside fridge", "Interior windows", "Laundry", "None"]
+    route: "Add selected add-ons to the booking and extend duration accordingly."
+  - id: cleaning_access_pets
+    question: "How do we get in, and are there pets we should know about?"
+    options: ["Key on file", "Code/lockbox", "Someone home", "Doorman/concierge"]
+    route: "Record entry method; pets noted for the team with the pet hair surcharge applied if heavy."
+automation_templates:
+  - name: "First-Visit Prep"
+    trigger: "first-time deep clean booked"
+    steps:
+      - "Send SMS: what's included checklist + 'reply with any priorities'"
+      - "24 hours before: reminder with arrival window and team lead name"
+      - "After visit: send 'how did we do' text and propose the recurring schedule"
+      - "If no recurring booked in 7 days, send one follow-up offer"
+  - name: "Recurring Reminders & Skips"
+    trigger: "recurring clean 24 hours out"
+    steps:
+      - "Send SMS reminder: date, arrival window, 'reply SKIP to skip this visit'"
+      - "If SKIP received, cancel the visit and confirm next date"
+      - "After each visit: send completion text with any notes (e.g., 'ran low on paper towels')"
+  - name: "Move-Out Deadline Guard"
+    trigger: "move-out clean booked"
+    steps:
+      - "Confirm the hard deadline (lease end / closing) at booking"
+      - "48 hours before: reminder + request the landlord/realtor checklist if not received"
+      - "After clean: send photo summary text for the client's records"
+      - "Offer to handle any re-clean items within 24 hours free"
+  - name: "Review Request"
+    trigger: "any home clean marked complete"
+    steps:
+      - "2 hours after: SMS review request with Google review link"
+      - "If recurring client leaves 5 stars, enroll in referral program invite"
+      - "Log feedback; route complaints to the manager within 1 hour"
+review_templates:
+  - name: "Home Clean SMS"
+    channel: sms
+    template: "Hi {customer_name}, {tech_name} from {shop_name} here — your home is sparkling! If you loved the clean, a quick review would make our day: {review_link}"
+  - name: "Recurring Client Email"
+    channel: email
+    template: "Subject: Thanks for trusting {shop_name}!\n\nHi {customer_name},\n\n{tech_name} and the team love keeping your home fresh. If our recurring service makes life easier, we'd be so grateful for a review: {review_link}\n\n— {shop_name}"
+  - name: "Move-Out Completion"
+    channel: sms
+    template: "Hi {customer_name}, {tech_name} from {shop_name} — your move-out clean is done and the photo summary is on its way. Good luck with the move! If we nailed it, a review helps future movers find us: {review_link}"

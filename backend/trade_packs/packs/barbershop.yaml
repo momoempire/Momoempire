@@ -1,0 +1,206 @@
+id: barbershop
+trade: Barbershop
+tagline: "Your AI office, preloaded for Barbershops"
+terms:
+  worker: Barber/Stylist
+  worker_plural: Barbers/Stylists
+  shop: barbershop
+  job: appointment
+  job_plural: appointments
+  customer: client
+  customer_plural: clients
+colors:
+  accent: "#C8102E"
+pricebook:
+  - name: Classic Haircut
+    category: service
+    price: 45
+    cost: 12
+    duration_min: 30
+    description: Signature precision cut with wash and style finish.
+  - name: Skin Fade
+    category: service
+    price: 40
+    cost: 10
+    duration_min: 35
+    description: Zero-to-blend fade with razor detail and hot-lather edging.
+  - name: Beard Trim & Shape
+    category: service
+    price: 25
+    cost: 5
+    duration_min: 20
+    description: Sculpted beard shaping with hot towel and balm finish.
+  - name: Hot Towel Shave
+    category: service
+    price: 35
+    cost: 6
+    duration_min: 30
+    description: Traditional straight-razor shave with hot towels and aftercare.
+  - name: Cut + Beard Combo
+    category: service
+    price: 55
+    cost: 12
+    duration_min: 50
+    description: Full haircut plus beard trim and shape — the house favorite.
+  - name: Kids Cut (12 & under)
+    category: service
+    price: 30
+    cost: 8
+    duration_min: 25
+    description: Patient, parent-friendly cut for young clients.
+  - name: Senior Cut
+    category: service
+    price: 30
+    cost: 8
+    duration_min: 25
+    description: Discounted classic cut for clients 65+.
+  - name: Cut + Hot Towel Shave
+    category: service
+    price: 65
+    cost: 14
+    duration_min: 60
+    description: Full cut plus traditional hot towel straight-razor shave.
+  - name: Line-Up / Design
+    category: service
+    price: 20
+    cost: 4
+    duration_min: 15
+    description: Crisp edging and optional freestyle design, no full cut.
+  - name: Grey Blending
+    category: addon
+    price: 30
+    cost: 8
+    duration_min: 20
+    description: Natural-looking grey camouflage color, add-on to any cut.
+  - name: Cut + Express Facial
+    category: service
+    price: 75
+    cost: 15
+    duration_min: 60
+    description: Haircut plus deep-cleanse facial with hot towel.
+  - name: Styling Product (Pomade/Clay)
+    category: part
+    price: 18
+    cost: 6
+    duration_min: 0
+    description: Take-home premium styling product matched to hair type.
+equipment_types:
+  - name: Barber Chair
+    fields: [brand, purchase_date, last_hydraulic_service, condition, station_number]
+  - name: Clipper & Trimmer Set
+    fields: [brand, blade_type, purchase_date, last_sharpening, condition, assigned_barber]
+  - name: Hot Towel Warmer
+    fields: [brand, capacity, purchase_date, last_deep_clean, condition]
+  - name: Station Tools & Mirror
+    fields: [station_number, shears_brand, dryer_model, condition, assigned_barber]
+  - name: Shampoo Backwash Unit
+    fields: [unit_number, install_date, last_plumbing_check, condition]
+  - name: Waiting Area Seating
+    fields: [seat_count, purchase_date, upholstery_condition, condition]
+appointment_types:
+  - name: Haircut
+    duration_min: 30
+    description: Standard cut, wash, and style for returning or new clients.
+  - name: Skin Fade
+    duration_min: 35
+    description: Fade cut with razor detail — extra time for blending.
+  - name: Beard Trim
+    duration_min: 20
+    description: Beard shaping with hot towel, standalone or add-on.
+  - name: Hot Towel Shave
+    duration_min: 30
+    description: Traditional straight-razor shave experience.
+  - name: Consultation
+    duration_min: 15
+    description: Free style consultation for new clients or big changes.
+  - name: Combo Service
+    duration_min: 60
+    description: Cut plus shave or facial — the full experience.
+receptionist_script: |
+  GREETING:
+  "Thanks for calling {shop_name}! This is the {shop_name} assistant. How can I help you today?"
+
+  COMMON CALL TYPES:
+  1. BOOKING A CUT: Ask what service they want (haircut, fade, beard trim, shave, combo),
+     who they'd like (or first available), and when. Offer the next 2-3 open slots.
+  2. PRICE QUESTIONS: Quote the price list confidently. Mention the Cut + Beard Combo
+     ($55) as the best value.
+  3. HOURS & WALK-INS: Give today's hours. If we accept walk-ins, say: "Walk-ins are
+     welcome when a chair is open, but booking ahead guarantees your spot."
+  4. RUNNING LATE: "Thanks for the heads-up! I'll let your barber know. If you're more
+     than 10 minutes late we may need to reschedule to protect the next client."
+  5. CANCELLATION/RESCHEDULE: Find the appointment, confirm the client name and time,
+     then offer new slots. No fee if cancelled 2+ hours ahead.
+
+  BOOKING FLOW:
+  1. Collect: client name, phone number, service, preferred barber, date/time.
+  2. Read back the full summary and confirm before booking.
+  3. Say: "You're all set! We'll text you a reminder the day before. See you then!"
+
+  URGENT HANDLING:
+  - Medical emergency in the shop: call 911 immediately, then notify the owner.
+  - Client injury (nick/cut): stay calm, tell them the barber will apply first aid,
+    offer to reschedule the finish free of charge.
+  - No-show with a chair sitting empty: offer the slot to waitlist clients.
+
+  AFTER-HOURS:
+  "You've reached {shop_name} — we're closed right now. I can book your appointment
+  for the next open day, or you can text us and we'll confirm in the morning.
+  Would you like to book now?"
+triage:
+  - id: cut_type
+    question: What service are you looking for?
+    options: [Haircut, Skin fade, Beard trim, Hot towel shave, Combo service]
+    route: Match to the service and suggest the right appointment length.
+  - id: client_status
+    question: Have you been in before?
+    options: [New client, Returning client, Referred by a friend]
+    route: New clients get a free 15-min style consultation offer; referrals get a thank-you note to the referrer.
+  - id: hair_length
+    question: How would you describe your hair right now?
+    options: [Short, Medium, Long, Very long / thick]
+    route: Long or very long hair books the 45-min extended slot automatically.
+  - id: addons
+    question: Want to add anything to your visit?
+    options: [Grey blending, Express facial, Styling product, Just the cut]
+    route: Add the addon to the booking and adjust the time block.
+  - id: timing
+    question: When do you want to come in?
+    options: [Today, This week, Next week, Just browsing prices]
+    route: Today → check walk-in availability; This/Next week → book; Browsing → quote prices and offer to hold a tentative slot.
+automation_templates:
+  - name: Booking Confirmation + Reminder
+    trigger: appointment booked
+    steps:
+      - "Send SMS confirmation immediately with service, barber, date, and time."
+      - "Send SMS reminder 24 hours before the appointment."
+      - "Send SMS “on my way” check-in prompt 1 hour before."
+      - "If no reply to reminder, flag the slot as unconfirmed for the front desk."
+  - name: No-Show Recovery
+    trigger: client marked as no-show
+    steps:
+      - "Wait 30 minutes, then send a friendly SMS: “Missed you today — everything okay?”"
+      - "Offer one-tap rebooking with the same barber."
+      - "After 2nd no-show in 60 days, require prepayment for future bookings."
+  - name: Rebook Reminder
+    trigger: 35 days after last haircut
+    steps:
+      - "Send SMS: “Time for a fresh cut? Your chair with {tech_name} is waiting.”"
+      - "Include 3 suggested open slots with one-tap booking."
+      - "If no booking in 7 days, send a 10%-off rebook incentive."
+  - name: New Client Welcome
+    trigger: first appointment completed
+    steps:
+      - "Send thank-you SMS 2 hours after the visit."
+      - "Ask for a Google review with a direct link."
+      - "Add to the loyalty list for birthday and holiday promos."
+review_templates:
+  - name: Post-Appointment SMS Review Ask
+    channel: sms
+    template: "Hey {customer_name}! Thanks for visiting {shop_name} today — {tech_name} loved having you in the chair. If you had a great experience, a quick Google review means the world to us: {review_link}"
+  - name: Loyal Client Email Review Ask
+    channel: email
+    template: "Hi {customer_name}, thanks for being part of the {shop_name} family! {tech_name} wanted me to check in — how's the cut holding up? If we've earned it, we'd be grateful for a review: {review_link}. See you at your next visit!"
+  - name: New Client Follow-Up Review Ask
+    channel: sms
+    template: "Hey {customer_name}, it's {shop_name}! How are you feeling about your first cut with {tech_name}? If it was a 5-star visit, tap here to let others know: {review_link}"
