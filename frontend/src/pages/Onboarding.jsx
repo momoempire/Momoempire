@@ -11,6 +11,7 @@ import { api, errMessage } from "@/lib/api";
 import { toast } from "sonner";
 import { Check, ArrowRight, ArrowLeft } from "lucide-react";
 
+import { BRAND_NAME } from "@/config/brand";
 const STEPS = [
   { key: "basics", title: "Basics", description: "Name, industry, a one-liner about your business." },
   { key: "contact", title: "Contact & web", description: "How customers reach you." },
@@ -89,7 +90,7 @@ export default function Onboarding() {
         : form.ai_tone === "friendly" ? "Friendly, upbeat, casual."
         : "Reassuring, calm, no-nonsense.";
       await api.put("/tenants/me", { ai_employee: { name: "Alex", personality: tone, voice: "neutral", greeting: `Hi! Thanks for calling ${form.name}. How can I help?`, enabled: true } });
-      toast.success("Your AI Office is live!");
+      toast.success(`Your ${BRAND_NAME} is live!`);
       nav("/app", { replace: true });
     } catch (err) {
       toast.error(errMessage(err));

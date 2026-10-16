@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Phone, Mail, Globe, Clock } from "lucide-react";
 
+import { BRAND_NAME } from "@/config/brand";
 export default function PublicBusiness() {
   const { slug } = useParams();
   const [biz, setBiz] = useState(null);
@@ -30,7 +31,7 @@ export default function PublicBusiness() {
       <header className="border-b border-border">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <Logo />
-          <Badge variant="outline" className="font-mono text-[11px]">Powered by AI Office</Badge>
+          <Badge variant="outline" className="font-mono text-[11px]">Powered by {BRAND_NAME}</Badge>
         </div>
       </header>
       <section className="max-w-5xl mx-auto px-6 py-16">
