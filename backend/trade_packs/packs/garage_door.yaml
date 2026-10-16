@@ -1,0 +1,180 @@
+id: garage_door
+trade: Garage Door
+tagline: "Your AI office, preloaded for Garage Door"
+terms:
+  worker: Technician
+  worker_plural: Technicians
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#2F6B4F"
+pricebook:
+  - name: Diagnostic / Service Call
+    category: service
+    price: 69.00
+    cost: 28.00
+    duration_min: 45
+    description: "Full door and opener inspection with flat-rate repair options, fee waived with repair"
+  - name: Torsion Spring Replacement (pair)
+    category: part
+    price: 385.00
+    cost: 95.00
+    duration_min: 90
+    description: "Replace both torsion springs with high-cycle pair, includes full tune-up and balance test"
+  - name: Extension Spring Replacement (pair)
+    category: part
+    price: 295.00
+    cost: 70.00
+    duration_min: 75
+    description: "Replace extension spring pair with safety cables, includes tune-up"
+  - name: Opener Install (belt-drive, Wi-Fi)
+    category: part
+    price: 595.00
+    cost: 260.00
+    duration_min: 120
+    description: "Install quiet belt-drive smart opener with battery backup and app setup"
+  - name: Opener Repair (gear / logic board)
+    category: part
+    price: 275.00
+    cost: 85.00
+    duration_min: 60
+    description: "Replace gears or logic board in existing opener, includes safety sensor alignment"
+  - name: Cable Replacement (pair)
+    category: part
+    price: 225.00
+    cost: 40.00
+    duration_min: 60
+    description: "Replace frayed or snapped lift cables, includes drum inspection"
+  - name: Roller Replacement (full set, nylon)
+    category: part
+    price: 245.00
+    cost: 60.00
+    duration_min: 60
+    description: "Replace all rollers with quiet nylon ball-bearing rollers"
+  - name: Tune-Up / Preventive Maintenance
+    category: service
+    price: 99.00
+    cost: 25.00
+    duration_min: 45
+    description: "Lube, tighten, balance, and safety-check entire door system (25-point checklist)"
+  - name: Keypad / Remote Programming
+    category: addon
+    price: 85.00
+    cost: 20.00
+    duration_min: 20
+    description: "Add-on: install and program wireless keypad or remotes"
+  - name: Weather Seal Replacement (bottom)
+    category: addon
+    price: 145.00
+    cost: 35.00
+    duration_min: 30
+    description: "Add-on: replace bottom rubber seal to block drafts, water, and pests"
+  - name: Safety Sensor Replacement (pair)
+    category: addon
+    price: 165.00
+    cost: 45.00
+    duration_min: 30
+    description: "Add-on: replace misaligned or failed photo-eye safety sensors"
+equipment_types:
+  - name: Garage Door
+    fields: [material, width_ft, height_ft, install_year, spring_type, opener_brand, last_tuneup_date]
+  - name: Garage Door Opener
+    fields: [brand, model, install_year, drive_type, horsepower, wifi_connected, battery_backup]
+  - name: Commercial Overhead Door
+    fields: [width_ft, height_ft, material, spring_type, install_year, opener_brand, last_service_date]
+appointment_types:
+  - name: Diagnostic Visit
+    duration_min: 45
+    description: "Inspect door and opener, present flat-rate repair options"
+  - name: Spring Replacement
+    duration_min: 90
+    description: "Replace broken torsion or extension springs with tune-up"
+  - name: Opener Installation
+    duration_min: 120
+    description: "Install new smart opener with app setup"
+  - name: New Door Estimate
+    duration_min: 60
+    description: "Free estimate for full door replacement with style options"
+  - name: Tune-Up Visit
+    duration_min: 45
+    description: "Preventive 25-point tune-up and safety check"
+receptionist_script: |
+  GREETING: "Thanks for calling {shop_name}, this is Momo, your virtual assistant. What's going on with your garage door today?"
+
+  COMMON CALL TYPES:
+  1. DOOR WON'T OPEN / SPRING BROKEN: Ask: "Do you hear the opener running but the door doesn't move? Do you see a gap in the spring above the door, or a loud bang earlier?" Then: "That sounds like a broken spring — very common. Important: don't try to force the door or keep running the opener; it can burn out the motor or snap a cable. A spring replacement is $385 for the pair with a full tune-up. I can get someone out today — is your car stuck inside?"
+  2. DOOR WON'T CLOSE / REVERSES: Ask: "Does it go down partway then come back up? Check the small sensors near the floor on each side — is one of the lights off or blinking?" Then: "Try wiping the sensor lenses and making sure nothing's blocking them. If that doesn't fix it, I'll book a service visit — sensors are often a quick fix."
+  3. NOISY DOOR: Say: "Grinding or squeaking usually means worn rollers or dry hardware. Our $99 tune-up covers lubrication, tightening, and a full safety check — and we can swap in quiet nylon rollers for $245. Want me to book that?"
+  4. OPENER NOT WORKING: Ask: "Is the opener completely dead, or does it hum/click? Try the wall button — if the wall button works but the remote doesn't, it's likely just batteries." Then book as needed.
+  5. NEW DOOR QUOTE: Say: "We do free estimates for door replacements — about an hour, we'll show you style and insulation options and give a firm price. What size is the door, single or double?"
+
+  BOOKING FLOW — always ask in this order:
+  1. "What's your name and the best callback number?"
+  2. "What's the service address?"
+  3. "What's the door doing — stuck, noisy, won't close, opener dead?"
+  4. "Is a car stuck in the garage, or can you get in and out another way?"
+  5. Confirm: "So I have [NAME] at [ADDRESS] for a [VISIT TYPE] on [DATE] between [WINDOW]. The $69 service call is waived with any repair. You'll get a text when the technician is on the way. Sound good?"
+
+  EMERGENCY / URGENT HANDLING:
+  - Broken spring with car trapped, or door stuck open (security risk): same-day priority. "We'll make you today's priority — a door stuck open is a security issue."
+  - Door off track or hanging crooked: "Don't operate it at all — a door off its tracks can fall. Keep people and cars clear until we arrive."
+  - NEVER tell a caller to adjust or replace springs themselves — springs are under lethal tension. "Springs are extremely dangerous to handle — please leave that to our technician."
+  - After-hours: stuck-open doors and trapped cars get the on-call tech; noisy doors wait for morning.
+
+  AFTER-HOURS BEHAVIOR: "You've reached {shop_name} after hours. If your door is stuck open, off its tracks, or your car is trapped, I can reach our on-call technician now. For noise or minor issues, leave your details and we'll call first thing in the morning. Which is it?"
+triage:
+  - id: spring_check
+    question: "Look at the spring above the door (torsion) or along the sides (extension) — do you see a visible gap or break in the spring?"
+    options: ["Yes — visible gap in spring", "Heard a loud bang earlier", "No visible break", "Not sure / can't see it"]
+    route: "Visible gap or bang: broken spring — book spring replacement today, warn not to operate door"
+  - id: door_stuck_position
+    question: "Where is the door stuck — fully closed, partially open, or fully open?"
+    options: ["Fully closed, won't open", "Partially open", "Fully open, won't close", "Crooked / off track"]
+    route: "Stuck open or off track: urgent same-day (security/safety); stuck closed: schedule next available"
+  - id: opener_vs_door
+    question: "When you press the button, does the opener motor run (you hear it) or is it completely silent?"
+    options: ["Motor runs, door doesn't move", "Completely silent", "Clicks or hums briefly", "Works with wall button, not remote"]
+    route: "Motor runs but no movement: likely spring/cable — urgent; silent: check outlet/GFCI then book; remote only: batteries/reprogram"
+  - id: sensor_check
+    question: "For a door that won't close: look at the two small sensors near the floor — are both indicator lights solid?"
+    options: ["Both solid", "One off or blinking", "Can't find the sensors", "Door closes fine, different issue"]
+    route: "Blinking/off: walk through wipe/align; if still failing, book sensor service"
+automation_templates:
+  - name: Annual Tune-Up Reminder
+    trigger: "12 months after install or last tune-up"
+    steps:
+      - "Send SMS: $99 tune-up reminder with spring-safety explainer"
+      - "One-tap booking; batch by neighborhood for route efficiency"
+      - "After visit, update spring age and reset timer"
+      - "Flag doors 7+ years on original springs for proactive replacement offer"
+  - name: Broken-Spring Seasonal Push
+    trigger: "First cold snap of fall (springs break most in cold weather)"
+    steps:
+      - "Send SMS to customers with 7+ year-old springs: cold-weather break warning"
+      - "Offer preventive spring replacement at campaign price"
+      - "Prioritize bookings; track conversion rate"
+  - name: Post-Install Review + Referral
+    trigger: "New door or opener install marked complete"
+    steps:
+      - "Send photo of finished install via MMS with thank-you"
+      - "Request review 24 hours later"
+      - "Send referral offer: $50 for each neighbor who books"
+  - name: Abandoned Estimate Follow-Up
+    trigger: "Estimate given, no decision in 5 days"
+    steps:
+      - "Send SMS: 'Questions about your door options?'"
+      - "Email: side-by-side comparison of quoted options"
+      - "Offer to beat any licensed competitor quote by 5%"
+review_templates:
+  - name: Post-Repair SMS Review
+    channel: sms
+    template: "Hi {customer_name}! {tech_name} from {shop_name} just got your garage door working again. If it's running smooth and quiet, we'd love a quick review: {review_link} — thanks for calling {shop_name}!"
+  - name: New Door Email Review
+    channel: email
+    template: "Hi {customer_name}, your new garage door looks fantastic — thanks for choosing {shop_name}! {tech_name} and the crew hope you love it. If you're happy, please share your experience: {review_link}. Your warranty details are attached."
+  - name: Emergency Fix SMS Review
+    channel: sms
+    template: "Hi {customer_name}, glad we could get you unstuck today! If {shop_name} saved the day, a quick review would mean a lot: {review_link} — {tech_name}"

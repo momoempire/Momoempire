@@ -1,0 +1,182 @@
+id: junk_removal
+trade: Junk Removal
+tagline: "Your AI office, preloaded for Junk Removal"
+terms:
+  worker: Crew Lead
+  worker_plural: Crew Leads
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#16A34A"
+pricebook:
+  - name: Minimum Load (up to 1/8 truck)
+    category: service
+    price: 149
+    cost: 50
+    duration_min: 45
+    description: A few items — small furniture, boxes, or a single appliance — loaded and hauled same visit.
+  - name: Quarter Truck Load
+    category: service
+    price: 275
+    cost: 90
+    duration_min: 60
+    description: Roughly 2 cubic yards — a room's worth of clutter, garage corner, or small cleanout.
+  - name: Half Truck Load
+    category: service
+    price: 449
+    cost: 150
+    duration_min: 90
+    description: Roughly 4 cubic yards — basement section, office cleanout, or several furniture pieces.
+  - name: Full Truck Load
+    category: service
+    price: 749
+    cost: 250
+    duration_min: 150
+    description: Roughly 8 cubic yards — whole-room or multi-room cleanout in a single trip.
+  - name: Furniture Removal (per piece)
+    category: service
+    price: 99
+    cost: 30
+    duration_min: 30
+    description: Sofa, dresser, desk, or similar — carried out, donated or recycled where possible.
+  - name: Appliance Removal (per appliance)
+    category: service
+    price: 119
+    cost: 40
+    duration_min: 30
+    description: Washer, dryer, fridge (freon handled), or stove disconnected and hauled.
+  - name: Mattress & Box Spring Removal
+    category: service
+    price: 139
+    cost: 45
+    duration_min: 30
+    description: Mattress set removed and routed to recycling programs where available.
+  - name: Hot Tub Removal
+    category: service
+    price: 599
+    cost: 200
+    duration_min: 180
+    description: Hot tub disconnected, cut down, and hauled — electrical disconnect included.
+  - name: Yard Debris Load (per truckload)
+    category: service
+    price: 399
+    cost: 130
+    duration_min: 120
+    description: Branches, brush, and storm debris loaded curbside or from the yard.
+  - name: Estate Cleanout Day (crew of 2)
+    category: service
+    price: 1199
+    cost: 400
+    duration_min: 480
+    description: Full-day two-person crew for estate, eviction, or hoarding-level cleanouts with donation sorting.
+  - name: Same-Day Priority Pickup
+    category: addon
+    price: 75
+    cost: 15
+    duration_min: 15
+    description: Jump-the-line scheduling for pickups needed today.
+  - name: Light Demolition (per hour)
+    category: labor
+    price: 150
+    cost: 60
+    duration_min: 60
+    description: Shed teardown, deck board removal, or interior strip-out labor billed hourly.
+equipment_types:
+  - name: Trucks
+    fields: [unit_id, box_volume_cy, liftgate_equipped, odometer, last_service_date, crew_capacity]
+  - name: Trailers
+    fields: [unit_id, bed_volume_cy, assigned_truck, last_inspection_date]
+  - name: Dumpster Inventory
+    fields: [size_cy, unit_id, location, status, scheduled_pickup]
+  - name: Hand Tools & Dolly Sets
+    fields: [set_id, contents, assigned_truck, condition, last_checked]
+  - name: Disposal & Donation Sites
+    fields: [site_name, site_type, tipping_fee, materials_accepted, hours]
+appointment_types:
+  - name: Volume Estimate Visit
+    duration_min: 30
+    description: On-site look at the pile with a firm, all-in price before anything is touched.
+  - name: Pickup Appointment
+    duration_min: 60
+    description: Standard two-hour arrival window pickup with on-site volume pricing.
+  - name: Estate Cleanout Day
+    duration_min: 480
+    description: Full-day crew for large cleanouts with sorting for donation and recycling.
+  - name: Commercial Recurring Pickup
+    duration_min: 90
+    description: Scheduled recurring pickup for offices, retail, or property managers.
+receptionist_script: |
+  Greeting: "Thanks for calling {shop_name}, this is the AI assistant. What are we hauling away for you today?"
+
+  Common call types and what to do:
+  - General junk pile: ask what the items are and roughly how much — a pickup bed, a room, a garage. Give the volume ballpark (minimum $149, quarter truck $275, half $449, full $749) and book a Pickup Appointment or an Estimate Visit for bigger piles.
+  - Furniture or appliance: confirm the item, which floor it is on, and whether stairs or a tight hallway are involved. Stairs add labor — say so plainly. Book the pickup.
+  - Estate or eviction cleanout: express condolences briefly if it is an estate. Ask about access, timeline, and whether anything must be kept or sorted. Book an Estimate Visit first — never quote big cleanouts sight unseen.
+  - Yard debris or storm cleanup: confirm it is piled curbside or still scattered, and whether any of it is over 6 inches in diameter. Book the pickup.
+  - Commercial/property manager: ask pickup frequency, dumpster or curbside, and whether a certificate of insurance is needed. Route to the shop owner for recurring pricing.
+
+  Booking flow:
+  1. Capture name, address, phone, and email.
+  2. Confirm item list, volume estimate, stairs/elevator access, and parking for the truck.
+  3. Book the slot with a two-hour arrival window; text confirmation with the crew lead's name day-of.
+  4. Remind them: point and it's gone — they don't lift a thing.
+
+  Urgent handling: same-day requests get the Same-Day Priority add-on ($75) quoted up front. Eviction lockouts with a hard deadline get first-available routing and the shop owner flagged.
+
+  Hazardous items: paint, chemicals, asbestos, fuel, and medical waste cannot go on our trucks. Say so directly and offer the county hazardous-waste drop-off info instead.
+
+  After-hours: "Thanks for calling {shop_name}. Leave your name, address, and what needs hauling — and snap a photo if you can, it helps us price it. We'll text you a quote and a pickup slot first thing in the morning."
+triage:
+  - id: volume_estimate
+    question: About how much stuff are we talking?
+    options: [A few items, About a pickup truck bed, A room full, A garage or basement full, A whole house or estate]
+    route: Log volume_estimate; 'whole house or estate' routes to a free Estimate Visit instead of phone quoting.
+  - id: access
+    question: Where is the stuff, and how do we get to it?
+    options: ["Ground floor — easy access", "Upstairs with stairs", "Elevator building", "Curbside already", "Tight hallways or long carry"]
+    route: Log access notes for the crew; stairs or long carries flag the labor surcharge to be confirmed on site.
+  - id: hazardous_check
+    question: Is any of it paint, chemicals, fuel, asbestos, or medical waste?
+    options: ["No — none of that", "Yes — some paint or chemicals", "Not sure"]
+    route: Any 'yes' gets the hazardous-materials refusal script plus county drop-off info; 'not sure' flags the crew lead to verify on arrival.
+  - id: timeline
+    question: When do you need it gone?
+    options: [Today if possible, This week, Just getting quotes, Flexible]
+    route: Today routes to the Same-Day Priority add-on quote; quotes trigger the estimate-visit offer for larger volumes.
+automation_templates:
+  - name: Quote to Book Follow-up
+    trigger: estimate_visit_completed
+    steps:
+      - Text the firm all-in quote with photos of the pile within 2 hours of the visit.
+      - Offer one-tap booking of the pickup slot.
+      - Follow up on day 2 if not booked.
+      - Day 5: offer a 10% book-this-week nudge.
+      - After 14 days, mark dormant and add to the spring-cleaning campaign list.
+  - name: Same-Day Dispatch Flow
+    trigger: same_day_pickup_requested
+    steps:
+      - Check crew capacity and nearest truck by GPS.
+      - Text the customer a firm arrival window within 15 minutes.
+      - Send the crew lead's name and photo when dispatched.
+      - After completion, text the before/after photos and the final volume price.
+      - Trigger the review request automation.
+  - name: Donation Receipt Follow-up
+    trigger: job_completed_with_donations
+    steps:
+      - Log which items were donated and to which charity partner.
+      - Email the customer the donation receipt for their taxes within 48 hours.
+      - Include a note on pounds diverted from landfill — customers love this.
+      - Ask for a review highlighting the eco-friendly angle.
+review_templates:
+  - name: Post-Pickup Review Request
+    channel: sms
+    template: "Hi {customer_name}, the {shop_name} crew just cleared it out — before-and-after photos attached. If {tech_name} made it easy, would you leave us a quick review? {review_link} Thanks for letting us do the heavy lifting!"
+  - name: Estate Cleanout Review
+    channel: email
+    template: "Subject: Thank you for trusting us, {customer_name}\n\nHi {customer_name},\n\nCleanouts are never easy, and we appreciate you trusting {shop_name} with it. If the crew was respectful and thorough, a review here helps other families find us: {review_link}\n\n— {tech_name} and the {shop_name} team"
+  - name: Commercial Client Review
+    channel: sms
+    template: "{customer_name}, another pickup done — thanks for keeping {shop_name} on your rotation. If {tech_name} and the crew are earning it, a review keeps them motivated: {review_link}"

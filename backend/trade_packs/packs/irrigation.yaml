@@ -1,0 +1,183 @@
+id: irrigation
+trade: Irrigation
+tagline: "Your AI office, preloaded for Irrigation"
+terms:
+  worker: Technician
+  worker_plural: Technicians
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#0284C7"
+pricebook:
+  - name: Sprinkler System Checkup
+    category: service
+    price: 129
+    cost: 40
+    duration_min: 60
+    description: "Full-zone walkthrough: head alignment, arc adjustment, leak check, and a written health report."
+  - name: Spring Start-Up (per zone)
+    category: service
+    price: 22
+    cost: 7
+    duration_min: 90
+    description: Pressurize the system, test every zone, replace winter-damaged heads, and set the schedule.
+  - name: Winterization Blowout (per zone)
+    category: service
+    price: 18
+    cost: 6
+    duration_min: 75
+    description: Compressed-air blowout of every zone to prevent freeze damage, plus controller shutdown.
+  - name: Head Replacement (per head)
+    category: service
+    price: 65
+    cost: 20
+    duration_min: 30
+    description: Broken or sunken head swapped, leveled, and re-aimed for even coverage.
+  - name: Smart Controller Install
+    category: service
+    price: 399
+    cost: 150
+    duration_min: 90
+    description: WiFi smart controller wired in, weather-based scheduling enabled, and the app handed over.
+  - name: Valve Repair (per valve)
+    category: service
+    price: 185
+    cost: 60
+    duration_min: 60
+    description: Weeping or stuck valve rebuilt or replaced with flow verified across the zone.
+  - name: Drip Line Install (per 100 ft)
+    category: service
+    price: 275
+    cost: 100
+    duration_min: 120
+    description: Efficient drip tubing for beds and borders — less water, healthier plants.
+  - name: New Zone Install
+    category: service
+    price: 950
+    cost: 380
+    duration_min: 240
+    description: Additional zone trenched, piped, wired, and tied into the controller with matched heads.
+  - name: Full System Install (6-8 zones)
+    category: service
+    price: 5200
+    cost: 2200
+    duration_min: 720
+    description: "Complete 6-to-8-zone system: design, trenching, heads, valves, controller, and first-season tuning."
+  - name: Backflow Preventer Install & Test
+    category: service
+    price: 325
+    cost: 110
+    duration_min: 60
+    description: Code-required backflow device installed and certified-tested for the water authority.
+  - name: Rain / Freeze Sensor Add-on
+    category: addon
+    price: 149
+    cost: 50
+    duration_min: 30
+    description: Sensor that pauses watering in rain or freezing temps — pays for itself in one season.
+  - name: Water-Efficiency Audit
+    category: service
+    price: 199
+    cost: 60
+    duration_min: 90
+    description: Catch-cup uniformity test with a written report showing exactly where water — and money — is wasted.
+equipment_types:
+  - name: Sprinkler Head Inventory
+    fields: [brand, head_type, radius_ft, arc, stock_count]
+  - name: Controller Models
+    fields: [brand, model, zone_capacity, wifi_enabled, stock_count]
+  - name: Pipe & Fitting Stock
+    fields: [material, diameter_in, length_ft, count_on_hand, warehouse_location]
+  - name: Trenchers
+    fields: [unit_id, dig_depth_in, engine_hours, last_service_date, assigned_technician]
+  - name: Backflow Test Gauges
+    fields: [gauge_id, calibration_due_date, assigned_technician, condition]
+appointment_types:
+  - name: System Checkup
+    duration_min: 60
+    description: Zone-by-zone inspection with a written health report and prioritized fixes.
+  - name: Spring Start-Up Visit
+    duration_min: 90
+    description: System pressurization, head check, and schedule programming for the season.
+  - name: Winterization Visit
+    duration_min: 75
+    description: Full blowout of all zones and controller winter shutdown.
+  - name: Repair Call
+    duration_min: 90
+    description: Diagnostics and repair for dry spots, leaks, stuck zones, or controller faults.
+  - name: New System Consult
+    duration_min: 60
+    description: Yard walk, zone design, water-pressure test, and a written install quote.
+receptionist_script: |
+  Greeting: "Thanks for calling {shop_name}, this is the AI assistant. Is your sprinkler system acting up, or are we getting you set up for the season?"
+
+  Common call types and what to do:
+  - Dry spots or brown patches: ask which area of the yard and whether the heads pop up there. Likely a clogged, broken, or mis-aimed head — book a Repair Call. Mention the $65-per-head typical fix so there is no sticker shock.
+  - Zone not coming on: ask if the controller shows an error or a blank display, and whether other zones run. Walk them through checking the rain sensor bypass only if comfortable; otherwise book a Repair Call within 3 days.
+  - Leak or water pooling: ask where the water is surfacing and whether the system is currently running. If it is a gushing main-line break, tell them how to shut off the irrigation valve and book priority service.
+  - High water bill: empathize, offer the Water-Efficiency Audit ($199) — frame it as finding where the money is going. Book the audit.
+  - Spring start-up or winterization: confirm the number of zones if known and book the seasonal visit. Offer the seasonal plan covering both visits at a bundle price.
+  - New system quote: ask lot size, water source (city or well), and whether there are beds needing drip. Book a New System Consult.
+
+  Booking flow:
+  1. Capture name, address, phone, and email.
+  2. Confirm zone count, controller brand if known, and water source.
+  3. Book the slot and text confirmation with the controller-location note (technician needs access to it).
+  4. Note gate codes, dogs, and locked side gates.
+
+  Urgent handling: main-line break flooding the yard or water running into the street = urgent. Give the shutoff instructions, book the soonest slot, and flag the shop owner.
+
+  After-hours: "Thanks for calling {shop_name}. If water is flooding your yard right now, shut off the irrigation valve — it's usually near the meter or in a green box by the house — then leave us a message and we'll prioritize you first thing in the morning. Otherwise, tell us what's going on with the system and we'll call you back with a slot."
+triage:
+  - id: zone_count
+    question: About how many sprinkler zones does your system have?
+    options: [1–4 zones, 5–8 zones, 9–12 zones, More than 12, Not sure]
+    route: Log zone_count for seasonal pricing and visit duration; 'not sure' flags the technician to count zones on arrival.
+  - id: coverage_issue
+    question: What is the system doing wrong?
+    options: [Dry spots or brown patches, Heads not popping up, Water pooling or leaking, One zone won't run, Controller display blank or error]
+    route: Pooling/leaking routes to priority scheduling with shutoff guidance; controller issues flag the controller brand question next.
+  - id: controller_type
+    question: What kind of controller do you have?
+    options: [Smart WiFi controller, Older dial/timer controller, Don't know, No controller — manual valves]
+    route: Log controller_type; dial/timer or manual flags the Smart Controller Install upsell in the visit prep.
+  - id: water_source
+    question: Where does the system get its water?
+    options: [City water, Private well, Reclaimed / reuse water, Not sure]
+    route: Log water_source; well or reclaimed flags filtration and pressure notes for the technician.
+automation_templates:
+  - name: Spring Start-Up Campaign
+    trigger: spring_startup_season_start
+    steps:
+      - Pull all customers with zones on file from last season.
+      - Text the start-up offer with per-zone pricing and one-tap booking.
+      - Auto-schedule in route order by neighborhood to cut drive time.
+      - Day-before reminder text with the controller-access note.
+      - Post-visit: send the zone health report and flag any recommended repairs.
+  - name: Winterization Reminder Flow
+    trigger: first_freeze_forecast_21_days
+    steps:
+      - Text customers in freeze-risk zip codes: freeze is coming, book the blowout.
+      - Offer the bundle price for customers who did spring start-up.
+      - Book directly from the reply; overbooked days open a waitlist.
+      - Post-visit: send the winter shutdown confirmation and spring reactivation link.
+  - name: Leak Alert Follow-up
+    trigger: repair_call_completed_leak
+    steps:
+      - Send the repair summary with photos of the fixed leak.
+      - Include the estimated water savings from the fix.
+      - Day 14: check-in text — "Bill back to normal? Any wet spots returning?"
+      - Offer the water-efficiency audit if the bill is still high.
+review_templates:
+  - name: Post-Repair Review Request
+    channel: sms
+    template: "Hi {customer_name}, {tech_name} from {shop_name} here — your system is running clean and every zone checked out. If the fix was fast and fairly priced, would you leave us a review? {review_link} Thanks!"
+  - name: Seasonal Service Review
+    channel: email
+    template: "Subject: Your sprinklers are season-ready, {customer_name}\n\nHi {customer_name},\n\nYour {shop_name} {season} service is done — zones tested, heads tuned, schedule set. If {tech_name} keeps your yard green without the water bill shock, we'd appreciate a review: {review_link}\n\nThanks,\n{shop_name}"
+  - name: New Install Review
+    channel: sms
+    template: "{customer_name}, your new irrigation system is in and the first watering cycle ran perfectly. If {tech_name} and the crew left the yard looking untouched, a review means a lot: {review_link} — {shop_name}"
