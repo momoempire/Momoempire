@@ -1,0 +1,211 @@
+id: kitchen_bath
+trade: Kitchen & Bath Remodeling
+tagline: "Your AI office, preloaded for Kitchen & Bath remodelers"
+terms:
+  worker: Designer
+  worker_plural: Designers
+  shop: business
+  job: project
+  job_plural: projects
+  customer: client
+  customer_plural: clients
+colors:
+  accent: "#0E7490"
+pricebook:
+  - name: Design Consultation (credited toward project)
+    category: service
+    price: 250
+    cost: 75
+    duration_min: 90
+    description: In-home consult with measurements; fee credited if you build with us.
+  - name: Full Kitchen Remodel
+    category: service
+    price: 25000
+    cost: 17000
+    duration_min: 2400
+    description: "Design-to-done kitchen: cabinets, counters, plumbing, electrical, flooring."
+  - name: Kitchen Refresh (reface + paint)
+    category: service
+    price: 8500
+    cost: 5200
+    duration_min: 1200
+    description: Cabinet refacing, new hardware, paint, and backsplash — no demo.
+  - name: Full Bathroom Remodel
+    category: service
+    price: 15000
+    cost: 9800
+    duration_min: 1800
+    description: "Complete bath renovation: tile, fixtures, vanity, lighting, plumbing."
+  - name: Tub-to-Shower Conversion
+    category: service
+    price: 9500
+    cost: 6500
+    duration_min: 1200
+    description: Remove the tub, install a walk-in shower with new tile and glass.
+  - name: Countertop Template & Install
+    category: service
+    price: 3200
+    cost: 2100
+    duration_min: 240
+    description: Laser template, fabrication coordination, and professional set.
+  - name: Backsplash Installation
+    category: service
+    price: 1800
+    cost: 950
+    duration_min: 480
+    description: Tile backsplash with premium grout and sealed finish.
+  - name: Cabinet Installation (labor)
+    category: labor
+    price: 3200
+    cost: 1400
+    duration_min: 960
+    description: Level, plumb, and secure cabinet boxes; doors and drawers tuned.
+  - name: Fixture Install Package
+    category: addon
+    price: 450
+    cost: 180
+    duration_min: 180
+    description: Faucets, showerheads, and accessories installed and tested.
+  - name: 3D Design Rendering
+    category: addon
+    price: 500
+    cost: 120
+    duration_min: 0
+    description: Photorealistic 3D views of your new space before we build.
+  - name: Powder Room Mini-Makeover
+    category: service
+    price: 4500
+    cost: 2800
+    duration_min: 720
+    description: Vanity, toilet, mirror, lighting, and paint in one week.
+equipment_types:
+  - name: Design Software Seat
+    fields: [app_name, plan, monthly_cost, renewal_date, seats, assigned_designer]
+  - name: Tile Wet Saw
+    fields: [brand, blade_size_in, purchase_date, last_blade_change, condition]
+  - name: Cabinet Install Jig Set
+    fields: [brand, purchase_date, condition, assigned_crew]
+  - name: Dust Control System
+    fields: [brand, filter_type, last_filter_change, condition]
+  - name: Showroom Display
+    fields: [display_name, location, install_date, refresh_date, condition]
+  - name: Project Truck / Trailer
+    fields: [make_model, year, mileage, insurance_renewal, condition]
+appointment_types:
+  - name: Design Consultation
+    duration_min: 90
+    description: "In-home meeting: goals, budget, measurements, and next steps."
+  - name: Showroom Visit
+    duration_min: 60
+    description: Walk the showroom to touch materials and narrow selections.
+  - name: In-Home Measure
+    duration_min: 60
+    description: Laser-precise measurements for the final quote.
+  - name: Material Selection
+    duration_min: 120
+    description: Guided selection of cabinets, counters, tile, and fixtures.
+  - name: Progress Walkthrough
+    duration_min: 30
+    description: Mid-project check-in with the project manager.
+  - name: Final Walkthrough
+    duration_min: 60
+    description: Punch-list review and care-instruction handoff.
+receptionist_script: |
+  GREETING:
+  "Thanks for calling {shop_name}! This is the {shop_name} assistant. Are you
+  dreaming about a new kitchen, a new bathroom, or both?"
+
+  COMMON CALL TYPES:
+  1. NEW REMODEL INQUIRY: Ask which room(s), what bothers them about the current
+     space, budget range, and ideal timeline. Book a design consultation.
+  2. PRICE QUESTIONS: Give honest ranges — "Most of our full kitchens land
+     between $20k and $40k depending on selections." Never quote a firm number
+     sight unseen; the consultation and measure produce the real quote.
+  3. EXISTING PROJECT STATUS: Look up the project, report the current phase
+     and next milestone date. If there's a delay, be honest and give the new date.
+  4. WARRANTY / CALLBACK: Ask what's wrong and when it started. Schedule a
+     warranty visit promptly — callbacks are reputation-critical.
+  5. FINANCING QUESTIONS: Explain our financing partners and typical terms;
+     offer to include a financing application with the proposal.
+
+  BOOKING FLOW:
+  1. Collect: name, phone, email, project address, room(s), budget range, timeline.
+  2. Book the design consultation ($250, credited toward the project).
+  3. Send confirmation with what to prepare (inspiration photos, must-haves).
+  4. Say: "Your designer will call the day before to confirm. Bring any photos
+     you love — even messy phone screenshots help!"
+
+  URGENT HANDLING:
+  - Active leak from our recent work: dispatch a warranty tech same-day, advise
+    shutting the water valve, document everything with photos.
+  - Client mid-project crisis (dust, noise, schedule): empathize, connect them
+    to the project manager within the hour, offer a written updated timeline.
+  - Permit/inspection failure: reassure, explain the fix, and reschedule the
+    inspection — never let the client call the inspector themselves.
+
+  AFTER-HOURS:
+  "You've reached {shop_name} — our design team is off for the day, but I can
+  book your design consultation right now or take your project details for a
+  callback tomorrow morning. If this is an urgent issue with an active project,
+  say 'urgent' and I'll page the project manager."
+triage:
+  - id: remodel_scope
+    question: What's the scope of your project?
+    options: [Full kitchen, Full bathroom, Tub-to-shower conversion, Kitchen refresh, Multiple rooms]
+    route: Full remodels → senior designer; refresh/conversion → fast-track track.
+  - id: budget_range
+    question: What's your comfortable budget range?
+    options: [Under $10k, $10k-$25k, $25k-$50k, $50k+]
+    route: Under $10k → refresh and mini-makeover options; $25k+ → full custom design track.
+  - id: timeline
+    question: When would you like the work done?
+    options: [ASAP, 1-3 months, 3-6 months, Just planning ahead]
+    route: ASAP → check crew availability before promising; planning → nurture with portfolio content.
+  - id: financing
+    question: Would financing options be helpful?
+    options: [Yes, send me options, No, paying cash, Maybe — tell me more]
+    route: Yes/Maybe → attach financing info to the proposal automatically.
+  - id: decision_process
+    question: Who's involved in the decision?
+    options: [Just me, Me and my partner, A contractor/GC, An HOA or board]
+    route: Partner → invite both to the consultation; HOA → flag approval lead time early.
+automation_templates:
+  - name: Consultation Follow-Up to Proposal
+    trigger: design consultation completed
+    steps:
+      - "Send thank-you SMS within 2 hours with the designer's direct line."
+      - "Deliver the 3D rendering and itemized proposal within 5 business days."
+      - "Follow up at day 3 and day 7 if the proposal is unopened."
+      - "On acceptance, send the contract, deposit invoice, and permit checklist."
+      - "Add non-converters to the monthly portfolio inspiration email."
+  - name: Project Milestone Updates
+    trigger: project phase changes
+    steps:
+      - "Text the client with the new phase and what's happening this week."
+      - "Share 2-3 progress photos automatically."
+      - "Flag any selection deadlines (tile, fixtures) 7 days out."
+      - "After each phase, request a quick satisfaction check."
+  - name: Material Lead-Time Watch
+    trigger: materials ordered
+    steps:
+      - "Track vendor lead times against the project schedule."
+      - "Alert the project manager if any item slips past the install date."
+      - "Notify the client proactively with the adjusted timeline."
+      - "Suggest in-stock alternates if a delay exceeds 2 weeks."
+  - name: Final Walkthrough to Referral
+    trigger: final walkthrough completed
+    steps:
+      - "Send the punch-list summary and warranty documentation."
+      - "Deliver before/after photos for the client to share."
+      - "Ask for a Google/Houzz review with a direct link."
+      - "Enroll in the referral program ($250 credit per signed referral)."
+review_templates:
+  - name: Post-Walkthrough Email Review Ask
+    channel: email
+    template: "Hi {customer_name}, your new space is officially yours! {tech_name} and the whole {shop_name} crew loved bringing your vision to life. I've attached your before-and-after photos — feel free to show them off! If you love the result, a review here would mean everything to us: {review_link}"
+  - name: Final Walkthrough SMS Review Ask
+    channel: sms
+    template: "Hey {customer_name}, it's {tech_name} from {shop_name} — congrats on the beautiful new {room}! If we earned 5 stars, tap here to share the love: {review_link}. Enjoy every minute in it!"
+  - name: Warranty Check-In Review Ask
+    channel: email
+    template: "Hi {customer_name}, it's been 6 months since {shop_name} finished your project, and {tech_name} wanted to check in — how is everything holding up? If anything needs attention, just reply and we'll make it right. And if you're still loving it, a review would be wonderful: {review_link}"
