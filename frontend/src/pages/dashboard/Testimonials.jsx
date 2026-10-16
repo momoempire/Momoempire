@@ -34,7 +34,12 @@ export default function Testimonials() {
     } catch (e) { toast.error(errMessage(e)); }
   }
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [filter]);
+  // Reload only when the filter changes (load is recreated every render). The old inline
+  // disable comment sat on the wrong line, so the warning still fired.
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter]);
 
   async function seed() {
     if (!form.customer_name || !form.original_text) return toast.error("Name + review text required");
