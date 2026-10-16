@@ -1,0 +1,504 @@
+/* LeadAssistant (Mae) — landing-page AI assistant mascot.
+   v2: full-body character on a bottom stage. Locomotion is a JS stepper writing
+   translate3d to .mae-walker (smoothed by its CSS transition); all limb motion is
+   CSS keyframes on the inline SVG, driven by pose classes on .mae-shell:
+   .is-idle .is-walk .is-wave .is-point .is-dance .is-alive .is-duty, plus
+   .is-celebrating. Skins swap SVG artwork only — the rig classes are shared.
+   Reduced-motion users get a static corner pose, exactly like v1. */
+
+/* ---- containers -------------------------------------------------------- */
+
+.mae-root {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  font-family: inherit;
+}
+@media (min-width: 640px) {
+  .mae-root { right: 1.5rem; bottom: 1.5rem; }
+}
+
+/* The stage: a fixed strip along the viewport bottom. It never intercepts
+   clicks itself — only Mae (and her dismiss button) are pointer targets —
+   so she can patrol in front of page content without blocking forms/CTAs. */
+.mae-stage {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 128px;
+  z-index: 59;
+  pointer-events: none;
+  font-family: inherit;
+}
+@media (max-width: 639px) {
+  .mae-stage { height: 106px; }
+}
+
+.mae-walker {
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  width: 76px;
+  will-change: transform;
+  transition: transform 0.07s linear;
+}
+.mae-scale {
+  transform-origin: 50% 100%;
+}
+@media (max-width: 639px) {
+  .mae-scale { transform: scale(0.82); }
+}
+.mae-flip {
+  transition: transform 0.18s ease;
+}
+
+/* Mae herself is the button — full body, transparent ground. */
+.mae-fab {
+  position: relative;
+  width: 76px;
+  height: 112px;
+  border: 0;
+  background: transparent;
+  display: block;
+  cursor: pointer;
+  padding: 0;
+  pointer-events: auto;
+  animation: mae-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.mae-fab:focus-visible { outline: 2px solid #34d399; outline-offset: 3px; border-radius: 16px; }
+.mae-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 52px;
+  height: 9px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+}
+.mae-fab .mae-bot { position: relative; z-index: 1; }
+
+.mae-dismiss {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: #1c2a44;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  pointer-events: auto;
+  z-index: 2;
+}
+.mae-dismiss:hover { background: #2a3c5e; color: #fff; }
+.mae-dismiss:focus-visible { outline: 2px solid #34d399; outline-offset: 2px; }
+
+@keyframes mae-rise {
+  from { opacity: 0; transform: translateY(14px) scale(0.92); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ---- the rig: shared by every skin ------------------------------------- */
+
+.mae-bot {
+  display: block;
+  animation: mae-breathe 3.4s ease-in-out infinite;
+  transform-origin: 50% 96%;
+}
+@keyframes mae-breathe {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  50% { transform: translateY(-2px) scale(0.995, 1.008); }
+}
+
+.mae-eyes {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: mae-blink 4.8s ease-in-out infinite;
+}
+@keyframes mae-blink {
+  0%, 91%, 98%, 100% { transform: scaleY(1); }
+  94% { transform: scaleY(0.08); }
+}
+
+.mae-antenna-dot {
+  animation: mae-pulse 2.2s ease-in-out infinite;
+}
+@keyframes mae-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.mae-head {
+  transform-box: fill-box;
+  transform-origin: 50% 45%;
+  transition: transform 0.35s ease;
+}
+
+.mae-arm-wave {
+  transform-box: fill-box;
+  transform-origin: 16% 84%; /* the shoulder joint */
+}
+.mae-arm-point {
+  transform-box: fill-box;
+  transform-origin: 84% 16%; /* the shoulder joint */
+  transition: transform 0.35s ease;
+}
+
+/* legs pivot at the hip */
+.mae-leg {
+  transform-box: fill-box;
+  transform-origin: 50% 8%;
+}
+.mae-upper {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+/* ---- poses -------------------------------------------------------------- */
+
+/* wave (intro greeting, routine, and on duty after the alive sequence) */
+.is-wave .mae-arm-wave,
+.is-alive .mae-arm-wave {
+  animation: mae-wave 0.55s ease-in-out 5;
+}
+@keyframes mae-wave {
+  0%, 100% { transform: rotate(0deg); }
+  30% { transform: rotate(-26deg); }
+  65% { transform: rotate(14deg); }
+}
+
+/* point at the lead form / the greeting */
+.is-point .mae-arm-point {
+  transform: rotate(128deg);
+}
+.is-point .mae-head {
+  transform: rotate(-4deg) translateY(-1px);
+}
+
+/* walk cycle: legs swing in antiphase, body bobs, arms swing gently */
+.is-walk .mae-bot { animation: none; }
+.is-walk .mae-leg-l {
+  animation: mae-step 0.52s ease-in-out infinite;
+}
+.is-walk .mae-leg-r {
+  animation: mae-step 0.52s ease-in-out infinite;
+  animation-delay: -0.26s;
+}
+@keyframes mae-step {
+  0%, 100% { transform: rotate(19deg); }
+  50% { transform: rotate(-19deg); }
+}
+.is-walk .mae-upper {
+  animation: mae-bob 0.26s ease-in-out infinite;
+}
+@keyframes mae-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1.6px); }
+}
+.is-walk .mae-arm-wave {
+  animation: mae-armswing 0.52s ease-in-out infinite;
+}
+.is-walk .mae-arm-point {
+  animation: mae-armswing 0.52s ease-in-out infinite;
+  animation-delay: -0.26s;
+  transition: none;
+}
+@keyframes mae-armswing {
+  0%, 100% { transform: rotate(11deg); }
+  50% { transform: rotate(-11deg); }
+}
+
+/* dance: two bounces and a full spin, arms up, little kicks (~2.3 s) */
+.is-dance .mae-bot {
+  animation: mae-dance 1.15s ease-in-out 2;
+}
+@keyframes mae-dance {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  15% { transform: translateY(-9px) rotate(-4deg); }
+  30% { transform: translateY(0) rotate(0deg); }
+  45% { transform: translateY(-9px) rotate(4deg); }
+  60% { transform: translateY(-5px) rotate(180deg) scale(1.03); }
+  75% { transform: translateY(-9px) rotate(360deg); }
+  88% { transform: translateY(0) rotate(360deg); }
+}
+.is-dance .mae-leg-l {
+  animation: mae-step 0.3s ease-in-out infinite;
+}
+.is-dance .mae-leg-r {
+  animation: mae-step 0.3s ease-in-out infinite;
+  animation-delay: -0.15s;
+}
+.is-dance .mae-arm-wave {
+  animation: mae-wave 0.45s ease-in-out infinite;
+}
+.is-dance .mae-arm-point {
+  animation: mae-wave 0.45s ease-in-out infinite reverse;
+}
+
+/* come alive: a hop with a full spin while the panel opens */
+.is-alive .mae-bot {
+  animation: mae-alive 0.95s cubic-bezier(0.28, 0.84, 0.42, 1) 1;
+}
+@keyframes mae-alive {
+  0% { transform: translateY(0) rotate(0deg); }
+  30% { transform: translateY(-14px) rotate(0deg); }
+  55% { transform: translateY(-14px) rotate(360deg); }
+  80% { transform: translateY(-3px) rotate(360deg); }
+  100% { transform: translateY(0) rotate(360deg); }
+}
+
+/* celebrate a captured lead (also plays on the mini Mae in the panel head) */
+.is-celebrating .mae-bot {
+  animation: mae-celebrate 0.55s cubic-bezier(0.28, 0.84, 0.42, 1) 3;
+}
+@keyframes mae-celebrate {
+  0%, 100% { transform: translateY(0); }
+  35% { transform: translateY(-13px) rotate(-2deg); }
+  70% { transform: translateY(-4px) rotate(2deg); }
+}
+.is-celebrating .mae-arm-wave { animation: mae-wave 0.4s ease-in-out 4; }
+.is-celebrating .mae-arm-point { transform: rotate(150deg); }
+
+/* ---- proactive bubble (rides above Mae wherever she is) ------------------ */
+
+.mae-bubble {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  width: 250px;
+  max-width: 78vw;
+  background: #ffffff;
+  color: #0f1c30;
+  border-radius: 16px;
+  border-bottom-right-radius: 4px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.4);
+  pointer-events: auto;
+  animation: mae-bubble-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes mae-bubble-in {
+  from { opacity: 0; translate: 0 8px; }
+  to { opacity: 1; translate: 0 0; }
+}
+.mae-zone-left .mae-bubble { left: -6px; }
+.mae-zone-mid .mae-bubble { left: 50%; transform: translateX(-50%); }
+.mae-zone-right .mae-bubble { right: -6px; }
+.mae-bubble-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.mae-bubble-cta {
+  border: 0;
+  border-radius: 9999px;
+  background: #0f1c30;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 11px;
+  cursor: pointer;
+}
+.mae-bubble-cta:hover { background: #1d3357; }
+.mae-bubble-x {
+  border: 0;
+  background: transparent;
+  color: rgba(15, 28, 48, 0.55);
+  font-size: 12px;
+  padding: 6px 4px;
+  cursor: pointer;
+}
+.mae-bubble-x:hover { color: #0f1c30; }
+
+/* ---- chat panel ---------------------------------------------------------- */
+
+.mae-panel {
+  width: min(92vw, 360px);
+  max-height: min(70vh, 560px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  overflow: hidden;
+  background: rgba(10, 18, 34, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  color: #fff;
+  animation: mae-rise 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.mae-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+}
+.mae-panel-title { font-size: 13px; font-weight: 600; }
+.mae-panel-sub { font-size: 11px; color: rgba(255, 255, 255, 0.6); }
+.mae-panel-close {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.mae-panel-close:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+
+.mae-msgs {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 180px;
+}
+.mae-msg {
+  max-width: 86%;
+  padding: 8px 11px;
+  border-radius: 14px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.mae-msg-mae {
+  background: rgba(255, 255, 255, 0.1);
+  border-bottom-left-radius: 4px;
+  align-self: flex-start;
+}
+.mae-msg-user {
+  background: #ffffff;
+  color: #0f1c30;
+  border-bottom-right-radius: 4px;
+  align-self: flex-end;
+}
+.mae-msg-error {
+  background: rgba(244, 63, 94, 0.16);
+  border: 1px solid rgba(253, 164, 175, 0.35);
+  color: #ffe4e6;
+}
+
+.mae-typing {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 4px 2px;
+}
+.mae-typing span {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.75);
+  animation: mae-dot 1.1s ease-in-out infinite;
+}
+.mae-typing span:nth-child(2) { animation-delay: 0.15s; }
+.mae-typing span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes mae-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+.mae-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 14px 10px;
+}
+.mae-chip {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  border-radius: 9999px;
+  font-size: 12.5px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.mae-chip:hover { background: rgba(255, 255, 255, 0.16); }
+.mae-chip-quiet { border-color: rgba(255, 255, 255, 0.18); color: rgba(255, 255, 255, 0.75); }
+
+.mae-form {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+.mae-input {
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  padding: 0 11px;
+  font-size: 13.5px;
+}
+.mae-input::placeholder { color: rgba(255, 255, 255, 0.55); }
+.mae-send {
+  height: 38px;
+  border: 0;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f1c30;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0 14px;
+  cursor: pointer;
+}
+.mae-send:hover { background: rgba(255, 255, 255, 0.88); }
+.mae-send:disabled { opacity: 0.55; cursor: default; }
+
+.mae-turnstile { padding: 0 12px 10px; }
+.mae-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---- reduced motion: v1 behaviour, a still Mae in the corner ------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .mae-fab,
+  .mae-bubble,
+  .mae-panel,
+  .mae-bot,
+  .mae-eyes,
+  .mae-antenna-dot,
+  .mae-typing span,
+  .mae-walker,
+  .mae-flip,
+  .is-wave .mae-arm-wave,
+  .is-alive .mae-arm-wave,
+  .is-celebrating .mae-arm-wave,
+  .is-celebrating .mae-bot {
+    animation: none !important;
+    transition: none !important;
+  }
+  .mae-arm-point,
+  .mae-head {
+    transition: none;
+  }
+}
