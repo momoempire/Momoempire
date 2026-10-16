@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
-import { api, errMessage } from "@/lib/api";
+import { errMessage } from "@/lib/api";
+import { api } from "@/lib/api";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
+import { startStripeCheckout } from "@/lib/checkout";
 
+import { CONTACT_EMAIL } from "@/config/contact";
 export default function Billing() {
   const [plans, setPlans] = useState([]);
   const [tenant, setTenant] = useState(null);
@@ -22,8 +25,7 @@ export default function Billing() {
   const subscribe = async (planId) => {
     setLoading(planId);
     try {
-      const { data } = await api.post("/payments/checkout", { plan_id: planId, origin_url: window.location.origin });
-      window.location.href = data.checkout_url;
+      await startStripeCheckout(planId);
     } catch (e) {
       toast.error(errMessage(e));
       setLoading("");
@@ -86,7 +88,7 @@ export default function Billing() {
               <div className="font-display text-3xl mt-1">Custom pricing</div>
               <div className="text-sm text-muted-foreground mt-2 max-w-xl">Custom AI minutes, locations, users, phone numbers, personas, integrations, and workflows. Fair-use policies apply.</div>
             </div>
-            <Button variant="outline" asChild><a href="mailto:sales@aioffice.io">Contact sales</a></Button>
+            <Button variant="outline" asChild><a href={`mailto:${CONTACT_EMAIL}`}>Contact sales</a></Button>
           </div>
         </div>
       )}
