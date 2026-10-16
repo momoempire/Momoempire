@@ -4,16 +4,16 @@ import uuid
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://office-engine.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "http://127.0.0.1:9").rstrip("/")  # WL-044: never a public server by default
 API = f"{BASE_URL}/api"
 
-OWNER_EMAIL = "repeat-tester@example.com"
-OWNER_PASSWORD = "StrongPass123!"
-ADMIN_EMAIL = "ramonajefferson10@gmail.com"
-ADMIN_PASSWORD = "AdminPass123!"
+OWNER_EMAIL = os.environ.get("TEST_OWNER_EMAIL", "repeat-tester@example.com")  # pre-seeded owner on the test server
+OWNER_PASSWORD = os.environ.get("TEST_OWNER_PASSWORD", "StrongPass123!")
+ADMIN_EMAIL = os.environ.get("TEST_ADMIN_EMAIL", "")  # test-only: set for the server under test
+ADMIN_PASSWORD = os.environ.get("TEST_ADMIN_PASSWORD", "")
 
 # Pull cron secret from env; fallback to the known test secret
-CRON_SECRET = os.environ.get("WEBHOOK_CRON_SECRET", "cCqJd3dYtqZFbOt8c33ogrAMWLhhm1Ilg_1BdJ1-b0E")
+CRON_SECRET = os.environ.get("WEBHOOK_CRON_SECRET")  # no fallback: tests that need it skip when unset
 
 
 @pytest.fixture(scope="module")
@@ -118,6 +118,7 @@ class TestCronRepeatReminders:
         r = requests.post(f"{API}/cron/repeat-reminders", timeout=15)
         assert r.status_code == 401
 
+    @pytest.mark.skipif(not CRON_SECRET, reason="WEBHOOK_CRON_SECRET not set")
     def test_authorized(self):
         r = requests.post(f"{API}/cron/repeat-reminders",
                           headers={"Authorization": f"Bearer {CRON_SECRET}"}, timeout=20)
