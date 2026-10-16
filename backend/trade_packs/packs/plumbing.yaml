@@ -1,0 +1,191 @@
+id: plumbing
+trade: Plumbing
+tagline: "Your AI office, preloaded for Plumbing"
+terms:
+  worker: Plumber
+  worker_plural: Plumbers
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#0E7C86"
+pricebook:
+  - name: Diagnostic Visit
+    category: service
+    price: 79.00
+    cost: 30.00
+    duration_min: 60
+    description: "On-site diagnosis of any plumbing issue with flat-rate repair options before work begins"
+  - name: Drain Clearing (main line, up to 100 ft)
+    category: service
+    price: 285.00
+    cost: 65.00
+    duration_min: 90
+    description: "Power-snake main sewer line, includes flow test and 30-day clog-free warranty"
+  - name: Drain Clearing (branch / secondary line)
+    category: service
+    price: 185.00
+    cost: 45.00
+    duration_min: 60
+    description: "Clear sink, tub, or laundry branch line with cable machine"
+  - name: Hydro-Jetting (main line)
+    category: service
+    price: 595.00
+    cost: 140.00
+    duration_min: 120
+    description: "High-pressure water jetting to scour grease and roots from the main line"
+  - name: Camera Inspection (sewer line)
+    category: service
+    price: 249.00
+    cost: 55.00
+    duration_min: 60
+    description: "Video inspection of sewer line with recorded footage and written findings"
+  - name: Water Heater Install (50-gal tank, gas)
+    category: part
+    price: 1895.00
+    cost: 820.00
+    duration_min: 180
+    description: "Remove old unit, install new 50-gallon gas water heater, code-compliant venting and pan"
+  - name: Tankless Water Heater Install
+    category: part
+    price: 3450.00
+    cost: 1650.00
+    duration_min: 300
+    description: "Install condensing tankless unit with gas line and venting upgrades as needed"
+  - name: Toilet Replacement (customer-supplied or standard)
+    category: labor
+    price: 425.00
+    cost: 150.00
+    duration_min: 90
+    description: "Remove old toilet, set new wax ring and toilet, test flush and check for leaks"
+  - name: Faucet Replacement (kitchen or bath)
+    category: labor
+    price: 275.00
+    cost: 90.00
+    duration_min: 60
+    description: "Install customer or shop-supplied faucet with new supply lines and shutoffs"
+  - name: Garbage Disposal Replacement (1/2 HP)
+    category: part
+    price: 395.00
+    cost: 145.00
+    duration_min: 60
+    description: "Swap failed disposal, includes new cord, flange, and leak test"
+  - name: Shutoff Valve Replacement (each)
+    category: addon
+    price: 145.00
+    cost: 28.00
+    duration_min: 30
+    description: "Add-on: replace corroded angle stop while on site"
+  - name: Water Pressure Regulator Install
+    category: addon
+    price: 485.00
+    cost: 165.00
+    duration_min: 90
+    description: "Add-on: install PRV to protect fixtures when pressure exceeds 80 PSI"
+equipment_types:
+  - name: Water Heater (Tank)
+    fields: [brand, model, serial_number, install_date, capacity_gallons, fuel_type, warranty_years]
+  - name: Tankless Water Heater
+    fields: [brand, model, serial_number, install_date, btu_rating, venting_type]
+  - name: Sewer Line
+    fields: [pipe_material, install_year, length_ft, cleanout_location, last_camera_date]
+  - name: Water Softener / Filtration
+    fields: [brand, model, install_date, grain_capacity, last_service_date]
+  - name: Sump Pump
+    fields: [brand, model, install_date, horsepower, backup_type]
+appointment_types:
+  - name: Diagnostic Visit
+    duration_min: 60
+    description: "Diagnose leak, clog, or fixture problem and present flat-rate options"
+  - name: Drain Service
+    duration_min: 90
+    description: "Clear a clogged drain or sewer line with cable or jetter"
+  - name: Water Heater Replacement
+    duration_min: 180
+    description: "Full day-of installation of tank or tankless water heater"
+  - name: Fixture Installation
+    duration_min: 60
+    description: "Install or replace toilets, faucets, disposals, and valves"
+  - name: Repipe / Remodel Estimate
+    duration_min: 90
+    description: "Free estimate for repiping, remodels, or large projects"
+receptionist_script: |
+  GREETING: "Thanks for calling {shop_name}, this is Momo, your virtual assistant. What plumbing issue can I help with today?"
+
+  COMMON CALL TYPES:
+  1. ACTIVE LEAK / BURST PIPE: Say: "Let's stop the water first — do you know where your main shutoff valve is? It's usually near the water meter or where the line enters the house. Turn it clockwise to shut it off." Then: "I've got you — this is urgent and I can get a plumber out today. Is water still flowing anywhere?" Book the next emergency slot.
+  2. CLOGGED DRAIN: Ask: "Is it one drain or are multiple drains backing up? If more than one — especially a toilet plus a tub — that points to the main line." Single drain: "Our drain clearing is $185 with a 30-day warranty. I can book that today." Multiple: "That sounds like the main line — $285 to clear it, and I'd recommend a camera inspection so we know why it happened."
+  3. NO HOT WATER: Ask: "Is it gas or electric, and do you see any water around the base?" Any water at the base: treat as urgent (tank failure). "If the tank is leaking, it can let go completely — I'd get someone out today. How old is the unit?"
+  4. RUNNING TOILET / DRIP: Say: "Those small leaks add up fast on the water bill. It's usually a quick fix — I can have someone out [DAY]. Want a morning or afternoon window?"
+  5. REMODEL / NEW FIXTURES: Say: "We do free estimates for remodels and fixture projects. I'll set up a time for someone to come look and give you a firm flat-rate price. What day works?"
+
+  BOOKING FLOW — always ask in this order:
+  1. "What's your name and the best callback number?"
+  2. "What's the service address?"
+  3. "Tell me what's happening — leak, clog, no hot water, or something else?"
+  4. "Is water actively flowing or damaging anything right now?"
+  5. Confirm: "So I have [NAME] at [ADDRESS] for a [VISIT TYPE] on [DATE] between [WINDOW]. You'll get a text when the plumber is on the way. Sound good?"
+
+  EMERGENCY / URGENT HANDLING:
+  - Burst pipe, sewage backing into the home, gas water heater leaking, or no water at all: same-day emergency. "This is an emergency visit — I'll get the next available plumber to you today."
+  - Sewage backup: "Avoid using water until we arrive, and keep kids and pets away from the affected area."
+  - Gas smell near water heater: "Leave the house and call your gas utility or 911 first, then call us back."
+  - After-hours emergency diagnostic is $129, credited toward the repair — state it before booking: "Our after-hours emergency visit is $129, and it comes off the repair cost."
+
+  AFTER-HOURS BEHAVIOR: "You've reached {shop_name} after hours. If you have an active leak, burst pipe, sewage backup, or no water, I can dispatch our on-call plumber right now. For anything else, leave your details and we'll call first thing in the morning. Is this an emergency?"
+triage:
+  - id: leak_severity
+    question: "Is water actively flowing right now, or is it a slow drip or stain?"
+    options: ["Active flow — can't stop it", "Steady drip", "Stain or damp spot, no active drip", "Not sure"]
+    route: "Active flow: walk through main shutoff, book emergency slot today; drip/stain: schedule next available"
+  - id: clog_scope
+    question: "How many drains are affected — just one, or several (like a toilet AND a shower)?"
+    options: ["Just one drain", "Multiple drains", "Toilet only", "Sewage smell or backup"]
+    route: "Multiple drains or sewage: main-line issue — book drain service + offer camera inspection"
+  - id: water_heater_status
+    question: "Is there any water pooling around the base of the water heater, and how old is it?"
+    options: ["Water at the base", "No water, just no hot water", "Rusty or smelly hot water", "Unit is over 10 years old"]
+    route: "Water at base or 10+ years: urgent replacement visit; otherwise schedule diagnostic"
+  - id: water_pressure
+    question: "Is the issue low pressure at one fixture or throughout the whole house?"
+    options: ["One fixture", "Whole house", "Hot water only", "Pressure suddenly dropped"]
+    route: "Whole-house or sudden drop: possible PRV failure or main issue — schedule diagnostic; single fixture: likely aerator/cartridge"
+automation_templates:
+  - name: Water Heater Age Campaign
+    trigger: "Water heater on file reaches 9 years old"
+    steps:
+      - "Identify customers with 9+ year-old heaters and no replacement quote"
+      - "Send SMS: proactive replacement offer with financing mention"
+      - "Follow up with email: tank-failure risk explainer + quote booking link"
+      - "Book replacement estimates; offer priority scheduling"
+      - "After install, enroll in annual flush reminder"
+  - name: Annual Water Heater Flush Reminder
+    trigger: "12 months after install or last flush"
+    steps:
+      - "Send SMS reminder: annual flush extends heater life"
+      - "One-tap booking for flush service visit"
+      - "Update equipment record after completion"
+  - name: Post-Drain-Clear Follow-Up
+    trigger: "7 days after drain clearing service"
+    steps:
+      - "Send SMS: 'Drains still flowing well?'"
+      - "If customer reports recurrence, auto-offer camera inspection at discount"
+      - "Log repeat clogs per address to flag chronic line issues"
+  - name: Review + Referral Ask
+    trigger: "Job marked complete with 5-star internal rating"
+    steps:
+      - "Send review request SMS 2 hours after completion"
+      - "If review left, send referral offer: $50 credit for each referred neighbor"
+      - "Track referral codes back to originating customer"
+review_templates:
+  - name: Post-Job SMS Review
+    channel: sms
+    template: "Hi {customer_name}! {tech_name} from {shop_name} just finished up. If your plumbing is flowing right, we'd love a quick review: {review_link} — thanks for calling {shop_name}!"
+  - name: Emergency Job Email Review
+    channel: email
+    template: "Hi {customer_name}, we're glad {tech_name} could get your emergency handled quickly. When a pipe bursts at the worst time, reviews from customers like you help neighbors find {shop_name} fast: {review_link}. Thanks for trusting us."
+  - name: Install Follow-Up SMS Review
+    channel: sms
+    template: "Hi {customer_name}, it's been a week since {tech_name} installed your new water heater — everything running hot and steady? If so, a review would mean a lot: {review_link} — {shop_name}"
