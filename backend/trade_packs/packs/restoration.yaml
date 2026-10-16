@@ -1,0 +1,196 @@
+id: restoration
+trade: Restoration
+tagline: "Your AI office, preloaded for Restoration"
+terms:
+  worker: Technician
+  worker_plural: Technicians
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#0EA5E9"
+pricebook:
+  - name: "Emergency Water Extraction"
+    category: service
+    price: 850
+    cost: 340
+    duration_min: 240
+    description: "Emergency pump-out and extraction, includes moisture mapping of affected areas."
+  - name: "Structural Drying (per day)"
+    category: service
+    price: 275
+    cost: 110
+    duration_min: 60
+    description: "Per-day equipment rental and monitoring: dehumidifiers, air movers, daily readings."
+  - name: "Mold Remediation (per sqft)"
+    category: service
+    price: 18
+    cost: 7
+    duration_min: 3
+    description: "Contained remediation per sqft of affected area, includes HEPA filtration and clearance wipe."
+  - name: "Sewage Cleanup (Category 3)"
+    category: service
+    price: 2500
+    cost: 1000
+    duration_min: 480
+    description: "Full biohazard protocol cleanup, disinfect, and affected material removal."
+  - name: "Fire & Smoke Cleanup (per room)"
+    category: service
+    price: 1200
+    cost: 480
+    duration_min: 360
+    description: "Soot removal, odor treatment and content cleaning per affected room."
+  - name: "Odor Treatment (ozone/hydroxyl)"
+    category: service
+    price: 450
+    cost: 150
+    duration_min: 240
+    description: "Whole-area odor neutralization treatment with follow-up verification."
+  - name: "Pack-Out / Content Storage (per month)"
+    category: service
+    price: 400
+    cost: 160
+    duration_min: 0
+    description: "Inventory, pack, transport and climate-controlled storage of contents monthly."
+  - name: "Drywall Removal (per sqft)"
+    category: service
+    price: 4.5
+    cost: 1.8
+    duration_min: 1
+    description: "Remove water-damaged drywall, includes bagging and disposal."
+  - name: "Insurance Documentation Package"
+    category: service
+    price: 250
+    cost: 80
+    duration_min: 120
+    description: "Photo documentation, moisture logs and Xactimate-style line-item estimate for the claim."
+  - name: "Moisture Inspection"
+    category: service
+    price: 149
+    cost: 50
+    duration_min: 60
+    description: "Thermal imaging and meter readings with written findings; credited toward mitigation."
+  - name: "Emergency Board-Up"
+    category: service
+    price: 550
+    cost: 200
+    duration_min: 120
+    description: "Secure windows, doors or roof openings after fire, storm or break-in."
+  - name: "After-Hours Dispatch Fee"
+    category: addon
+    price: 200
+    cost: 80
+    duration_min: 0
+    description: "Nights, weekends and holidays emergency response surcharge."
+equipment_types:
+  - name: "Dehumidifier (LGR)"
+    fields: ["brand", "model", "ppd_rating", "serial_number", "purchase_date", "last_service", "assigned_to"]
+  - name: "Air Mover"
+    fields: ["brand", "model", "serial_number", "purchase_date", "last_service", "condition", "assigned_to"]
+  - name: "HEPA Air Scrubber"
+    fields: ["brand", "model", "serial_number", "filter_last_changed", "condition", "assigned_to"]
+  - name: "Moisture Meter / Thermal Camera"
+    fields: ["device_type", "brand", "last_calibration", "condition", "assigned_to"]
+  - name: "Ozone / Hydroxyl Generator"
+    fields: ["brand", "model", "serial_number", "last_service", "condition", "assigned_to"]
+  - name: "Company Vehicle"
+    fields: ["make", "model", "year", "mileage", "last_service", "insurance_expires", "assigned_to"]
+appointment_types:
+  - name: "Emergency Dispatch"
+    duration_min: 120
+    description: "Immediate response for active water, fire aftermath or biohazard; 24/7."
+  - name: "Damage Assessment"
+    duration_min: 90
+    description: "Full inspection with moisture mapping, photos and written scope for insurance."
+  - name: "Mitigation Day"
+    duration_min: 480
+    description: "Crew day for demolition, drying setup or remediation work."
+  - name: "Monitoring Visit"
+    duration_min: 30
+    description: "Daily equipment check and moisture readings during drying."
+  - name: "Final Walkthrough"
+    duration_min: 45
+    description: "Verify dry standards met, review documentation, discuss rebuild next steps."
+receptionist_script: |
+  GREETING: "Thanks for calling {shop_name}, your restoration specialists. This is the AI assistant — are you dealing with water, fire, mold, or storm damage right now?"
+
+  COMMON CALL TYPES:
+  1. Active water emergency — capture: source (burst pipe, roof leak, appliance, sewage), water still flowing, areas affected, standing water depth. Dispatch immediately.
+  2. Fire aftermath — capture: when it happened, fire department released the property, areas affected, board-up needed. Empathy first, then dispatch.
+  3. Mold discovery — capture: where seen, approximate size, musty odor, anyone with health symptoms (suggest seeing a doctor, we are not medical advisors). Book a Moisture Inspection.
+  4. Insurance claim help — capture: claim number if filed, adjuster contact, what the insurance already approved. Offer the Insurance Documentation Package.
+  5. Existing job questions — look up by name/address/phone; drying progress, equipment noise concerns, next monitoring visit.
+
+  BOOKING FLOW:
+  1. Determine if it is an active emergency: water still intruding, sewage, or unsecured fire damage → Emergency Dispatch NOW, do not delay with long intake.
+  2. For emergencies: capture address, callback number, what's happening, and whether the water source is stopped. Advise: shut off the main water valve if safe, avoid standing water near electricity, do not enter sewage-affected areas.
+  3. For non-emergencies: book a Damage Assessment; capture the damage story, insurance status, and photos if available.
+  4. Collect: name, callback number, property address, insurance company and claim number if any.
+  5. Confirm: ETA for emergencies ('crew dispatched, arriving within the hour'), or the assessment appointment details.
+  6. Send confirmation text with the ETA/appointment and the 'what to do right now' safety checklist.
+
+  URGENT HANDLING: Nearly everything in restoration is time-sensitive — water damage gets worse by the hour and mold starts in 24–48 hours. Active water, sewage, fire damage, and storm openings are ALWAYS urgent: dispatch immediately, page the on-call lead, and give safety instructions. Only purely informational calls (old damage questions, billing) are non-urgent.
+
+  AFTER-HOURS: Restoration is 24/7 — take the emergency intake and dispatch the on-call crew immediately at any hour. For non-urgent calls, book the next assessment and promise a morning callback.
+triage:
+  - id: restoration_damage_type
+    question: "What kind of damage are you dealing with?"
+    options: ["Water / flooding", "Sewage backup", "Fire / smoke", "Mold", "Storm damage"]
+    route: "Water, sewage, fire and storm openings dispatch as emergencies; mold books an inspection."
+  - id: restoration_active
+    question: "Is it still happening right now — water still coming in, or the area unsecured?"
+    options: ["Yes, still happening", "Stopped but damage is fresh", "Happened a while ago", "Not sure"]
+    route: "'Still happening' triggers immediate dispatch with shutoff guidance; older damage books an assessment."
+  - id: restoration_safety
+    question: "Is there standing water near outlets or electrical panels, or any sewage involved?"
+    options: ["Water near electricity", "Sewage present", "Neither", "Not sure"]
+    route: "Electrical/sewage hazards get explicit stay-clear instructions and priority dispatch."
+  - id: restoration_insurance
+    question: "Have you filed an insurance claim yet?"
+    options: ["Yes, claim filed", "Not yet", "Paying out of pocket", "Not sure if covered"]
+    route: "Filed claims: capture claim number and adjuster; not-yet: offer documentation package and filing guidance."
+  - id: restoration_affected_areas
+    question: "Which areas are affected — and roughly how big?"
+    options: ["One room", "Multiple rooms", "Whole floor / basement", "Crawlspace / attic"]
+    route: "Sizes the crew and equipment load; whole-floor and basement jobs flag for pack-out needs."
+automation_templates:
+  - name: "Emergency Dispatch Protocol"
+    trigger: "emergency call triaged as active"
+    steps:
+      - "Create job with hazard flags and page the on-call lead immediately"
+      - "SMS customer: crew dispatched with ETA and safety checklist"
+      - "On arrival: tech sends 'on site' update, photos uploaded to job"
+      - "After stabilization: SMS summary of what was done + next steps"
+  - name: "Drying Monitoring Cadence"
+    trigger: "drying equipment placed"
+    steps:
+      - "Schedule daily monitoring visits until dry standard met"
+      - "After each visit: log readings, SMS customer the progress summary"
+      - "If readings stall 2 days: escalate to project manager for plan change"
+      - "On dry standard: schedule equipment pickup + final walkthrough"
+  - name: "Insurance Documentation Flow"
+    trigger: "damage assessment complete"
+    steps:
+      - "Compile photos, moisture logs and line-item estimate within 24 hours"
+      - "Email package to customer and adjuster (with permission)"
+      - "Follow up in 5 days on adjuster approval status"
+      - "On approval: convert to mitigation job and schedule crew"
+  - name: "Mold Inspection Follow-Up"
+    trigger: "moisture inspection finds actionable mold"
+    steps:
+      - "Send written findings with photos within 24 hours"
+      - "Day 3: SMS check-in on remediation decision"
+      - "Day 7: email with health/safety info and financing options if large"
+      - "On approval: schedule contained remediation with clearance testing"
+review_templates:
+  - name: "Job Completion"
+    channel: sms
+    template: "Hi {customer_name}, {tech_name} from {shop_name} here — your home is dry and the job is complete. We know this was stressful, and we're honored you trusted us. If we earned it, a review would mean a lot: {review_link}"
+  - name: "Post-Job Email"
+    channel: email
+    template: "Subject: Your restoration is complete — {shop_name}\n\nHi {customer_name},\n\n{tech_name} has finished the work at your property and all documentation is ready for your records and insurance. Dealing with damage is never easy — thank you for letting {shop_name} help. If our team made a hard situation better, we'd be grateful for a review: {review_link}"
+  - name: "Insurance Claim Closed"
+    channel: email
+    template: "Subject: Claim documentation complete\n\nHi {customer_name},\n\nYour full documentation package from {shop_name} is attached for your claim file. {tech_name} is available if your adjuster has questions. If our documentation made the claim smoother, a review helps other homeowners in crisis find us: {review_link}"

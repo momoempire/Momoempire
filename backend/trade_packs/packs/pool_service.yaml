@@ -1,0 +1,191 @@
+id: pool_service
+trade: Pool Service
+tagline: "Your AI office, preloaded for Pool Service"
+terms:
+  worker: Technician
+  worker_plural: Technicians
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#1B9AAA"
+pricebook:
+  - name: Weekly Cleaning — Chemical Only
+    category: service
+    price: 95.00
+    cost: 28.00
+    duration_min: 20
+    description: "Weekly visit: test and balance chemicals, empty baskets, quick equipment check"
+  - name: Weekly Cleaning — Full Service
+    category: service
+    price: 145.00
+    cost: 42.00
+    duration_min: 40
+    description: "Weekly visit: chemicals, brushing, vacuuming, baskets, equipment check with report"
+  - name: Green Pool Cleanup (per visit, 3-5 visits)
+    category: service
+    price: 225.00
+    cost: 70.00
+    duration_min: 60
+    description: "Per-visit algae remediation: shock, brushing, vacuuming, filter cleaning until clear"
+  - name: Filter Cleaning (cartridge / DE)
+    category: service
+    price: 125.00
+    cost: 30.00
+    duration_min: 45
+    description: "Deep clean cartridge or DE filter elements, inspect for tears, recharge DE"
+  - name: Pump Replacement (1.5 HP variable-speed)
+    category: part
+    price: 1450.00
+    cost: 680.00
+    duration_min: 120
+    description: "Install energy-efficient variable-speed pump, includes programming and rebate paperwork"
+  - name: Salt System Install (chlorine generator)
+    category: part
+    price: 1850.00
+    cost: 850.00
+    duration_min: 150
+    description: "Convert to saltwater with cell, control, and plumbing, includes startup chemistry"
+  - name: Pool Heater Repair (diagnostic + first hour)
+    category: labor
+    price: 295.00
+    cost: 75.00
+    duration_min: 90
+    description: "Diagnose heater faults, clean burners/sensors; parts quoted separately"
+  - name: Leak Detection
+    category: service
+    price: 395.00
+    cost: 100.00
+    duration_min: 120
+    description: "Pressure-test plumbing and dive inspection to pinpoint leak source, with repair quote"
+  - name: Pool Opening (spring)
+    category: service
+    price: 275.00
+    cost: 70.00
+    duration_min: 120
+    description: "Remove cover, reinstall equipment, startup chemistry, full system check"
+  - name: Pool Closing (winterization)
+    category: service
+    price: 325.00
+    cost: 80.00
+    duration_min: 120
+    description: "Blow out lines, winterize equipment, install cover, antifreeze as needed"
+  - name: Tile Cleaning (per linear ft)
+    category: addon
+    price: 8.00
+    cost: 2.00
+    duration_min: 2
+    description: "Add-on: calcium/scale tile scrubbing at the waterline, per linear foot"
+  - name: Equipment Pad Audit
+    category: addon
+    price: 75.00
+    cost: 18.00
+    duration_min: 30
+    description: "Add-on: full equipment health report — pump, filter, heater, automation"
+equipment_types:
+  - name: Pool
+    fields: [pool_type, gallons, surface_material, install_year, salt_or_chlorine, cover_type]
+  - name: Pump
+    fields: [brand, model, horsepower, variable_speed, install_year, last_service_date]
+  - name: Filter
+    fields: [brand, model, filter_type, install_year, last_cleaning_date]
+  - name: Heater
+    fields: [brand, model, btu_rating, fuel_type, install_year, last_service_date]
+  - name: Automation / Salt System
+    fields: [brand, model, install_year, cell_age_years, wifi_connected]
+appointment_types:
+  - name: Weekly Service Stop
+    duration_min: 30
+    description: "Recurring weekly cleaning and chemical visit"
+  - name: Green Pool Cleanup
+    duration_min: 60
+    description: "Algae remediation visit in a multi-visit cleanup series"
+  - name: Equipment Repair
+    duration_min: 90
+    description: "Diagnose and repair pump, heater, filter, or automation"
+  - name: Opening / Closing
+    duration_min: 120
+    description: "Seasonal pool opening or winterization"
+  - name: Leak Detection
+    duration_min: 120
+    description: "Dedicated leak detection appointment"
+receptionist_script: |
+  GREETING: "Thanks for calling {shop_name}, this is Momo, your virtual assistant. How can I help with your pool today?"
+
+  COMMON CALL TYPES:
+  1. GREEN / CLOUDY POOL: Ask: "How green are we talking — slightly cloudy, or full swamp? And when did it turn?" Then: "Don't swim in it until it's clear and balanced. Our green-pool cleanup is $225 per visit, usually 3 to 5 visits — we'll get it swimmable and then talk about weekly service so it doesn't happen again. I can start this week — what day works?"
+  2. WEEKLY SERVICE SIGNUP: Say: "Our full-service weekly cleaning is $145 a month-billed visit — chemicals, brushing, vacuuming, baskets, and an equipment check with a report after every visit. Chemical-only is $95. Most customers go full-service. Want me to get your first visit scheduled?"
+  3. EQUIPMENT NOT WORKING (pump/heater): Ask: "What's happening — pump not turning on, making noise, heater not heating? Any error code on the display?" Then: "Until we come out, don't run a noisy pump — it can burn out the motor. Our repair diagnostic is $99, waived with the repair."
+  4. LOSING WATER / LEAK: Ask: "How much are you losing — an inch a day, or just a little? Do the bucket test: fill a bucket, set it on the step, mark both levels — if the pool drops faster than the bucket, it's a leak not evaporation." Then: "Our leak detection is $395 and pinpoints the exact source. Want me to book that?"
+  5. OPENING / CLOSING: Say: "Pool opening is $275, closing is $325 — both include full equipment checks and startup or winterization chemistry. Openings book up fast in spring — want me to grab you a slot?"
+
+  BOOKING FLOW — always ask in this order:
+  1. "What's your name and the best callback number?"
+  2. "What's the service address?"
+  3. "Tell me about the pool — inground or above ground, roughly how many gallons, salt or chlorine?"
+  4. "Is there a gate code or dogs in the yard we should know about?"
+  5. Confirm: "So I have [NAME] at [ADDRESS] for [SERVICE] on [DATE]. The technician will text when they're on the way, and you'll get a water-chemistry report after every visit. Sound good?"
+
+  EMERGENCY / URGENT HANDLING:
+  - Pool emergencies are usually equipment: pump dead in summer heat (algae blooms fast), major leak, electrical issue at the pad. "A dead pump in this heat can turn a pool green in days — I'll prioritize you this week."
+  - Electrical smell/burning at equipment pad: "Turn off the pool breaker and don't touch the equipment. If there's smoke, call 911."
+  - Child/pet safety: never give advice that encourages swimming in an unbalanced or green pool.
+  - After-hours: take details, promise first-morning callback; urgent dispatch for flooding from equipment or electrical hazards.
+
+  AFTER-HOURS BEHAVIOR: "You've reached {shop_name} after hours. If you have flooding from pool equipment or an electrical issue at the pad, I can reach our on-call technician now. Otherwise, leave your details and we'll call first thing in the morning. Is anything flooding or sparking?"
+triage:
+  - id: water_clarity
+    question: "How does the water look — crystal clear, a little cloudy, green tint, or full swamp?"
+    options: ["Clear, just needs maintenance", "Slightly cloudy", "Green tint", "Dark green / swamp"]
+    route: "Cloudy: chemical visit; green: book green-pool cleanup series (3-5 visits); clear: weekly service signup"
+  - id: equipment_status
+    question: "Is the pump running normally? Any strange noises, leaks at the pad, or error codes?"
+    options: ["Running fine", "Not turning on", "Loud / grinding noise", "Leaking at the equipment pad", "Heater not heating"]
+    route: "Not running or grinding: urgent repair (don't run it); leak at pad: urgent; heater: schedule repair visit"
+  - id: water_loss
+    question: "Are you losing more than about a quarter inch of water per day?"
+    options: ["Yes — noticeable drop daily", "A little, probably evaporation", "Not sure", "Water bill suddenly high"]
+    route: "Noticeable daily loss: suggest bucket test, book leak detection; unsure: walk through bucket test first"
+  - id: service_interest
+    question: "Are you looking for weekly service, a one-time cleanup, or equipment work?"
+    options: ["Weekly service", "One-time cleanup / green pool", "Equipment repair or upgrade", "Opening or closing"]
+    route: "Weekly: quote full vs chemical-only and book first stop; one-time: price per scope; equipment: diagnostic visit"
+automation_templates:
+  - name: Weekly Route Management
+    trigger: "Weekly route build (day before service day)"
+    steps:
+      - "Pull all weekly customers grouped by route day and neighborhood"
+      - "Send day-before reminder with arrival window"
+      - "Technician logs chemistry readings per stop via mobile"
+      - "Auto-send water-chemistry report to customer after each stop"
+      - "Flag chemistry anomalies for office follow-up"
+  - name: Spring Opening Campaign
+    trigger: "March 1 each year"
+    steps:
+      - "Send SMS to all customers: pool opening booking ($275)"
+      - "Prioritize by requested date; fill schedule in route batches"
+      - "After opening, pitch weekly service to non-members"
+  - name: Fall Closing Campaign
+    trigger: "September 15 each year"
+    steps:
+      - "Send SMS: winterization booking ($325) before first freeze"
+      - "Bundle equipment pad audit upsell in booking flow"
+      - "Send freeze warnings to unclosed pools when temps drop"
+  - name: Chemical Anomaly Alert
+    trigger: "Technician logs out-of-range chemistry twice in a row"
+    steps:
+      - "Alert office: possible equipment or circulation issue"
+      - "Auto-SMS customer: 'We noticed a chemistry trend — recommending an equipment check'"
+      - "Book diagnostic visit with one-tap approval"
+review_templates:
+  - name: Post-Cleanup SMS Review
+    channel: sms
+    template: "Hi {customer_name}! Your pool went from green to clean — {tech_name} and the {shop_name} crew hope you're enjoying it! If you're happy, a quick review helps: {review_link} Thanks!"
+  - name: Weekly Service Email Review
+    channel: email
+    template: "Hi {customer_name}, thanks for trusting {shop_name} with your pool week after week! {tech_name} says the water chemistry has been perfect lately. If our service keeps your pool swim-ready, we'd love a review: {review_link}."
+  - name: Equipment Install SMS Review
+    channel: sms
+    template: "Hi {customer_name}, your new {equipment} is installed and running efficiently! Quick review for {shop_name}? {review_link} — {tech_name}"

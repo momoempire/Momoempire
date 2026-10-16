@@ -1,0 +1,214 @@
+id: septic_well
+trade: Septic & Well
+tagline: "Your AI office, preloaded for Septic & Well pros"
+terms:
+  worker: Technician
+  worker_plural: Technicians
+  shop: business
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#15803D"
+pricebook:
+  - name: Septic Tank Pump-Out (up to 1,000 gal)
+    category: service
+    price: 450
+    cost: 180
+    duration_min: 90
+    description: Full pump, baffle check, and system health report.
+  - name: Septic Inspection (Real Estate)
+    category: service
+    price: 350
+    cost: 120
+    duration_min: 90
+    description: Certified inspection with written report for buyers/sellers.
+  - name: Drain Field Repair
+    category: service
+    price: 2500
+    cost: 1100
+    duration_min: 480
+    description: Excavate and repair or replace failing drain field lines.
+  - name: Riser Installation
+    category: service
+    price: 350
+    cost: 140
+    duration_min: 120
+    description: Install access risers so future pump-outs need no digging.
+  - name: Well Pump Replacement
+    category: service
+    price: 1800
+    cost: 850
+    duration_min: 240
+    description: Pull and replace submersible pump with new wire and fittings.
+  - name: Water Quality Test
+    category: service
+    price: 150
+    cost: 45
+    duration_min: 45
+    description: Certified lab test for bacteria, nitrates, and minerals.
+  - name: Effluent Filter Cleaning
+    category: addon
+    price: 95
+    cost: 30
+    duration_min: 30
+    description: Clean or replace the outlet filter to protect the drain field.
+  - name: Line Jetting / Clearing
+    category: service
+    price: 400
+    cost: 150
+    duration_min: 120
+    description: High-pressure jetting to clear roots and buildup from lines.
+  - name: Pump Alarm / Float Repair
+    category: service
+    price: 275
+    cost: 90
+    duration_min: 90
+    description: Diagnose and repair alarm, floats, and control panel.
+  - name: Annual Maintenance Plan
+    category: service
+    price: 299
+    cost: 100
+    duration_min: 120
+    description: Yearly inspection, filter service, and priority scheduling.
+  - name: Replacement Filter Cartridge
+    category: part
+    price: 120
+    cost: 55
+    duration_min: 15
+    description: Whole-house sediment or carbon filter cartridge, installed.
+  - name: Emergency Backup Response
+    category: service
+    price: 550
+    cost: 200
+    duration_min: 120
+    description: Priority response for sewage backup or no-water emergencies.
+equipment_types:
+  - name: Pump Truck
+    fields: [unit_number, make_model, tank_capacity_gal, last_dot_inspection, mileage, condition]
+  - name: Jetting Machine
+    fields: [brand, psi_rating, purchase_date, last_service, hose_length_ft, condition]
+  - name: Inspection Camera
+    fields: [brand, cable_length_ft, purchase_date, last_calibration, condition]
+  - name: Mini Excavator
+    fields: [make_model, year, hours, last_service, condition]
+  - name: Pump Hoist Rig
+    fields: [rig_type, max_depth_ft, last_safety_check, condition, truck_assigned]
+  - name: Locating Equipment
+    fields: [brand, type, purchase_date, last_calibration, condition]
+appointment_types:
+  - name: Septic Pump-Out
+    duration_min: 90
+    description: Scheduled tank pumping with full system check.
+  - name: Septic Inspection
+    duration_min: 90
+    description: Real-estate or routine inspection with written report.
+  - name: Well Service Call
+    duration_min: 120
+    description: Diagnose no-water, low pressure, or pump issues.
+  - name: Water Sample Pickup
+    duration_min: 30
+    description: Collect a sample for certified lab testing.
+  - name: Repair Estimate Visit
+    duration_min: 60
+    description: On-site evaluation with a written repair quote.
+receptionist_script: |
+  GREETING:
+  "Thanks for calling {shop_name}! This is the {shop_name} assistant. Is this
+  about your septic system or your well?"
+
+  COMMON CALL TYPES:
+  1. SEWAGE BACKUP (URGENT): "I'm sorry — let's get this handled fast." Ask:
+     where is it backing up, is anyone's health at risk, exact address.
+     Advise: stop running water, avoid the affected area. Dispatch priority.
+  2. PUMP ALARM GOING OFF: Ask if it's a steady tone or beeping, any visible
+     overflow. Advise: silence the alarm, minimize water use, we dispatch
+     same-day. Never tell them to ignore it.
+  3. NO WATER / LOW PRESSURE: Ask: sudden or gradual, any recent power outage,
+     is the pump breaker tripped. If sudden and total — priority dispatch.
+  4. ROUTINE PUMP-OUT: Ask tank size if known and last pump date. Recommend
+     every 3-5 years. Book a 2-hour arrival window.
+  5. REAL ESTATE INSPECTION: Ask the closing date and work backward — book at
+     least 10 days before closing. Explain what the inspection covers.
+
+  BOOKING FLOW:
+  1. Collect: name, phone, service address (rural directions help!), issue or
+     service needed, last service date if known.
+  2. For non-emergencies: offer the next 2-3 open windows.
+  3. Confirm: "A technician will arrive between X and Y. Please make sure the
+     tank lids or well head are accessible. You'll get a text when we're close."
+
+  URGENT HANDLING:
+  - Active sewage backup into the home: priority dispatch, advise stopping all
+    water use, mention we coordinate with cleanup if needed.
+  - No water for a household with infants, elderly, or medical needs: escalate
+    to same-day emergency regardless of hour.
+  - Well pump electrical smell or sparking: tell them to kill the breaker and
+    keep clear — dispatch immediately.
+
+  AFTER-HOURS:
+  "You've reached {shop_name}. If you have sewage backing up or no water at all,
+  say 'emergency' and I'll dispatch our on-call technician right now. For
+  routine pump-outs or inspections, I can book you first thing in the morning."
+triage:
+  - id: issue_type
+    question: What's going on?
+    options: [Sewage backup, Bad odor, Pump alarm sounding, No water / low pressure, Routine service]
+    route: Backup/alarm/no water → emergency dispatch; odor/low pressure → same-day priority; routine → schedule.
+  - id: last_pump_date
+    question: When was the septic tank last pumped?
+    options: [Within 3 years, 3-5 years ago, Over 5 years ago, Never / don't know]
+    route: Over 5 years or unknown → recommend pump-out before any other diagnosis.
+  - id: household_load
+    question: How many people live in the home?
+    options: [1-2, 3-4, 5+, It's a rental/vacation property]
+    route: 5+ or rental → note heavy load, recommend risers and maintenance plan.
+  - id: water_source
+    question: For well issues — do you know your setup?
+    options: [Submersible pump, Jet pump, Not sure, This is about septic not well]
+    route: Not sure → technician diagnoses on arrival; note depth if the customer knows it.
+  - id: access
+    question: Are the tank lids or well head accessible?
+    options: [Yes, exposed, Buried — needs locating, Not sure]
+    route: Buried → add locating time to the job and quote accordingly.
+automation_templates:
+  - name: Pump-Out Reminder Cycle
+    trigger: 3 years since last pump-out
+    steps:
+      - "Send SMS reminder: “It's been 3 years — time to protect your system.”"
+      - "Offer one-tap booking with 2 suggested windows."
+      - "At 3.5 years, send a second reminder noting backup risk."
+      - "After booking, send prep instructions (clear access, locate lids)."
+  - name: Emergency Backup Dispatch
+    trigger: backup or no-water emergency call
+    steps:
+      - "Create priority job with GPS address and rural directions."
+      - "Dispatch the nearest tech with the right truck."
+      - "Text the customer the tech's name and live ETA."
+      - "Advise water shutoff and safety steps via SMS."
+      - "After resolution, send the invoice and a prevention tips email."
+  - name: Inspection Report Delivery
+    trigger: inspection completed
+    steps:
+      - "Generate the written report with photos automatically."
+      - "Email the report to the customer and their agent/lender."
+      - "Flag any deficiencies with repair quotes attached."
+      - "Schedule the follow-up repair estimate if issues found."
+  - name: Annual Maintenance Plan Nurture
+    trigger: 30 days after any service visit
+    steps:
+      - "Email the benefits of the $299 annual plan."
+      - "Include a seasonal tip (e.g., winterize, conserve water in summer)."
+      - "Offer plan enrollment with one-tap signup."
+      - "Enroll plan members in automatic yearly scheduling."
+review_templates:
+  - name: Post-Service SMS Review Ask
+    channel: sms
+    template: "Hi {customer_name}, {tech_name} from {shop_name} here — your system is all taken care of! If the service was clean and on time, a quick review keeps our trucks rolling: {review_link}"
+  - name: Emergency Job Follow-Up Email
+    channel: email
+    template: "Hi {customer_name}, I wanted to check in after yesterday's emergency visit — is everything running smoothly? {tech_name} left some prevention tips below. If we earned your trust in a tough moment, we'd be grateful for a review: {review_link}. — {shop_name}"
+  - name: Maintenance Plan Member Review Ask
+    channel: sms
+    template: "Hey {customer_name}! Your annual service with {tech_name} is done and your system is in great shape. As a {shop_name} plan member, your review means extra to us: {review_link}"

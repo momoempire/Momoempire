@@ -1,0 +1,213 @@
+id: locksmith
+trade: Locksmith
+tagline: "Your AI office, preloaded for Locksmiths"
+terms:
+  worker: Locksmith
+  worker_plural: Locksmiths
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#B45309"
+pricebook:
+  - name: Residential Lockout (business hours)
+    category: service
+    price: 95
+    cost: 25
+    duration_min: 30
+    description: Non-destructive home entry, 7am-7pm.
+  - name: After-Hours Emergency Lockout
+    category: service
+    price: 150
+    cost: 40
+    duration_min: 30
+    description: 24/7 emergency entry with priority dispatch.
+  - name: Rekey — per Cylinder
+    category: service
+    price: 30
+    cost: 6
+    duration_min: 10
+    description: Repin existing lock to a new key; 4-cylinder minimum on-site.
+  - name: Deadbolt Installation
+    category: service
+    price: 150
+    cost: 55
+    duration_min: 60
+    description: New deadbolt bored and installed, keyed to match available.
+  - name: Smart Lock Installation
+    category: service
+    price: 185
+    cost: 85
+    duration_min: 60
+    description: Keypad or Wi-Fi smart lock install with app setup and training.
+  - name: Car Key / Fob Replacement
+    category: service
+    price: 175
+    cost: 60
+    duration_min: 45
+    description: Cut and program a replacement key or fob on-site.
+  - name: Safe Opening
+    category: service
+    price: 250
+    cost: 60
+    duration_min: 90
+    description: Professional safe opening with minimal damage, all safe types.
+  - name: High-Security Lock (installed)
+    category: part
+    price: 220
+    cost: 110
+    duration_min: 45
+    description: Pick-resistant, drill-resistant cylinder with restricted keys.
+  - name: Commercial Lock Change
+    category: service
+    price: 350
+    cost: 120
+    duration_min: 120
+    description: Full storefront or office rekey with master key option.
+  - name: Lock Repair
+    category: service
+    price: 95
+    cost: 25
+    duration_min: 45
+    description: Diagnose and repair sticking, jammed, or worn locks.
+  - name: Key Duplication
+    category: part
+    price: 8
+    cost: 2
+    duration_min: 5
+    description: Precision-cut duplicate key while you wait.
+  - name: Master Key System Setup
+    category: service
+    price: 450
+    cost: 150
+    duration_min: 180
+    description: Design and implement a master-keyed system for multi-unit properties.
+equipment_types:
+  - name: Key Cutting Machine
+    fields: [brand, model, purchase_date, last_calibration, condition, vehicle_assigned]
+  - name: Pinning / Rekey Kit
+    fields: [kit_type, brands_covered, restock_date, condition, vehicle_assigned]
+  - name: Transponder Programmer
+    fields: [brand, software_version, subscription_renewal, vehicle_assigned]
+  - name: Service Van
+    fields: [make_model, year, mileage, insurance_renewal, stock_level]
+  - name: Safe Opening Kit
+    fields: [kit_type, purchase_date, last_inventory, condition]
+  - name: Lock Inventory Bin
+    fields: [location, top_brands_stocked, restock_date, inventory_value]
+appointment_types:
+  - name: Emergency Lockout
+    duration_min: 30
+    description: Priority dispatch, fastest available technician.
+  - name: Rekey Service
+    duration_min: 60
+    description: On-site rekey of multiple locks, keyed alike on request.
+  - name: Lock Installation
+    duration_min: 90
+    description: New lock or smart lock install with full testing.
+  - name: Commercial Security Survey
+    duration_min: 60
+    description: Walkthrough and written security recommendations for businesses.
+  - name: Key / Fob Replacement
+    duration_min: 45
+    description: Automotive key cut and programmed at your location.
+receptionist_script: |
+  GREETING:
+  "Thanks for calling {shop_name}! This is the {shop_name} assistant. Are you
+  locked out right now, or is this a scheduled service?"
+
+  COMMON CALL TYPES:
+  1. LOCKOUT (URGENT): "I'm sorry you're locked out — let's get someone to you
+     fast." Collect: exact address, home/car/business, ID available on arrival,
+     phone number. Quote the lockout price upfront. Dispatch immediately.
+  2. REKEY: Ask how many locks/doors, and whether they want everything on one
+     key. Quote per-cylinder pricing. Book a 1-hour window.
+  3. NEW INSTALL / SMART LOCK: Ask what they're replacing and whether they
+     already bought the hardware (we install customer-supplied hardware for
+     labor only). Book a 90-minute window.
+  4. CAR KEY / FOB: Ask year, make, model, and whether all keys are lost
+     (all-lost costs more — be upfront). Confirm we can do it on-site.
+  5. PRICE SHOPPERS: Quote confidently, mention licensed/insured/bonded and
+     upfront pricing with no hidden fees.
+
+  BOOKING FLOW:
+  1. Collect: name, phone, address, service needed, preferred time window.
+  2. Quote the price before booking — never surprise the customer.
+  3. Confirm: "A technician will arrive between X and Y. You'll get a text
+     when they're on the way. The total is $Z plus tax."
+  4. For lockouts, dispatch first and confirm details while tech is en route.
+
+  URGENT HANDLING:
+  - Child or pet locked in a car: call 911 first, then dispatch our nearest
+    tech immediately at no extra charge discussion — speed first.
+  - Break-in / burglary repair: prioritize same-day, recommend rekey plus
+    security upgrade, offer to coordinate with police report.
+  - Customer cannot provide ID at a lockout: technician verifies by other
+    means (neighbor, landlord, documents inside after entry); if unverifiable,
+    we do not open — explain this kindly but firmly.
+
+  AFTER-HOURS:
+  "You've reached {shop_name} — if you're locked out right now, press 1 or say
+  'emergency' and I'll dispatch our on-call technician immediately. For
+  non-urgent service, I can book you first thing in the morning. What's going on?"
+triage:
+  - id: service_type
+    question: What do you need help with?
+    options: [Locked out, Rekey locks, New lock install, Car key/fob, Safe opening]
+    route: Locked out → emergency dispatch flow; others → scheduled booking flow.
+  - id: property_type
+    question: Is this for a home, business, or vehicle?
+    options: [Home, Business, Vehicle]
+    route: Business → offer commercial survey; Vehicle → collect year/make/model.
+  - id: urgency
+    question: How urgent is this?
+    options: [Right now — emergency, Today, This week, Just getting a quote]
+    route: Emergency → immediate dispatch; Today → next available window; quote → price and follow up in 48h.
+  - id: lock_info
+    question: What brand of lock is it, if you know?
+    options: [Kwikset, Schlage, Yale, Smart lock, Not sure]
+    route: Smart lock → confirm model for compatibility; Not sure → tech diagnoses on arrival.
+  - id: key_status
+    question: Do you have at least one working key?
+    options: [Yes, No — all keys lost, Key is broken inside the lock]
+    route: All lost → quote the all-keys-lost rate; broken → add extraction to the job.
+automation_templates:
+  - name: Emergency Dispatch
+    trigger: lockout call received
+    steps:
+      - "Create the job with GPS address and mark it priority."
+      - "Dispatch the nearest available technician automatically."
+      - "Text the customer the tech's name, photo, and live ETA."
+      - "Text the customer when the tech is 10 minutes out."
+      - "After entry, send the invoice and payment link immediately."
+  - name: Scheduled Job Confirm & Remind
+    trigger: non-emergency job booked
+    steps:
+      - "Send confirmation SMS with date, arrival window, and quoted price."
+      - "Send reminder SMS the evening before."
+      - "Send “tech on the way” SMS with live tracking on the day."
+      - "After completion, request a review."
+  - name: Rekey Follow-Up Upsell
+    trigger: 14 days after a rekey job
+    steps:
+      - "Send SMS: “Loving the new keys? Many customers upgrade one door to a smart lock next.”"
+      - "Offer 10% off a smart lock install booked within 30 days."
+      - "If no response, add to the seasonal home-security tip newsletter."
+  - name: Commercial Client Check-In
+    trigger: 90 days after commercial job
+    steps:
+      - "Email the facilities contact asking about staff changes (rekey trigger)."
+      - "Offer a free annual security walkthrough."
+      - "Quote master key system expansion if they've grown."
+review_templates:
+  - name: Post-Job SMS Review Ask
+    channel: sms
+    template: "Hi {customer_name}, {tech_name} from {shop_name} here — glad we could get you taken care of today! If the service was fast and fair, a quick review helps us a ton: {review_link}"
+  - name: Emergency Lockout Follow-Up
+    channel: sms
+    template: "Hey {customer_name}, it's {shop_name}. Being locked out is stressful — hope the rest of your day went smoothly! If {tech_name} earned 5 stars, we'd appreciate your review: {review_link}"
+  - name: Commercial Client Email Review Ask
+    channel: email
+    template: "Hi {customer_name}, thank you for trusting {shop_name} with your facility's security. {tech_name} wanted to follow up and make sure everything is working perfectly. If you'd recommend us to other property managers, a review here would be wonderful: {review_link}"

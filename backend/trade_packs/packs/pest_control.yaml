@@ -1,0 +1,182 @@
+id: pest_control
+trade: Pest Control
+tagline: "Your AI office, preloaded for Pest Control"
+terms:
+  worker: Technician
+  worker_plural: Technicians
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#4C8C2B"
+pricebook:
+  - name: General Pest Inspection
+    category: service
+    price: 49.00
+    cost: 20.00
+    duration_min: 45
+    description: "Full interior/exterior inspection with written findings; fee credited toward plan"
+  - name: One-Time General Treatment (ants/roaches/spiders)
+    category: service
+    price: 189.00
+    cost: 45.00
+    duration_min: 60
+    description: "Interior crack-and-crevice + exterior barrier treatment, 30-day guarantee"
+  - name: Quarterly Plan (per visit)
+    category: service
+    price: 119.00
+    cost: 35.00
+    duration_min: 45
+    description: "Recurring quarterly protection: exterior barrier, eaves, entry points, monitoring"
+  - name: Rodent Exclusion + Trapping
+    category: service
+    price: 349.00
+    cost: 90.00
+    duration_min: 120
+    description: "Seal entry points, set traps, 2 follow-up checks included"
+  - name: Bed Bug Treatment (per room, heat-assisted)
+    category: service
+    price: 450.00
+    cost: 130.00
+    duration_min: 120
+    description: "Per-room heat-assisted treatment with mattress encasement quote, 60-day warranty"
+  - name: Termite Inspection (with WDI report)
+    category: service
+    price: 99.00
+    cost: 30.00
+    duration_min: 60
+    description: "Wood-destroying insect inspection with formal report for real estate transactions"
+  - name: Termite Baiting System (annual monitoring)
+    category: service
+    price: 495.00
+    cost: 150.00
+    duration_min: 90
+    description: "Install termite bait stations + first year of monitoring visits"
+  - name: Mosquito Treatment (per visit, seasonal)
+    category: service
+    price: 89.00
+    cost: 25.00
+    duration_min: 30
+    description: "Yard fogging + larvicide for standing water, 21-day effectiveness"
+  - name: Wasp / Hornet Nest Removal
+    category: service
+    price: 159.00
+    cost: 35.00
+    duration_min: 30
+    description: "Safe removal of accessible nests, includes residual treatment"
+  - name: Wildlife Exclusion (squirrels/raccoons, per entry)
+    category: addon
+    price: 225.00
+    cost: 60.00
+    duration_min: 60
+    description: "Add-on: one-way doors and entry sealing for nuisance wildlife"
+  - name: Attic Decontamination (per sq ft)
+    category: addon
+    price: 2.50
+    cost: 0.80
+    duration_min: 2
+    description: "Add-on: sanitize and re-insulate attic after rodent activity, per sq ft"
+equipment_types:
+  - name: Bait Stations (Termite)
+    fields: [station_count, install_date, last_check_date, activity_detected]
+  - name: Rodent Stations
+    fields: [station_count, locations, last_service_date, captures_to_date]
+  - name: Mosquito System
+    fields: [system_type, install_date, last_treatment_date, seasonal_plan]
+  - name: Property Profile
+    fields: [lot_size, construction_type, crawlspace_or_slab, pet_notes, prior_infestations]
+appointment_types:
+  - name: Initial Inspection
+    duration_min: 45
+    description: "Full pest inspection with written findings and treatment plan"
+  - name: One-Time Treatment
+    duration_min: 60
+    description: "Targeted treatment for an active pest problem"
+  - name: Quarterly Service
+    duration_min: 45
+    description: "Recurring preventive visit for plan members"
+  - name: WDI / Termite Inspection
+    duration_min: 60
+    description: "Wood-destroying insect inspection with formal report"
+  - name: Wildlife / Exclusion Job
+    duration_min: 120
+    description: "Entry-point sealing and trapping for rodents or wildlife"
+receptionist_script: |
+  GREETING: "Thanks for calling {shop_name}, this is Momo, your virtual assistant. What pest problem can I help with today?"
+
+  COMMON CALL TYPES:
+  1. ANTS / ROACHES / SPIDERS: Ask: "Where are you seeing them — kitchen, bathroom, basement? And roughly how many — a few here and there, or a lot?" Then: "Our one-time treatment is $189 with a 30-day guarantee, or our quarterly plan is $119 per visit and keeps them from coming back. Which sounds better — one-time fix or ongoing protection?"
+  2. MICE / RATS: Ask: "Are you hearing scratching in walls or attic, or finding droppings? Any idea where they're getting in?" Then: "Rodents need exclusion, not just traps — our rodent service is $349, which seals entry points and includes two follow-up checks. I can get someone out this week — do you have pets I should note?"
+  3. BED BUGS: Say: "I'm sorry — bed bugs are miserable, but they're very treatable. Have you confirmed they're bed bugs — bites in lines, or spots on the mattress?" Then: "Don't move furniture between rooms — it spreads them. Our treatment is $450 per room with a 60-day warranty. I'll book an inspection first so we know exactly what we're dealing with."
+  4. TERMITES: Ask: "What are you seeing — mud tubes, swarmers (flying ants), or wood damage? Is this for a home you're buying or selling?" Then: "For real estate, you'll need a formal WDI report — our inspection is $99. For treatment, I'll have our specialist assess and quote. When do you need the report by?"
+  5. WASPS / MOSQUITOES: Say: "Wasp nest removal is $159 — where's the nest, and can you tell roughly how big? For mosquitoes, our seasonal treatments are $89 per visit. I can book either this week."
+
+  BOOKING FLOW — always ask in this order:
+  1. "What's your name and the best callback number?"
+  2. "What's the service address?"
+  3. "What pest are you seeing, and where in or around the home?"
+  4. "Do you have pets or small children? Any chemical sensitivities I should note?"
+  5. Confirm: "So I have [NAME] at [ADDRESS] for a [VISIT TYPE] on [DATE] between [WINDOW]. Our products are pet-safe once dry — the technician will go over everything on arrival. Sound good?"
+
+  EMERGENCY / URGENT HANDLING:
+  - Wasp/hornet nest with allergic resident, or aggressive stinging insects near entryways: same-day priority.
+  - Bed bug confirmation before a real-estate closing or in a rental: expedite inspection.
+  - Reassure: "All our treatments are applied by licensed technicians and are safe for kids and pets once dry — about 2 hours."
+  - After-hours: stinging-insect emergencies get the on-call tech; general pest books next available.
+
+  AFTER-HOURS BEHAVIOR: "You've reached {shop_name} after hours. If you have an aggressive wasp or hornet nest — especially with someone allergic in the home — I can reach our on-call technician now. Otherwise, leave your details and we'll call first thing in the morning. Is anyone in danger of being stung?"
+triage:
+  - id: pest_id
+    question: "What are you seeing — ants, roaches, spiders, mice, or something else? Where in the home?"
+    options: ["Ants — kitchen or trails", "Roaches — kitchen/bath", "Spiders — basement/garage", "Mice — droppings or scratching", "Something else / not sure"]
+    route: "Ants/roaches/spiders: one-time or quarterly; mice: rodent exclusion; unsure: book inspection with photo upload"
+  - id: infestation_level
+    question: "How bad is it — a few sightings, daily sightings, or a full-blown infestation?"
+    options: ["A few here and there", "Daily sightings", "Nests or colonies visible", "It's everywhere"]
+    route: "Daily+ or visible nests: prioritize this-week visit; severe: recommend immediate treatment + plan enrollment"
+  - id: bed_bug_confirm
+    question: "For suspected bed bugs: have you seen live bugs, shed skins, or rust-colored spots on the mattress?"
+    options: ["Live bugs seen", "Bites but no bugs seen", "Spots on mattress", "Not sure"]
+    route: "Live bugs or spots: book inspection urgently, advise not to move furniture; bites only: inspection to confirm"
+  - id: termite_signs
+    question: "For termites: are you seeing mud tubes on the foundation, swarmers, or damaged wood?"
+    options: ["Mud tubes", "Swarmers (flying insects)", "Hollow or damaged wood", "Preventive / real estate"]
+    route: "Active signs: urgent WDI inspection; real estate: schedule report with closing deadline noted"
+automation_templates:
+  - name: Quarterly Plan Scheduling
+    trigger: "90 days after last quarterly visit"
+    steps:
+      - "Auto-propose next quarterly visit date via SMS"
+      - "Customer confirms with one tap; appointment created"
+      - "Send prep reminder (clear around foundation) day before"
+      - "After visit, reset 90-day timer and send service summary"
+  - name: Seasonal Mosquito Campaign
+    trigger: "April 1 each year"
+    steps:
+      - "Send SMS to prior mosquito customers: seasonal plan enrollment"
+      - "Offer 6-visit seasonal package at bundle price"
+      - "Schedule first treatment; space remaining visits 21 days apart"
+  - name: Post-Treatment Check-In
+    trigger: "14 days after one-time treatment"
+    steps:
+      - "Send SMS: 'Still seeing activity?'"
+      - "If yes and within guarantee, auto-book free re-treatment"
+      - "If no, pitch quarterly plan with first-visit discount"
+  - name: Termite Monitoring Cycle
+    trigger: "Annual termite bait anniversary"
+    steps:
+      - "Notify customer of annual monitoring visit"
+      - "Technician checks all stations, logs activity"
+      - "Send annual termite-free report; renew monitoring agreement"
+review_templates:
+  - name: Post-Treatment SMS Review
+    channel: sms
+    template: "Hi {customer_name}! {tech_name} from {shop_name} just completed your treatment. If the pests are gone, we'd love a quick review: {review_link} — thanks for choosing {shop_name}!"
+  - name: Quarterly Plan Email Review
+    channel: email
+    template: "Hi {customer_name}, another quarter of pest-free living — thanks for trusting {shop_name}! {tech_name} says everything looked great on this visit. If you're happy with the plan, a review helps us grow: {review_link}."
+  - name: Bed Bug Relief SMS Review
+    channel: sms
+    template: "Hi {customer_name}, glad we could get the bed bug problem behind you — sleep well! If {shop_name} helped you through a stressful time, please share: {review_link} — {tech_name}"

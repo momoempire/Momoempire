@@ -1,0 +1,191 @@
+id: painting
+trade: Painting
+tagline: "Your AI office, preloaded for Painting"
+terms:
+  worker: Painter
+  worker_plural: Painters
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#3B82F6"
+pricebook:
+  - name: "Interior Room Paint (standard)"
+    category: service
+    price: 495
+    cost: 180
+    duration_min: 240
+    description: "Two coats on walls of one standard room up to 400 sqft, ceiling not included."
+  - name: "Interior Room Paint (large)"
+    category: service
+    price: 795
+    cost: 300
+    duration_min: 360
+    description: "Two coats on walls of a large room up to 700 sqft, includes minor drywall touch-up."
+  - name: "Ceiling Paint (per room)"
+    category: addon
+    price: 175
+    cost: 60
+    duration_min: 120
+    description: "Add ceiling repaint to any room job, flat white or matched color."
+  - name: "Whole Home Interior (per sqft)"
+    category: service
+    price: 2.25
+    cost: 0.85
+    duration_min: 30
+    description: "Per-square-foot pricing for full interior repaints, priced on walkthrough measurement."
+  - name: "Exterior Repaint (per sqft)"
+    category: service
+    price: 2.75
+    cost: 1.10
+    duration_min: 35
+    description: "Per-square-foot exterior repaint, includes pressure wash prep and caulking."
+  - name: "Cabinet Refinishing (per door)"
+    category: service
+    price: 95
+    cost: 35
+    duration_min: 45
+    description: "Degrease, sand, prime and spray two coats per cabinet door or drawer front."
+  - name: "Drywall Repair (small patch)"
+    category: service
+    price: 145
+    cost: 40
+    duration_min: 60
+    description: "Patch holes up to 6 inches, texture match and spot prime, paint blended on completion."
+  - name: "Trim & Baseboard Package (per room)"
+    category: addon
+    price: 195
+    cost: 65
+    duration_min: 150
+    description: "Semi-gloss repaint of all trim, baseboards and door frames in one room."
+  - name: "Pressure Wash Prep"
+    category: service
+    price: 250
+    cost: 80
+    duration_min: 180
+    description: "Full pressure wash of siding, trim and soffits before exterior paint."
+  - name: "Premium Paint Upgrade (per gallon)"
+    category: part
+    price: 68
+    cost: 52
+    duration_min: 0
+    description: "Upgrade from builder-grade to premium low-VOC paint, priced per gallon used."
+  - name: "Color Consultation"
+    category: service
+    price: 125
+    cost: 45
+    duration_min: 60
+    description: "In-home color consult with sample swatches; credited toward the job if booked."
+  - name: "Stucco Patch & Seal"
+    category: service
+    price: 325
+    cost: 110
+    duration_min: 240
+    description: "Patch stucco cracks, apply elastomeric seal coat, color-matched to existing."
+equipment_types:
+  - name: "Airless Paint Sprayer"
+    fields: ["brand", "model", "tip_size", "purchase_date", "last_cleaned", "condition", "assigned_to"]
+  - name: "Ladder / Scaffold"
+    fields: ["type", "height_ft", "brand", "last_inspection", "condition", "assigned_to"]
+  - name: "Paint Booth / Drying Rack"
+    fields: ["location", "capacity", "filter_last_changed", "condition", "assigned_to"]
+  - name: "Pressure Washer"
+    fields: ["brand", "psi_rating", "purchase_date", "last_service", "condition", "assigned_to"]
+  - name: "Company Vehicle"
+    fields: ["make", "model", "year", "mileage", "last_service", "insurance_expires", "assigned_to"]
+appointment_types:
+  - name: "Free Estimate"
+    duration_min: 45
+    description: "On-site walkthrough to measure, discuss colors and scope, and produce a written quote."
+  - name: "Interior Room Job"
+    duration_min: 300
+    description: "Scheduled painting visit for one or two rooms, includes setup and cleanup."
+  - name: "Full-Day Crew Visit"
+    duration_min: 480
+    description: "Whole-home or exterior project day with a full crew; multi-day jobs use repeat bookings."
+  - name: "Color Consultation"
+    duration_min: 60
+    description: "In-home session to pick colors and finishes with sample boards."
+  - name: "Touch-Up / Warranty Visit"
+    duration_min: 60
+    description: "Small touch-ups under warranty; free within the warranty window."
+receptionist_script: |
+  GREETING: "Thanks for calling {shop_name}, your painting experts. This is the AI assistant — how can I help you today?"
+
+  COMMON CALL TYPES:
+  1. New estimate request — capture: interior or exterior, which rooms or areas, approximate size, timeline, address for the walkthrough.
+  2. Pricing questions — give ranges from the pricebook (e.g., standard interior room ~$495, exterior priced per sqft after a free walkthrough), then offer to book the free estimate.
+  3. Existing job questions — look up the job by name/address/phone; answer schedule, color, or scope questions; escalate changes to the crew lead.
+  4. Touch-up / warranty — verify the original job date, confirm the issue is in scope, book a warranty visit.
+  5. HOA / color approval — note the HOA name and deadline; offer to send the color palette and product specs by email.
+
+  BOOKING FLOW:
+  1. Identify the job: rooms/areas, interior vs exterior, rough square footage or room count.
+  2. Offer the next available Free Estimate slot; if the caller knows exact scope and wants to skip the estimate, book the Interior Room Job or Full-Day Crew Visit instead.
+  3. Collect: name, callback number, address, best contact window, parking/access notes.
+  4. Confirm: date, time window, what to expect (walkthrough, written quote within 24 hours), and that no payment is due at the estimate.
+  5. Send confirmation text with the appointment details and a link to the color gallery.
+
+  URGENT HANDLING: Paint spills on new flooring, exterior paint failure before a closing/inspection, or storm damage exposing wood — flag as same-day priority, collect photos if possible, and page the on-call lead. Standard repaint scheduling is NOT urgent; book the next estimate.
+
+  AFTER-HOURS: Take a message with the same intake questions, promise a callback by 9 AM the next business day, and for true emergencies (active water intrusion under fresh exterior work) route to the on-call number.
+triage:
+  - id: painting_interior_or_exterior
+    question: "Is this for interior or exterior painting?"
+    options: ["Interior", "Exterior", "Both", "Not sure"]
+    route: "Route to estimate booking; exterior jobs trigger pressure-wash prep checklist and weather-window check."
+  - id: painting_scope
+    question: "What are we painting — a room or two, the whole home, cabinets, or something else?"
+    options: ["1-2 rooms", "Whole home", "Cabinets", "Trim/baseboards only", "Exterior siding"]
+    route: "Match to pricebook items; whole-home and exterior go to per-sqft walkthrough estimate."
+  - id: painting_surface_condition
+    question: "Are there any issues with the surfaces — peeling paint, water stains, cracks, or old wallpaper?"
+    options: ["Peeling/flaking", "Water stains", "Cracks/drywall damage", "Wallpaper removal needed", "Surfaces are fine"]
+    route: "Add prep items (drywall repair, stucco patch, wallpaper removal) to the estimate and extend duration."
+  - id: painting_timeline
+    question: "When do you need this done?"
+    options: ["ASAP", "Within 2 weeks", "Within a month", "Flexible"]
+    route: "ASAP offers the next crew opening with rush flag; flexible offers best-value scheduling."
+  - id: painting_color_ready
+    question: "Do you already have colors picked, or would you like a consultation?"
+    options: ["Colors picked", "Need help choosing", "HOA requires approval"]
+    route: "Offer color consultation booking or email the HOA-friendly palette and spec sheets."
+automation_templates:
+  - name: "Estimate Follow-Up Sequence"
+    trigger: "estimate sent, no response in 48 hours"
+    steps:
+      - "Send SMS: quote summary + one-tap 'Approve' link"
+      - "Wait 3 days; send email with before/after photos of a similar job"
+      - "Wait 4 more days; send final SMS offering a 5% booking incentive expiring in 7 days"
+      - "Mark estimate cold and stop after 10 days total"
+  - name: "Job Day Reminders"
+    trigger: "job scheduled, 24 hours before start"
+    steps:
+      - "Send SMS reminder: date, arrival window, crew lead name"
+      - "Include prep checklist: move small items, secure pets, clear driveway for exterior"
+      - "Send email with crew lead photo and direct line"
+  - name: "Review Request After Completion"
+    trigger: "job marked complete"
+    steps:
+      - "Wait 2 hours, then send SMS review request with Google review link"
+      - "If no review in 5 days, send one email follow-up"
+      - "Log review response; thank-you note sent automatically on 5-star reviews"
+  - name: "Rain-Day Reschedule (Exterior)"
+    trigger: "weather forecast shows rain on an exterior job day"
+    steps:
+      - "Check forecast at 6 AM the day before"
+      - "If rain probability > 60%, notify crew lead and customer by SMS"
+      - "Offer the next 2 available weather-clear dates for reschedule"
+      - "Move prep tasks (pressure wash) earlier if a dry morning window exists"
+review_templates:
+  - name: "Standard Job Completion"
+    channel: sms
+    template: "Hi {customer_name}, this is {tech_name} from {shop_name}. Thanks for trusting us with your painting project! If you're happy with how it turned out, a quick review here would mean the world to us: {review_link}"
+  - name: "Post-Job Email"
+    channel: email
+    template: "Subject: Your {shop_name} project is complete!\n\nHi {customer_name},\n\n{tech_name} just wrapped your painting project and everything is cleaned up. We'd love to hear how it went — your review helps other homeowners find us: {review_link}\n\nThanks for choosing {shop_name}!"
+  - name: "Warranty Visit Follow-Up"
+    channel: sms
+    template: "Hi {customer_name}, {tech_name} from {shop_name} here — just checking in after your touch-up visit. Everything looking good? A quick review about your experience would be a huge help: {review_link}"
