@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from db import get_db  # noqa: F401  (kept for parity with other routers)
 from market_packs import list_packs, load_pack
 from market_packs.resolver import resolve_face
 from security import require_tenant_user
