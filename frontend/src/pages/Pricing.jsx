@@ -165,6 +165,24 @@ export default function Pricing() {
           )}
         </div>
 
+        <div className="mt-14" data-testid="pricing-addons">
+          <h2 className="font-display text-3xl text-white">{t("pricing.addons_title")}</h2>
+          <p className="mt-2 text-white/70 max-w-xl">{t("pricing.addons_sub")}</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-6">
+            {[
+              { key: "books-light", name: t("pricing.addon_light_name"), price: "$10", desc: t("pricing.addon_light_desc") },
+              { key: "books-medium", name: t("pricing.addon_medium_name"), price: "$20", desc: t("pricing.addon_medium_desc") },
+              { key: "books-heavy", name: t("pricing.addon_heavy_name"), price: t("pricing.addon_volume"), desc: t("pricing.addon_heavy_desc") },
+            ].map((a) => (
+              <div key={a.key} className="glass-crystal rounded-2xl p-6" data-testid={`pricing-addon-${a.key}`}>
+                <div className="overline text-white/60">{a.name}</div>
+                <div className="font-display text-3xl mt-2 text-white">{a.price}<span className="text-base text-white/60 font-sans">{a.key === "books-heavy" ? "" : t("pricing.per_month")}</span></div>
+                <p className="text-sm text-white/60 mt-2">{a.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <p className="mt-10 text-xs text-white/60">{t("pricing.footnote")}</p>
       </section>
     </div>
