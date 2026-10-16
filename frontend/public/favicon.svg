@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28" fill="none">
+  <!-- EMP-WL-014: the existing Logo mark (src/components/Logo.jsx), light/dark aware.
+       TODO(Brann): replace with the final brand icon. -->
+  <style>
+    .frame { stroke: #0A0A0A; }
+    .core { fill: #0A0A0A; }
+    .dot { fill: #2563EB; }
+    @media (prefers-color-scheme: dark) {
+      .frame { stroke: #FFFFFF; }
+      .core { fill: #FFFFFF; }
+      .dot { fill: #9CA3FF; }
+    }
+  </style>
+  <rect class="frame" x="1" y="1" width="26" height="26" rx="7" stroke-width="1.6" fill="none"/>
+  <rect class="core" x="7" y="7" width="14" height="14" rx="3"/>
+  <circle class="dot" cx="14" cy="14" r="2.5"/>
+</svg>
