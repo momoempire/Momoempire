@@ -3,6 +3,13 @@
 > Target: surpass ServiceTitan ($245–500/tech/mo, 6–12 mo implementations) with an
 > AI-native platform, flat pricing, and deploy-in-days onboarding.
 > Wedge: the small shops ServiceTitan prices out.
+>
+> **Build order (authorized 2026-10-15):** full roadmap build underway.
+> Wave 1: marketing automation (#31) — dual-purpose (shops→homeowners AND
+> platform→prospective shops). Then Phase B (7–12), Phase C + gaps (13–18,
+> 32–36), Phase D (19–24), Phase E (25–30), differentiators (37–39),
+> customer-service excellence initiative. One stacked PR per feature, no merges
+> without user review.
 
 ## Shipped
 

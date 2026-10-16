@@ -494,12 +494,13 @@ class UsageEvent(BaseModel):
     created_at: str = Field(default_factory=_now_iso)
 
 
-# Default limits per plan
+# Default limits per plan (mirrors DEFAULT_PLANS in routers/plans.py)
 PLAN_LIMITS: Dict[str, Dict[str, float]] = {
-    "trial":   {"ai_minutes": 60,    "calls": 50,    "sms": 100,   "ai_interactions": 500},
-    "starter": {"ai_minutes": 500,   "calls": 500,   "sms": 1000,  "ai_interactions": 5000},
-    "growth":  {"ai_minutes": 2500,  "calls": 2500,  "sms": 5000,  "ai_interactions": 25000},
-    "scale":   {"ai_minutes": 10000, "calls": 10000, "sms": 20000, "ai_interactions": 100000},
+    "trial":   {"ai_minutes": 30,    "calls": 50,    "sms": 100,   "ai_interactions": 300},
+    "lite":    {"ai_minutes": 10,    "calls": 25,    "sms": 50,    "ai_interactions": 500},
+    "starter": {"ai_minutes": 60,    "calls": 150,   "sms": 200,   "ai_interactions": 1500},
+    "pro":     {"ai_minutes": 300,   "calls": 800,   "sms": 1000,  "ai_interactions": 8000},
+    "empire":  {"ai_minutes": 1000,  "calls": 2500,  "sms": 5000,  "ai_interactions": 25000},
 }
 
 WARNING_THRESHOLDS = [0.70, 0.85, 0.90, 0.95, 1.00]
@@ -683,7 +684,7 @@ class IndustryBrief(BaseModel):
 # ---- Plans, cost config, domain providers ----
 
 class PlanIn(BaseModel):
-    key: str  # trial | starter | growth | ai_office | high_volume | enterprise | custom
+    key: str  # trial | lite | starter | pro | empire | enterprise | custom
     name: str
     price_cents: int = 0  # 0 = custom / contact sales
     interval: Literal["month", "year", "custom"] = "month"
