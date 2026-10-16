@@ -15,16 +15,16 @@ import {
 const API = "/conversation-intel";
 
 const SENTIMENT_STYLE = {
-  positive: { cls: "bg-emerald-100 text-emerald-800", icon: Smile, labelKey: "ci.positive", fallback: "Positive" },
-  neutral: { cls: "bg-amber-100 text-amber-800", icon: Meh, labelKey: "ci.neutral", fallback: "Neutral" },
-  negative: { cls: "bg-rose-100 text-rose-800", icon: Frown, labelKey: "ci.negative", fallback: "Negative" },
+  positive: { cls: "bg-emerald-100 text-emerald-800", icon: Smile, labelKey: "conversationIntel.positive", fallback: "Positive" },
+  neutral: { cls: "bg-amber-100 text-amber-800", icon: Meh, labelKey: "conversationIntel.neutral", fallback: "Neutral" },
+  negative: { cls: "bg-rose-100 text-rose-800", icon: Frown, labelKey: "conversationIntel.negative", fallback: "Negative" },
 };
 
 const SEVERITY_STYLE = {
-  critical: { cls: "bg-red-600 text-white", labelKey: "ci.critical", fallback: "Critical" },
-  high: { cls: "bg-orange-100 text-orange-800", labelKey: "ci.high", fallback: "High" },
-  medium: { cls: "bg-sky-100 text-sky-800", labelKey: "ci.medium", fallback: "Medium" },
-  low: { cls: "bg-slate-100 text-slate-700", labelKey: "ci.low", fallback: "Low" },
+  critical: { cls: "bg-red-600 text-white", labelKey: "conversationIntel.critical", fallback: "Critical" },
+  high: { cls: "bg-orange-100 text-orange-800", labelKey: "conversationIntel.high", fallback: "High" },
+  medium: { cls: "bg-sky-100 text-sky-800", labelKey: "conversationIntel.medium", fallback: "Medium" },
+  low: { cls: "bg-slate-100 text-slate-700", labelKey: "conversationIntel.low", fallback: "Low" },
 };
 
 function SentimentChip({ label }) {
