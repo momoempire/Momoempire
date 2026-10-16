@@ -1,0 +1,182 @@
+id: landscaping
+trade: Landscaping
+tagline: "Your AI office, preloaded for Landscaping"
+terms:
+  worker: Crew Lead
+  worker_plural: Crew
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#3E8E41"
+pricebook:
+  - name: Mowing Visit (up to 1/4 acre)
+    category: service
+    price: 55.00
+    cost: 22.00
+    duration_min: 45
+    description: "Mow, edge, trim, and blow — standard recurring cut"
+  - name: Mowing Visit (1/4 to 1/2 acre)
+    category: service
+    price: 75.00
+    cost: 30.00
+    duration_min: 60
+    description: "Mow, edge, trim, and blow for medium lots"
+  - name: Seasonal Cleanup (spring or fall)
+    category: service
+    price: 325.00
+    cost: 110.00
+    duration_min: 240
+    description: "Leaf/debris removal, bed cleanup, pruning, and first mow or winter prep"
+  - name: Mulch Install (per cubic yard, dyed hardwood)
+    category: part
+    price: 95.00
+    cost: 38.00
+    duration_min: 20
+    description: "Premium dyed hardwood mulch installed, per cubic yard, bed edging included"
+  - name: Bed Edging (per linear ft)
+    category: labor
+    price: 3.50
+    cost: 1.00
+    duration_min: 2
+    description: "Crisp trench edging for beds, priced per linear foot"
+  - name: Shrub Trimming (per shrub)
+    category: labor
+    price: 18.00
+    cost: 5.00
+    duration_min: 10
+    description: "Shape and trim shrubs, priced per shrub, debris hauled"
+  - name: Irrigation Startup / Winterization
+    category: service
+    price: 125.00
+    cost: 35.00
+    duration_min: 60
+    description: "Spring startup with head checks or fall blowout winterization"
+  - name: Irrigation Repair (per zone diagnostic + first head)
+    category: part
+    price: 175.00
+    cost: 50.00
+    duration_min: 60
+    description: "Diagnose zone issues, replace first broken head or valve; additional parts at cost-plus"
+  - name: Sod Install (per sq ft, incl. prep)
+    category: part
+    price: 1.85
+    cost: 0.75
+    duration_min: 1
+    description: "Fresh sod with soil prep and grading, priced per sq ft"
+  - name: Landscape Lighting (per fixture, LED)
+    category: addon
+    price: 285.00
+    cost: 110.00
+    duration_min: 45
+    description: "Add-on: low-voltage LED fixture with transformer capacity check"
+  - name: Fertilization / Weed Control (per visit, up to 1/4 acre)
+    category: addon
+    price: 65.00
+    cost: 18.00
+    duration_min: 30
+    description: "Add-on: granular fertilizer + pre-emergent weed control application"
+equipment_types:
+  - name: Lawn Profile
+    fields: [lot_size_acres, grass_type, gate_width_in, slope_notes, pet_notes, last_service_date]
+  - name: Irrigation System
+    fields: [zone_count, controller_brand, controller_model, last_startup_date, winterized]
+  - name: Landscape Beds
+    fields: [bed_count, mulch_type, last_mulch_date, edging_type]
+  - name: Trees
+    fields: [tree_count, species_notes, last_trim_date, hazard_notes]
+appointment_types:
+  - name: Recurring Mowing
+    duration_min: 45
+    description: "Weekly or biweekly scheduled mowing visit"
+  - name: Cleanup Visit
+    duration_min: 240
+    description: "Seasonal spring or fall cleanup"
+  - name: Install / Project Day
+    duration_min: 480
+    description: "Full-day mulch, planting, sod, or hardscape project"
+  - name: Irrigation Service
+    duration_min: 60
+    description: "Startup, winterization, or repair of irrigation system"
+  - name: Design Consultation
+    duration_min: 60
+    description: "Free on-site consultation for new landscape projects"
+receptionist_script: |
+  GREETING: "Thanks for calling {shop_name}, this is Momo, your virtual assistant. How can I help with your yard today?"
+
+  COMMON CALL TYPES:
+  1. RECURRING MOWING: Ask: "How big is your lot — roughly a quarter acre, half acre, or bigger? And is there a gate we need to fit through?" Then: "Our mowing starts at $55 per visit for up to a quarter acre — that includes mowing, edging, trimming, and blowing. Weekly or biweekly — which do you prefer?" Book a first cut and set the recurrence.
+  2. CLEANUP (SPRING/FALL): Say: "Our seasonal cleanup is $325 — leaves and debris hauled, beds cleaned out, shrubs pruned, and everything tidied. It takes about half a day. Want me to get you on the schedule?"
+  3. MULCH / PLANTING PROJECT: Ask: "How many beds, and roughly how big? Do you want us to pick the plants or do you have something in mind?" Then: "Mulch is $95 per cubic yard installed with fresh edging. I'll set up a free consultation so we can measure and give you an exact price."
+  4. IRRIGATION ISSUE: Ask: "Is a zone not coming on, a head broken or spraying the sidewalk, or is water running constantly?" Constant running: "Turn the controller to OFF for now so it doesn't flood — I can get someone out this week." Then book irrigation service.
+  5. ONE-TIME MOW / OVERGROWN: Say: "For overgrown yards we do a first-cut cleanup priced on site — usually $125 to $250 depending on height — then regular pricing after that. Can you send a photo? I can text you a link to upload one."
+
+  BOOKING FLOW — always ask in this order:
+  1. "What's your name and the best callback number?"
+  2. "What's the service address?"
+  3. "What do you need — recurring mowing, cleanup, mulch, irrigation, or a project?"
+  4. "Any gate codes, dogs in the yard, or areas we should avoid?"
+  5. Confirm: "So I have [NAME] at [ADDRESS] for [SERVICE] on [DATE]. The crew will text when they're on the way. Sound good?"
+
+  EMERGENCY / URGENT HANDLING:
+  - Landscaping emergencies are rare: fallen tree blocking driveway, irrigation flooding, storm debris. "I can get a crew out today for storm cleanup — is anything blocking access or flooding?"
+  - Irrigation mainline break: "Turn the irrigation water off at the backflow or main valve until we arrive."
+  - After-hours: take details and promise first-morning callback; dispatch only for flooding or access-blocking debris.
+
+  AFTER-HOURS BEHAVIOR: "You've reached {shop_name} after hours. If you have flooding from irrigation or storm debris blocking your driveway, I can arrange an urgent visit. Otherwise, leave your details and we'll call first thing in the morning. Is anything flooding or blocked?"
+triage:
+  - id: service_type
+    question: "What do you need — regular mowing, a one-time cleanup, mulch or planting, or irrigation help?"
+    options: ["Regular mowing", "One-time cleanup", "Mulch / planting project", "Irrigation problem", "Something else"]
+    route: "Mowing: size lot and book first cut; cleanup: book seasonal slot; project: free consultation; irrigation: diagnose urgency"
+  - id: lot_size
+    question: "Roughly how big is the mowable lawn — under a quarter acre, quarter to half acre, or over half an acre?"
+    options: ["Under 1/4 acre", "1/4 to 1/2 acre", "Over 1/2 acre", "Not sure"]
+    route: "Price per size tier ($55 / $75 / custom quote); unsure: request photo or schedule site check"
+  - id: irrigation_symptom
+    question: "For irrigation: is a zone dead, a head broken, water running nonstop, or poor coverage?"
+    options: ["Zone won't turn on", "Broken / misaligned head", "Water running constantly", "Dry spots / poor coverage"]
+    route: "Running constantly: shutoff walkthrough + urgent visit; others: schedule irrigation service"
+  - id: yard_condition
+    question: "How would you describe the yard's current condition?"
+    options: ["Maintained, just needs regular care", "A bit overgrown", "Very overgrown / neglected", "New construction, bare dirt"]
+    route: "Overgrown: first-cut cleanup pricing; bare dirt: design consultation for sod/planting"
+automation_templates:
+  - name: Recurring Route Scheduling
+    trigger: "Weekly route build (every Thursday for following week)"
+    steps:
+      - "Pull all active recurring customers grouped by neighborhood"
+      - "Build optimized route order minimizing drive time"
+      - "Send customers day-before reminder with arrival window"
+      - "Crew checks in per stop; auto-invoice on route completion"
+      - "Flag skipped stops (gate locked, weather) for auto-reschedule"
+  - name: Spring Cleanup Campaign
+    trigger: "March 1 each year"
+    steps:
+      - "Send SMS to all customers: spring cleanup booking ($325)"
+      - "Offer mulch pre-booking bundle discount"
+      - "Fill schedule in route batches; confirm 48 hours ahead"
+  - name: Fall Winterization Push
+    trigger: "October 1 each year"
+    steps:
+      - "Send SMS: irrigation winterization ($125) + fall cleanup bundle"
+      - "Book blowouts before first freeze; track completion per system"
+      - "Send freeze warning alerts to customers not yet winterized"
+  - name: Upsell on Mowing Visit
+    trigger: "Crew notes upsell opportunity (bare spots, dull beds, broken head)"
+    steps:
+      - "Auto-send customer photo + quote SMS within 2 hours of visit"
+      - "One-tap approval converts to scheduled job"
+      - "Track crew upsell conversion for bonuses"
+review_templates:
+  - name: Post-Mowing SMS Review
+    channel: sms
+    template: "Hi {customer_name}! The {shop_name} crew just finished your yard — hope you're loving the stripes! If it looks great, a quick review means a lot: {review_link} — thanks!"
+  - name: Project Completion Email Review
+    channel: email
+    template: "Hi {customer_name}, your landscape project is done and it looks fantastic! Thanks for choosing {shop_name} — {tech_name} and the crew enjoyed transforming your yard. Before/after photos attached! If you're happy, please review us: {review_link}."
+  - name: Seasonal Cleanup SMS Review
+    channel: sms
+    template: "Hi {customer_name}, your fall cleanup is done — yard's ready for winter! Quick favor: would you review {shop_name}? {review_link} Thank you! — {tech_name}"

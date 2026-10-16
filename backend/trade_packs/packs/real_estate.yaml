@@ -1,0 +1,204 @@
+id: real_estate
+trade: Real Estate
+tagline: "Your AI office, preloaded for Real Estate teams"
+terms:
+  worker: Agent
+  worker_plural: Agents
+  shop: agency
+  job: listing
+  job_plural: listings
+  customer: client
+  customer_plural: clients
+colors:
+  accent: "#1E40AF"
+pricebook:
+  - name: Buyer Consultation
+    category: service
+    price: 0
+    cost: 50
+    duration_min: 60
+    description: Free discovery meeting to map goals, budget, and timeline.
+  - name: Listing Consultation & CMA
+    category: service
+    price: 0
+    cost: 75
+    duration_min: 90
+    description: Free in-home pricing analysis and marketing plan presentation.
+  - name: Professional Photography Package
+    category: addon
+    price: 350
+    cost: 200
+    duration_min: 90
+    description: HDR photos, twilight shot, and drone-free aerials for a listing.
+  - name: Drone Aerial Package
+    category: addon
+    price: 200
+    cost: 120
+    duration_min: 45
+    description: Licensed drone stills and video for acreage or premium listings.
+  - name: 3D Virtual Tour
+    category: addon
+    price: 300
+    cost: 175
+    duration_min: 60
+    description: Full Matterport-style 3D walkthrough embedded in the listing.
+  - name: Staging Consultation
+    category: service
+    price: 150
+    cost: 75
+    duration_min: 90
+    description: Room-by-room staging plan to maximize sale price.
+  - name: Open House Event
+    category: service
+    price: 250
+    cost: 100
+    duration_min: 180
+    description: Staffed open house with signage, refreshments, and lead capture.
+  - name: Home Valuation Report
+    category: service
+    price: 0
+    cost: 25
+    duration_min: 30
+    description: Free detailed value report for prospective sellers.
+  - name: Transaction Coordination Fee
+    category: service
+    price: 495
+    cost: 150
+    duration_min: 0
+    description: Flat fee covering contract-to-close paperwork management.
+  - name: Relocation Tour (Half Day)
+    category: service
+    price: 0
+    cost: 100
+    duration_min: 240
+    description: Curated neighborhood and home tour for relocating buyers.
+equipment_types:
+  - name: Active Listing
+    fields: [mls_number, address, list_price, status, days_on_market, listing_agent]
+  - name: CRM Seat
+    fields: [platform, seats, monthly_cost, renewal_date, assigned_agent]
+  - name: Showing Vehicle
+    fields: [make_model, year, mileage, insurance_renewal, assigned_agent]
+  - name: Lockbox Inventory
+    fields: [lockbox_id, type, assigned_listing, battery_status, condition]
+  - name: Photo/Video Kit
+    fields: [camera_model, drone_model, purchase_date, faa_registration, condition]
+  - name: Signage Set
+    fields: [sign_type, quantity, assigned_listing, condition, storage_location]
+appointment_types:
+  - name: Buyer Consultation
+    duration_min: 60
+    description: First meeting to understand needs, budget, and timeline.
+  - name: Listing Appointment
+    duration_min: 90
+    description: In-home listing presentation with CMA and marketing plan.
+  - name: Home Showing
+    duration_min: 45
+    description: Private showing of one property, typically stacked in tours.
+  - name: Open House
+    duration_min: 180
+    description: Public open house block with lead capture.
+  - name: Offer Review / Negotiation
+    duration_min: 60
+    description: Sit-down to review offers and set negotiation strategy.
+  - name: Closing Appointment
+    duration_min: 60
+    description: Final signing and key handoff celebration.
+receptionist_script: |
+  GREETING:
+  "Thank you for calling {shop_name}! This is the {shop_name} assistant. Are you
+  looking to buy, sell, or just have a question about the market?"
+
+  COMMON CALL TYPES:
+  1. BUYING: Ask about timeline, price range, pre-approval status, and must-have
+     neighborhoods. Book a buyer consultation with the best-fit agent.
+  2. SELLING: Ask about the property address, reason for selling, and timeline.
+     Offer a free home valuation report and book a listing consultation.
+  3. SCHEDULING A SHOWING: Get the property address or MLS number, preferred
+     date/time, and confirm the caller is working with an agent (or offer ours).
+  4. VALUATION REQUEST: Collect the address, email, and phone — deliver the
+     automated report, then follow up to book a listing appointment.
+  5. RENTAL/PROPERTY MANAGEMENT: Route to the property management line if we
+     offer it; otherwise politely decline and offer buyer/seller help.
+
+  BOOKING FLOW:
+  1. Collect: caller name, phone, email, buy/sell intent, timeline, price range.
+  2. Match to an agent by specialty (first-time buyer, luxury, relocation).
+  3. Confirm the appointment details back, then book.
+  4. Say: "Your agent will call you within the hour to confirm. Anything else?"
+
+  URGENT HANDLING:
+  - Hot buyer ready to write an offer: page the listing agent immediately — this
+    is the highest priority call type.
+  - Lockbox/code issue during a showing: get the property address and agent name,
+    provide the code if authorized, escalate to the listing agent.
+  - Client emergency (flood, break-in at a listing): contact the listing agent
+    and the homeowner right away; offer to dispatch our vendor list.
+
+  AFTER-HOURS:
+  "You've reached {shop_name} — our office is closed, but I can help right now.
+  If you're ready to see a home or talk about selling, I can book you with an
+  agent first thing in the morning, or take a message for an urgent callback.
+  What works best?"
+triage:
+  - id: intent
+    question: Are you looking to buy, sell, or both?
+    options: [Buy, Sell, Both, Just curious about the market]
+    route: Buy → buyer flow; Sell → valuation + listing appointment; Both → full-service agent match.
+  - id: timeline
+    question: What's your timeline?
+    options: [ASAP / under 30 days, 1-3 months, 3-6 months, Just researching]
+    route: ASAP → priority agent callback within 1 hour; 1-3 months → book consultation this week; longer → nurture drip.
+  - id: pre_approval
+    question: Have you been pre-approved for a mortgage?
+    options: [Yes, pre-approved, Not yet, Paying cash, Selling first]
+    route: Not yet → connect with a preferred lender; Cash → flag as high-priority buyer.
+  - id: price_range
+    question: What's your comfortable price range?
+    options: [Under $250k, $250k-$500k, $500k-$1M, $1M+]
+    route: Match to an agent whose recent closings fit the range.
+  - id: property_details
+    question: For sellers — tell me about the property.
+    options: [Single-family home, Condo/townhome, Land, Multi-family/investment]
+    route: Route to the specialist agent for that property type and trigger the valuation report.
+automation_templates:
+  - name: New Lead to Showing
+    trigger: new buyer lead captured
+    steps:
+      - "Send SMS within 5 minutes introducing the matched agent."
+      - "Ask for preferred showing day/time and top 3 must-haves."
+      - "Auto-build a showing tour of 4-6 matching listings."
+      - "Send calendar invite and day-before reminder."
+      - "After the tour, send a feedback survey and next-steps message."
+  - name: Listing Launch Sequence
+    trigger: new listing goes live
+    steps:
+      - "Order photography and 3D tour automatically."
+      - "Publish to MLS, Zillow, and social channels."
+      - "Schedule the broker open house and public open house."
+      - "Send “just listed” postcards and email blast to the farm area."
+      - "Day 7: send the seller a showing-activity report."
+  - name: Post-Closing Delight
+    trigger: transaction closed
+    steps:
+      - "Send congratulatory message with a digital closing gift."
+      - "Request a Google/Zillow review with a direct link."
+      - "Enroll in the quarterly market-update newsletter."
+      - "Schedule 6-month and 1-year check-in calls."
+  - name: Price Improvement Alert
+    trigger: listing hits 21 days on market
+    steps:
+      - "Notify the listing agent with comparable data."
+      - "Draft a price-improvement recommendation for the seller."
+      - "Refresh photos and listing copy automatically."
+      - "Boost the listing with paid social for 7 days."
+review_templates:
+  - name: Post-Closing SMS Review Ask
+    channel: sms
+    template: "Hi {customer_name}! Congrats again on closing day — {tech_name} and the whole {shop_name} team are thrilled for you. If we earned 5 stars, would you share your experience here? {review_link}"
+  - name: Buyer Consultation Follow-Up Email
+    channel: email
+    template: "Hi {customer_name}, {tech_name} here from {shop_name}. It was great meeting you! I've attached the homes we discussed plus a few new matches. When you're ready for the next step, I'm one call away — and if you know anyone thinking of buying or selling, we'd love an intro. A quick review of our time together would mean a lot: {review_link}"
+  - name: Seller Listing Launch Review Ask
+    channel: sms
+    template: "Hey {customer_name}, your listing is LIVE! {tech_name} here — the photos look incredible. As we get showings rolling, a review of your experience with {shop_name} so far would be amazing: {review_link}"
