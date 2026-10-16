@@ -19,7 +19,7 @@ async def widget_script(slug: str):
     db = get_db()
     tenant = await db.tenants.find_one({"slug": slug}, {"_id": 0, "id": 1, "name": 1, "branding": 1, "slug": 1})
     if not tenant:
-        return Response("console.warn('[AI Office] unknown workspace');", media_type="application/javascript")
+        return Response("console.warn('[widget] unknown workspace');", media_type="application/javascript")
     primary = (tenant.get("branding") or {}).get("primary_color") or "#0A0A0A"
     name = tenant.get("name", "us")
     api_base = ""  # relative — the widget calls same-origin via the host's reverse proxy, or set absolute below
