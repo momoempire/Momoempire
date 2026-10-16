@@ -5,8 +5,11 @@ import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
 import { Loader2 } from "lucide-react";
+import { resumePendingCheckoutIfAny } from "@/lib/checkout";
 
-// REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+// Direct Google OAuth returns here with ?code=... in the query string.
+// The redirect_uri sent to the backend must match the one used to start
+// the flow (origin + /auth/callback) exactly.
 export default function AuthCallback() {
   const location = useLocation();
   const nav = useNavigate();
@@ -16,17 +19,22 @@ export default function AuthCallback() {
   useEffect(() => {
     if (processed.current) return;
     processed.current = true;
-    const hash = location.hash || "";
-    const match = hash.match(/session_id=([^&]+)/);
-    if (!match) { nav("/login", { replace: true }); return; }
-    const session_id = decodeURIComponent(match[1]);
+    const code = new URLSearchParams(location.search || "").get("code");
+    if (!code) { nav("/login", { replace: true }); return; }
+    const redirect_uri = window.location.origin + "/auth/callback";
     (async () => {
       try {
-        const { data } = await api.post("/auth/google/session", { session_id });
+        const { data } = await api.post("/auth/google/session", { code, redirect_uri });
         setUser(data);
-        // Clear the hash
+        // Clear the code from the URL
         window.history.replaceState({}, "", window.location.pathname);
         toast.success(`Welcome, ${data.name || data.email}`);
+        try {
+          const started = await resumePendingCheckoutIfAny();
+          if (started) return;
+        } catch (checkoutErr) {
+          toast.error(errMessage(checkoutErr) || "Could not start checkout — open Billing to subscribe.");
+        }
         const target = data.role === "platform_admin" ? "/admin" : "/app";
         nav(target, { replace: true, state: { user: data } });
       } catch (e) {
@@ -34,7 +42,7 @@ export default function AuthCallback() {
         nav("/login", { replace: true });
       }
     })();
-  }, [location.hash, nav, setUser]);
+  }, [location.search, nav, setUser]);
 
   return (
     <div className="min-h-screen grid place-items-center">

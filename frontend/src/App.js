@@ -123,7 +123,7 @@ const AdminGuard = ({ children }) => <ProtectedRoute platformAdmin><AdminShell>{
 // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
 function Router() {
   const location = useLocation();
-  // Google OAuth returns to /auth/callback#session_id=... — handle before any protected route runs.
+  // Google OAuth returns to /auth/callback?code=... — handle before any protected route runs.
   // Exception: /invite?token=... has its own Google acceptance flow that reads the hash locally.
   if (location.hash?.includes("session_id=") && location.pathname !== "/invite") {
     return <AuthCallback />;

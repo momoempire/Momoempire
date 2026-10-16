@@ -151,6 +151,13 @@
     color: hsl(var(--muted-foreground));
 }
 
+/* EMP-WL-013: on the dark marketing pages the default overline color (light-theme muted
+   foreground, ~2.9:1 on the page background) fails WCAG AA. This rule is plain CSS after the
+   Tailwind utilities, so it also overrode the text-white/* class on each overline. */
+.marketing-shell .overline {
+    color: rgba(255, 255, 255, 0.7);
+}
+
 /* Dashboard surface */
 .surface {
     @apply bg-card border border-border rounded-xl;
@@ -200,6 +207,90 @@
 }
 
 /* Marker: platform splash */
-[data-emergent-splash] {
+[data-app-splash] {
     display: none;
 }
+
+/* -----------------------------------------------------------
+ * Light theme for the public marketing pages (landing, waitlist, industry pages).
+ * Those pages were written dark-only with hard-coded utilities (text-white/70, bg-white/10...).
+ * Rather than double every class, the marketing root carries .marketing-themed, and when <html>
+ * is not .dark these rules give each of those utilities its light variant. Text colours are
+ * chosen for >= 4.5:1 on the light page background (checked in the PR with a computed-style scan).
+ * Login/Signup/Onboarding side panels use .marketing-shell without .marketing-themed and stay dark.
+ * ----------------------------------------------------------- */
+html:not(.dark) .marketing-themed {
+    background: radial-gradient(1200px 600px at 15% -10%, rgba(14, 116, 224, 0.12), transparent 60%),
+        radial-gradient(900px 500px at 110% 15%, rgba(234, 88, 12, 0.08), transparent 60%),
+        #f4f8fc;
+    color: #0f1b2d;
+}
+html:not(.dark) .marketing-themed .marketing-noise { opacity: 0; }
+html:not(.dark) .marketing-themed .glass-crystal {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(3, 105, 161, 0.16);
+}
+html:not(.dark) .marketing-themed .overline { color: #4a4a55; }
+
+html:not(.dark) .marketing-themed .text-white,
+html:not(.dark) .marketing-themed .hover\:text-white:hover { color: #0a0a0c; }
+html:not(.dark) .marketing-themed .text-white\/80 { color: #2b2b33; }
+html:not(.dark) .marketing-themed .text-white\/70 { color: #3a3a44; }
+html:not(.dark) .marketing-themed .text-white\/60 { color: #4a4a55; }
+html:not(.dark) .marketing-themed .placeholder\:text-white\/60::placeholder,
+html:not(.dark) .marketing-themed .placeholder\:text-white\/40::placeholder { color: #5c5c68; }
+
+/* Primary buttons (bg-white text-black in the markup) use the warm "heating" orange. */
+html:not(.dark) .marketing-themed .bg-white { background-color: #c2410c; }          /* white text 5.2:1 */
+html:not(.dark) .marketing-themed .hover\:bg-white\/90:hover { background-color: #9a3412; }
+html:not(.dark) .marketing-themed .text-black { color: #ffffff; }
+
+html:not(.dark) .marketing-themed .bg-white\/5 { background-color: rgba(10, 10, 12, 0.04); }
+html:not(.dark) .marketing-themed .bg-white\/10 { background-color: rgba(10, 10, 12, 0.06); }
+html:not(.dark) .marketing-themed .hover\:bg-white\/5:hover,
+html:not(.dark) .marketing-themed .hover\:bg-white\/10:hover { background-color: rgba(10, 10, 12, 0.08); }
+html:not(.dark) .marketing-themed .hover\:bg-white\/20:hover { background-color: rgba(10, 10, 12, 0.12); }
+html:not(.dark) .marketing-themed .border-white\/10,
+html:not(.dark) .marketing-themed .border-white\/15,
+html:not(.dark) .marketing-themed .divide-white\/10 > * + * { border-color: rgba(10, 10, 12, 0.12); }
+html:not(.dark) .marketing-themed .border-white\/20,
+html:not(.dark) .marketing-themed .border-white\/30 { border-color: rgba(10, 10, 12, 0.22); }
+/* Form field borders keep >= 3:1 against the page (WCAG 1.4.11). */
+html:not(.dark) .marketing-themed .border-white\/40,
+html:not(.dark) .marketing-themed .border-white { border-color: #6b6b78; }
+
+/* Status colours: the dark theme uses pale text on tinted panels; use deep tones in light. */
+html:not(.dark) .marketing-themed .text-emerald-400 { color: #047857; }
+html:not(.dark) .marketing-themed .text-emerald-100,
+html:not(.dark) .marketing-themed .text-emerald-100\/80,
+html:not(.dark) .marketing-themed .text-emerald-200 { color: #065f46; }
+html:not(.dark) .marketing-themed .text-rose-100,
+html:not(.dark) .marketing-themed .text-rose-200,
+html:not(.dark) .marketing-themed .text-rose-400 { color: #9f1239; }
+html:not(.dark) .marketing-themed .text-amber-100 { color: #92400e; }
+
+/* HVAC service-business palette for the public pages, both themes: cool blues (cooling) with a
+   warm orange accent (heating). Dark values are checked on the navy page, light on #f4f8fc. */
+.marketing-themed {
+    background: radial-gradient(1200px 600px at 15% -10%, rgba(14, 116, 224, 0.24), transparent 60%),
+        radial-gradient(900px 500px at 110% 15%, rgba(234, 88, 12, 0.14), transparent 60%),
+        #061120;
+}
+.marketing-themed .glass-crystal { background: rgba(8, 24, 44, 0.66); border-color: rgba(125, 211, 252, 0.14); }
+.marketing-themed .bg-white { background-color: #fb923c; }               /* #1c0d02 text 9:1 */
+.marketing-themed .hover\:bg-white\/90:hover { background-color: #fdba74; }
+.marketing-themed .text-black { color: #1c0d02; }
+.marketing-themed .hvac-accent-text { color: #fdba74; }
+.marketing-themed .hvac-cool { color: #7dd3fc; }
+.marketing-themed .hvac-warm { color: #fdba74; }
+.marketing-themed .hvac-neutral { color: #cbd5e1; }
+.marketing-themed .hvac-chip { border: 1px solid currentColor; background: rgba(125, 211, 252, 0.08); }
+.marketing-themed .hvac-chip.hvac-warm { background: rgba(251, 146, 60, 0.10); }
+.marketing-themed .hvac-card { border-top: 2px solid rgba(125, 211, 252, 0.35); }
+html:not(.dark) .marketing-themed .hvac-accent-text { color: #c2410c; }   /* 4.9:1 */
+html:not(.dark) .marketing-themed .hvac-cool { color: #0369a1; }          /* 5.6:1 */
+html:not(.dark) .marketing-themed .hvac-warm { color: #c2410c; }
+html:not(.dark) .marketing-themed .hvac-neutral { color: #334155; }
+html:not(.dark) .marketing-themed .hvac-chip { background: rgba(3, 105, 161, 0.06); }
+html:not(.dark) .marketing-themed .hvac-chip.hvac-warm { background: rgba(194, 65, 12, 0.06); }
+html:not(.dark) .marketing-themed .hvac-card { border-top-color: rgba(3, 105, 161, 0.35); }
