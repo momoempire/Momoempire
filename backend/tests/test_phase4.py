@@ -67,10 +67,10 @@ class TestPublicPlans:
         assert isinstance(plans, list)
         assert len(plans) >= 5, f"expected >=5 plans, got {len(plans)}"
         by_key = {p["key"]: p for p in plans}
-        assert by_key["starter"]["price_cents"] == 1999
-        assert by_key["growth"]["price_cents"] == 4999
-        assert by_key["ai_office"]["price_cents"] == 9999
-        assert by_key["high_volume"]["price_cents"] == 19999
+        assert by_key["lite"]["price_cents"] == 999
+        assert by_key["starter"]["price_cents"] == 3999
+        assert by_key["pro"]["price_cents"] == 15900
+        assert by_key["empire"]["price_cents"] == 36900
 
 
 # ============== Admin plans CRUD ==============
@@ -81,7 +81,7 @@ class TestAdminPlans:
         plans = r.json()
         keys = {p["key"] for p in plans}
         assert "enterprise" in keys
-        assert {"trial", "starter", "growth", "ai_office", "high_volume"}.issubset(keys)
+        assert {"trial", "lite", "starter", "pro", "empire"}.issubset(keys)
 
     def test_admin_update_plan_limits(self, admin):
         # Fetch current starter plan
