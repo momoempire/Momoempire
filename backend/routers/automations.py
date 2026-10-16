@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from db import get_db
 from models import _now_iso
-from models_phase2 import AutomationSettings
+from models import AutomationSettings
 from security import require_tenant_owner_or_admin, require_tenant_user
 
 router = APIRouter(prefix="/tenants/automations", tags=["automations"])

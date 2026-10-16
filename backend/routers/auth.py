@@ -12,37 +12,37 @@ from security import (
     _secret, JWT_ALGORITHM,
 )
 import jwt
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-LOCKOUT_LIMIT = 5
-LOCKOUT_MINUTES = 15
+# Brute-force protection: 5 attempts / 15 min per (IP, account), with Retry-After.
+# Unified limiter (rate_limit.py): Redis-backed when REDIS_URL is set, in-memory
+# otherwise. Replaces the old Mongo login_attempts lockout (single mechanism).
+LOGIN_LIMIT = 5
+LOGIN_WINDOW_S = 15 * 60
 
 
-async def _check_lockout(db, identifier: str):
-    doc = await db.login_attempts.find_one({"identifier": identifier})
-    if not doc:
-        return
-    if doc.get("count", 0) >= LOCKOUT_LIMIT:
-        until = doc.get("locked_until")
-        if until and datetime.fromisoformat(until) > datetime.now(timezone.utc):
-            raise HTTPException(429, "Too many failed attempts. Try again later.")
+def _login_key(request: Request, email: str) -> str:
+    ip = request.client.host if request.client else "unknown"
+    return f"login:{ip}:{email.lower()}"
 
 
-async def _record_failure(db, identifier: str):
-    now = datetime.now(timezone.utc)
-    doc = await db.login_attempts.find_one({"identifier": identifier})
-    count = (doc.get("count", 0) if doc else 0) + 1
-    locked_until = (now + timedelta(minutes=LOCKOUT_MINUTES)).isoformat() if count >= LOCKOUT_LIMIT else None
-    await db.login_attempts.update_one(
-        {"identifier": identifier},
-        {"$set": {"identifier": identifier, "count": count, "locked_until": locked_until, "updated_at": now.isoformat()}},
-        upsert=True,
-    )
+async def _enforce_login_limit(request: Request, email: str) -> str:
+    from rate_limit import check_rate_limit, rate_limit_headers, get_rate_limiter
+
+    key = _login_key(request, email)
+    allowed, retry_after = await check_rate_limit(key, LOGIN_LIMIT, LOGIN_WINDOW_S)
+    if not allowed:
+        raise HTTPException(429, "Too many failed attempts. Try again later.",
+                            headers=rate_limit_headers(retry_after))
+    return key
 
 
-async def _clear_failures(db, identifier: str):
-    await db.login_attempts.delete_one({"identifier": identifier})
+def _reset_login_limit(key: str) -> None:
+    from rate_limit import get_rate_limiter
+
+    get_rate_limiter().reset(key)
 
 
 @router.post("/register")
@@ -95,26 +95,85 @@ async def register(data: RegisterIn, response: Response):
     return user_doc
 
 
+def _is_known_default(password: str) -> bool:
+    from password_policy import KNOWN_DEFAULT_PASSWORDS
+    return (password or "") in KNOWN_DEFAULT_PASSWORDS
+
+
 @router.post("/login")
 async def login(data: LoginIn, request: Request, response: Response):
     db = get_db()
     email = data.email.lower()
-    ip = request.client.host if request.client else "unknown"
-    identifier = f"{ip}:{email}"
-    await _check_lockout(db, identifier)
+    limit_key = await _enforce_login_limit(request, email)
 
     user = await db.users.find_one({"email": email})
     if not user or not verify_password(data.password, user["password_hash"]):
-        await _record_failure(db, identifier)
         raise HTTPException(401, "Invalid email or password")
 
-    await _clear_failures(db, identifier)
+    if user.get("role") == "platform_admin" and _is_known_default(data.password):
+        # Defense in depth (startup seed normally already replaced this hash): never let a
+        # known default password sign in as admin; neutralize it and require the reset flow.
+        import secrets
+        await db.users.update_one(
+            {"id": user["id"]},
+            {"$set": {"password_hash": hash_password(secrets.token_urlsafe(48)),
+                      "password_unusable": True, "must_change_password": True}},
+        )
+        raise HTTPException(401, "Invalid email or password")
+
+    _reset_login_limit(limit_key)
+
+    # Two-factor: password step done — hand off a short-lived 2FA token instead
+    # of auth cookies. The frontend then shows the code challenge screen.
+    if user.get("mfa_enabled"):
+        from security import create_2fa_token
+
+        return {"requires_2fa": True, "two_fa_token": create_2fa_token(user["id"])}
+
     access = create_access_token(user["id"], email, user["role"], user.get("tenant_id"))
     refresh = create_refresh_token(user["id"])
     set_auth_cookies(response, access, refresh)
     user.pop("password_hash", None)
     user.pop("_id", None)
+    user["must_change_password"] = bool(user.get("must_change_password"))
     return user
+
+
+class SetPasswordIn(BaseModel):
+    new_password: str
+    current_password: str | None = None
+
+
+@router.post("/set-password")
+async def set_password(data: SetPasswordIn, user: dict = Depends(get_current_user)):
+    """Set a new password. Required (and the only allowed action) while must_change_password is set."""
+    from password_policy import password_problems
+    db = get_db()
+    problems = password_problems(data.new_password)
+    if problems:
+        raise HTTPException(400, "Password " + "; ".join(problems))
+    full = await db.users.find_one({"id": user["id"]})
+    if not full:
+        raise HTTPException(404, "User not found")
+    if full.get("password_unusable"):
+        # No usable password (seeded without one, or a known default was neutralized):
+        # the only way in is the emailed reset-token flow.
+        raise HTTPException(403, "No password is set for this account. Use 'Forgot password' to set one.")
+    # Always prove the current password, including forced first-login changes, so a leaked
+    # or default password alone can never be used to take over the account.
+    if not data.current_password or not verify_password(data.current_password, full.get("password_hash") or ""):
+        raise HTTPException(400, "Current password is incorrect")
+    if full.get("role") == "platform_admin" and _is_known_default(data.current_password):
+        raise HTTPException(403, "This account's password is a known default. Use 'Forgot password' to set one.")
+    if full.get("password_hash") and verify_password(data.new_password, full["password_hash"]):
+        raise HTTPException(400, "New password must differ from the current one")
+    await db.users.update_one(
+        {"id": user["id"]},
+        {"$set": {"password_hash": hash_password(data.new_password),
+                  "must_change_password": False,
+                  "password_changed_at": _now_iso()}},
+    )
+    return {"status": "ok", "must_change_password": False}
 
 
 @router.post("/logout")
@@ -180,46 +239,61 @@ async def reset_password(data: ResetIn):
     rec = await db.password_reset_tokens.find_one({"token": data.token})
     if not rec or rec.get("used"):
         raise HTTPException(400, "Invalid or used token")
-    exp = rec["expires_at"]
-    if isinstance(exp, str):
-        exp = datetime.fromisoformat(exp)
-    if exp < datetime.now(timezone.utc):
+    # EMP-W-CF-026: MongoDB returns expires_at as a NAIVE datetime (stored aware UTC); comparing it
+    # with an aware "now" raised TypeError -> 500. Normalize (naive = UTC); missing/garbage = expired.
+    from timeutil import is_expired
+    if is_expired(rec.get("expires_at")):
         raise HTTPException(400, "Token expired")
-    await db.users.update_one({"id": rec["user_id"]},
-                              {"$set": {"password_hash": hash_password(data.new_password)}})
+    target = await db.users.find_one({"id": rec["user_id"]}) or {}
+    patch = {"password_hash": hash_password(data.new_password)}
+    if target.get("must_change_password") or target.get("role") == "platform_admin":
+        from password_policy import password_problems
+        problems = password_problems(data.new_password)
+        if problems:
+            raise HTTPException(400, "Password " + "; ".join(problems))
+        patch["must_change_password"] = False
+        patch["password_changed_at"] = _now_iso()
+    patch["password_unusable"] = False
+    await db.users.update_one({"id": rec["user_id"]}, {"$set": patch})
     await db.password_reset_tokens.update_one({"token": data.token}, {"$set": {"used": True}})
     return {"status": "ok"}
 
 
-# ---------- Emergent Google Auth ----------
-import httpx
-from pydantic import BaseModel
+# ---------- Google Auth (direct, operator-owned credentials) ----------
+from google_auth import google_configured, public_config, resolve_google_identity
 
 
 class GoogleSessionIn(BaseModel):
-    session_id: str
+    # Authorization-code flow (browser redirect to accounts.google.com):
+    code: str = ""
+    redirect_uri: str = ""
+    # Or a bare id_token (Google Identity Services):
+    id_token: str = ""
+
+
+@router.get("/google/config")
+async def google_config():
+    """Public, non-secret Google sign-in config for the frontend.
+    google_enabled=false -> the UI hides the Google buttons entirely."""
+    return public_config()
 
 
 @router.post("/google/session")
 async def google_session(data: GoogleSessionIn, response: Response):
-    """Exchange an Emergent session_id for a session_token cookie.
-    Finds the user by email, or creates a new owner + tenant workspace."""
+    """Exchange a Google authorization code (or id_token) for a
+    session_token cookie. Finds the user by email, or creates a new
+    owner + tenant workspace. 503 when Google sign-in is not configured."""
+    if not google_configured():
+        raise HTTPException(503, "Google sign-in is not configured")
     db = get_db()
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as hc:
-            r = await hc.get(
-                "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
-                headers={"X-Session-ID": data.session_id},
-            )
-            r.raise_for_status()
-            info = r.json()
-    except Exception as e:
-        raise HTTPException(401, f"Session exchange failed: {e}")
+    info = await resolve_google_identity(
+        code=data.code, id_token=data.id_token, redirect_uri=data.redirect_uri,
+    )
+    if not info:
+        raise HTTPException(401, "Google sign-in could not be verified")
 
-    email = (info.get("email") or "").lower()
-    if not email:
-        raise HTTPException(400, "No email on Emergent session")
-    session_token = info.get("session_token") or ""
+    email = info["email"]
+    session_token = secrets.token_urlsafe(32)
     name = info.get("name") or email.split("@")[0]
     picture = info.get("picture") or ""
 
