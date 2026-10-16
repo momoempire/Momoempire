@@ -28,7 +28,7 @@
     "/app/backend/tests/backend_test.py"
   ],
   "success_rate": {"backend": "100% (30/30)", "frontend": "not tested (backend-only pass)"},
-  "test_credentials": "Admin: admin@aioffice.io / AdminPass123! (seeded). Test tenant owners auto-created via /api/auth/register with TEST_ prefix emails.",
+  "test_credentials": "Admin: admin@example.com / AdminPass123! (seeded). Test tenant owners auto-created via /api/auth/register with TEST_ prefix emails.",
   "seed_data_creation": "Each test run creates ~2 TEST_ prefixed tenants + a few TEST_ services/customers/leads/appointments/knowledge entries. Services/customers/appts/knowledge test items are cleaned up; owner tenants and residual lead rows remain (prefixed with TEST_ for easy identification).",
   "retest_needed": false,
   "should_main_agent_self_test": true,

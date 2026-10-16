@@ -1,0 +1,23 @@
+{
+  "summary": "Round 2 Call-to-Payment vertical: 31/31 pytest cases passed (backend only). Covered quote draft (grounded lines + customer dedupe), owner approval gate (approve/reject + 400 on re-decide), public quote view (notes hidden, business block present), customer acceptance (appointment+invoice created, idempotent second-accept, 400 on non-approved), job completion, invoice listing + public view with amount_due_cents, PaymentIntent 503 without Connect, Connect onboard 503 + status connected=false, webhook signature enforcement (invalid + missing both 400) using a locally computed HMAC-SHA256 Stripe-Signature with STRIPE_WEBHOOK_SECRET from backend/.env, webhook idempotency (duplicate event.id → {ok:true,duplicate:true}), payment_intent.succeeded (full payment flips to paid, sets paid_at + reminders_paused_at), charge.refunded (decrements amount_paid_cents, flips status back to sent, clears reminders_paused_at), payment_intent.payment_failed (records failed row in invoice_payments scoped by tenant_id), charge.dispute.created (sets dispute_id + disputed_at), overdue cron auth 401 without bearer + 200 accepted with WEBHOOK_CRON_SECRET, overdue cron marks status=overdue and increments reminders_sent, overdue cron skips paused invoices, PUT /invoices/{id}/reminders pause/resume toggles reminders_paused_at, needs-attention aggregator keys + counts, workspace isolation (tenant B sees empty quotes/invoices, 404 on tenant A quote decide, all needs-attention counts zero, no cross-tenant invoice_payments leak), regressions (/api/health/deployment ready:true, demo start, repeat defaults, testimonials list). No bugs found. Platform Connect is correctly disabled on this preview — onboard & pay return 503 as expected.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_call_to_payment.py",
+    "/app/test_reports/pytest/c2p_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Minor: in _apply_refund (call_to_payment.py L617) the ternary `('sent' if new_paid > 0 else 'sent')` is a redundant branch — same value in both arms. Harmless, but worth collapsing. Behavior still correct (status is 'sent' whenever not fully paid).",
+    "Minor: connect_webhook route is defined on public_router (/api/public/c2p/stripe/connect-webhook) AND re-registered as /api/stripe/connect-webhook in server.py. The duplicate path works, but means the webhook is reachable at two URLs — if Stripe is only pointed at /api/stripe/connect-webhook, consider removing include_in_schema=False duplicate or dropping the public_router copy to avoid confusion.",
+    "Minor: overdue cron fires asyncio.create_task and returns {accepted:true} immediately — tests had to sleep ~3s to observe DB mutations. Acceptable, but a `?sync=1` or inline mode flag would make deterministic assertions easier for QA."
+  ],
+  "updated_files": ["/app/backend/tests/test_call_to_payment.py"],
+  "success_rate": {"backend": "100%", "frontend": "N/A"},
+  "test_credentials": "tenant A: repeat-tester@example.com / StrongPass123! ; tenant B: freshly registered TEST_c2p_<uuid>@example.com (cleaned up after run); STRIPE_WEBHOOK_SECRET + WEBHOOK_CRON_SECRET read from /app/backend/.env",
+  "seed_data_creation": "Created a tenant-A service 'TEST_Deep Clean' (if none existed) and TEST_cust_* customers used for quote drafting. Cleaned up TEST_ customers and TEST_Biz_* tenant after run.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Round 2 Call-to-Payment is fully regression-covered by /app/backend/tests/test_call_to_payment.py (31 cases, run with `pytest -n 0`). The suite computes real Stripe-Signature headers in-process from STRIPE_WEBHOOK_SECRET and exercises all 4 webhook branches + duplicate idempotency without hitting live Stripe. It also exercises workspace isolation by registering a fresh tenant B on the fly. Live Stripe Connect onboarding and PaymentIntent creation remain untestable until Connect is enabled on the platform account — tests assert 503 which is the correct behavior.",
+  "rca of the issue": "N/A — no issues found."
+}

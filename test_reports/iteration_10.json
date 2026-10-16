@@ -1,0 +1,33 @@
+{
+  "summary": "Iteration 10 — Cloudflare deployment-prep regression. All 7 backend tests pass (100%). Verified: (1) GET /api/health/deployment returns ready:true, db_ok:true, tenant_isolation_ok:true, missing_required:[], llm_backend:'emergent', valid non-negative counts; (2) CORS OPTIONS preflight to /api/health/deployment returns 200 with Access-Control-Allow-Origin reflected; (3) AI receptionist via llm_portable shim still returns non-empty English and Spanish replies on /api/public/demo/{start,turn}; (4) Testimonial auto-polish via POST /api/testimonials/seed still populates polished_text with a 5-star review; (5) Repeat scheduling CRUD intact: GET /repeat/defaults, POST /repeat/schedules, GET list, POST /{id}/send-reminder, DELETE; (6) Workspace isolation verified by registering two fresh tenants — tenant B cannot see tenant A's repeat schedules or testimonials. Frontend not retested per request (iteration_9 already verified).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration10_cloudflare_prep.py",
+    "/app/test_reports/pytest/iteration10.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "llm_portable.py: _NativeOpenAIChat only implements OpenAI; the docstring says Anthropic/Google could be added later. If a Cloudflare-hosted deployment uses only Claude/Gemini keys, the shim raises and callers must have deterministic fallbacks. Make sure every call site has one (receptionist, testimonials, insights, industry_intel, sales_expert, post_job, advisor) — spot-checked testimonials.py which does, worth a full audit before Cloudflare cutover.",
+    "llm_portable.py: at line 95, Emergent SDK is only chosen if api_key.startswith('sk-emergent'). If a dev sets EMERGENT_LLM_KEY but passes a plain OpenAI key, it will silently route to native OpenAI — this is actually the intended behavior but it's non-obvious; add a one-line log.",
+    "health_deploy.py: tenant_isolation_ok test is weak — it only verifies that a bogus tenant_id returns 0 docs; it does NOT verify that two real tenants' docs are mutually invisible. The real cross-tenant guarantee is in app-layer query scoping (which our new TestWorkspaceIsolation test does cover). Consider renaming to 'tenant_filter_shape_ok' or strengthening by sampling two real tenants.",
+    "/_deploy_probe collection accumulates in the test DB if delete_one fails — low-risk but worth a TTL index."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration10_cloudflare_prep.py"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "not re-tested (per request)"},
+  "test_credentials": "repeat-tester@example.com / StrongPass123! (owner); platform admin ramonajefferson10@gmail.com / AdminPass123!",
+  "seed_data_creation": "Two throwaway tenants created per workspace-isolation test run (iter10-<hex>@example.com); schedules/testimonials prefixed TEST_. Repeat schedules created in CRUD/isolation tests are deleted at end of test. One testimonial per tenant per run remains in consent_pending state (seed endpoint does not expose a delete pathway without consent token).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Use /app/backend/tests/test_iteration10_cloudflare_prep.py as a smoke-regression suite before Cloudflare DNS cutover. Note: auth returns token in response body (access_token or token) AND sets a session cookie — tests use requests.Session() with Bearer header for robustness. Testimonial seed endpoint field is 'original_text' NOT 'review_text'. llm_portable.using_emergent() correctly returns True on this host.",
+  "rca of the issue": "N/A — no bugs. Minor test-authoring fix only: initial draft used Bearer-only auth without a Session and the wrong field name 'review_text' instead of 'original_text' for the testimonial seed endpoint; corrected and all 7 tests pass."
+}

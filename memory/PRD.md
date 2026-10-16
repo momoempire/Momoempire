@@ -15,7 +15,7 @@ Multi-tenant JWT auth · 10 industry templates seeded (HVAC → independent) · 
 Scheduling engine (appointment types, staff, availability with buffer + travel) · Pipeline funnel + revenue attribution (AI vs manual) + hot leads + proactive opportunities queue · Lightweight RAG: knowledge document upload (PDF/DOCX/TXT/MD) → extract → chunk → keyword search → fed into receptionist + advisor system prompts · Data-grounded Business Advisor (injects snapshot JSON of tenant metrics) · AI Quality monitoring with flag types (frustration, failed_booking, failed_transfer, unresolved, short_call) + admin dashboard · Automation Rules Engine with 8 starter recipes + run-now · Industry Intelligence briefs cached per tenant · Browser mic input in Calls (Web Speech API).
 
 ### Phase 3.5 — Google Sign-In
-`POST /api/auth/google/session` exchanges Emergent `session_id` → `session_token` httpOnly cookie · "Continue with Google" on login/signup · `/auth/callback` with hash detection at Router level · platform admin seed moved to `ramonajefferson10@gmail.com`.
+`POST /api/auth/google/session` exchanges Emergent `session_id` → `session_token` httpOnly cookie · "Continue with Google" on login/signup · `/auth/callback` with hash detection at Router level · platform admin seed email changed (since PR #8 it comes only from `ADMIN_EMAIL`, no default).
 
 ### Phase 4 — Commercial, Pricing, Platform Analytics, Scale (21/21 ✅)
 **Plans engine (admin-configurable)**: 6 bookmarks seeded — trial (free), Starter $19.99, Growth $49.99, AI Office $99.99, High Volume $199.99, Enterprise (custom). Each plan carries limits (ai_minutes, calls, sms, ai_interactions, locations, users, phone_numbers, personas, integrations), overage cents/unit, features, trial_days, is_public.
@@ -118,6 +118,15 @@ All four phases ship as **one coherent multi-tenant platform**. Adding a new ind
 ### Upcoming / Backlog
 - P1: End-to-end Stripe Checkout wiring to `stripe_price_id` on frontend plan buttons.
 - P2: Translate remaining Landing marketing copy sections + admin panels (framework is in place; keys exist in locales/*.json).
-- P2: Vector embeddings for knowledge docs; CNAME active verification; push to github.com/momoempire/Momoempire.
+- P2: Vector embeddings for knowledge docs; CNAME active verification. (Repository is already pushed to https://github.com/momoempire/Momoempire; GitHub presence verified 2026-10-09. Cloudflare-2 deployment verification remains separate.)
 - P3: Real WebRTC voice demo on landing (currently text).
 
+
+### Phase 12 — Call-to-Payment vertical (Feb 2026, branch `call-to-payment`) ✅
+- **Stripe Connect Standard, direct charges** per tenant's connected account; platform subscriptions remain separate on `/api/stripe/webhook`.
+- Full flow endpoints under `/api/c2p/*` and `/api/public/c2p/*`: quote draft (grounded on `services`, owner can add extras) → owner approval gate (emails public link) → customer accept (creates appointment + invoice, idempotent) → job complete → PaymentIntent on connected account (partial supported) → signed Connect webhook (`payment_intent.succeeded|payment_failed|charge.refunded|charge.dispute.created|account.updated`) with duplicate-safety via `webhook_events` unique `_id` index.
+- Overdue cron at `/api/cron/overdue-reminders` (daily 14:15 UTC); stops on payment; `max_reminders` + `reminders_paused_at` honored; bilingual EN/ES copy via `tenant.lang`.
+- Needs-attention aggregator `GET /c2p/needs-attention` for the owner dashboard.
+- Platform subscription vs. tenant-payment separation documented in `HANDOFF.md`.
+- **Testing**: iteration_11.json — 31/31 backend pytest cases pass; workspace isolation verified across two tenants.
+- **Known blockers**: live Connect onboarding + live PaymentIntent require enabling Connect in the Stripe dashboard (preview test account hasn't; API returns actionable 503).
