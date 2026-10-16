@@ -1,0 +1,197 @@
+id: tree_service
+trade: Tree Service
+tagline: "Your AI office, preloaded for Tree Service"
+terms:
+  worker: Arborist
+  worker_plural: Arborists
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#16A34A"
+pricebook:
+  - name: "Small Tree Removal (under 25 ft)"
+    category: service
+    price: 450
+    cost: 180
+    duration_min: 180
+    description: "Fell and remove a small tree, cut to firewood length or hauled."
+  - name: "Medium Tree Removal (25–50 ft)"
+    category: service
+    price: 950
+    cost: 400
+    duration_min: 360
+    description: "Sectional removal with rigging as needed; full cleanup included."
+  - name: "Large Tree Removal (over 50 ft)"
+    category: service
+    price: 1800
+    cost: 750
+    duration_min: 480
+    description: "Crane-assisted or complex rigging removal; priced after on-site assessment."
+  - name: "Tree Trimming / Pruning (per tree)"
+    category: service
+    price: 275
+    cost: 110
+    duration_min: 120
+    description: "Crown clean, deadwood removal and shaping for one medium tree."
+  - name: "Stump Grinding (per stump)"
+    category: service
+    price: 175
+    cost: 60
+    duration_min: 60
+    description: "Grind stump 6–8 inches below grade; surface roots add $50."
+  - name: "Storm Damage Cleanup"
+    category: service
+    price: 650
+    cost: 260
+    duration_min: 300
+    description: "Emergency-rate debris and limb removal after storms; hazard trees prioritized."
+  - name: "Cabling & Bracing (per tree)"
+    category: service
+    price: 425
+    cost: 150
+    duration_min: 150
+    description: "Install support cables/braces for split or high-value trees."
+  - name: "Tree Health Assessment"
+    category: service
+    price: 125
+    cost: 45
+    duration_min: 45
+    description: "Certified arborist evaluation with written report; credited toward treatment."
+  - name: "Deep Root Fertilization (per tree)"
+    category: service
+    price: 95
+    cost: 30
+    duration_min: 30
+    description: "Soil-injected feeding for stressed or high-value trees."
+  - name: "Crane Fee (when required)"
+    category: addon
+    price: 900
+    cost: 650
+    duration_min: 240
+    description: "Crane and operator for large or tight-access removals; pass-through plus coordination."
+  - name: "Wood Chipping / Haul-Away"
+    category: addon
+    price: 150
+    cost: 60
+    duration_min: 60
+    description: "Chip brush and haul all debris; firewood-length stacking is free instead."
+  - name: "Emergency Call-Out Fee"
+    category: addon
+    price: 250
+    cost: 100
+    duration_min: 0
+    description: "After-hours or same-day emergency dispatch surcharge."
+equipment_types:
+  - name: "Chainsaw"
+    fields: ["brand", "model", "bar_length_in", "purchase_date", "last_service", "condition", "assigned_to"]
+  - name: "Stump Grinder"
+    fields: ["brand", "model", "purchase_date", "hours", "last_service", "condition", "assigned_to"]
+  - name: "Chipper"
+    fields: ["brand", "capacity_in", "purchase_date", "hours", "last_service", "condition", "assigned_to"]
+  - name: "Bucket Truck / Lift"
+    fields: ["make", "model", "year", "reach_ft", "last_inspection", "insurance_expires", "assigned_to"]
+  - name: "Climbing Gear Set"
+    fields: ["set_id", "last_inspection", "retire_date", "condition", "assigned_to"]
+  - name: "Company Truck & Trailer"
+    fields: ["make", "model", "year", "mileage", "last_service", "insurance_expires", "assigned_to"]
+appointment_types:
+  - name: "Free Estimate"
+    duration_min: 45
+    description: "On-site walk of the trees, risk assessment and written quote."
+  - name: "Removal Day"
+    duration_min: 360
+    description: "Scheduled removal with crew; large jobs may span multiple bookings."
+  - name: "Trimming Visit"
+    duration_min: 180
+    description: "Pruning visit for one or several trees."
+  - name: "Stump Grinding Visit"
+    duration_min: 60
+    description: "Quick standalone stump grinding appointment."
+  - name: "Emergency Response"
+    duration_min: 120
+    description: "Priority dispatch for storm damage or hazardous trees."
+  - name: "Health Assessment"
+    duration_min: 45
+    description: "Arborist evaluation visit with written findings."
+receptionist_script: |
+  GREETING: "Thanks for calling {shop_name}, your tree care experts. This is the AI assistant — what can we help you with today?"
+
+  COMMON CALL TYPES:
+  1. Tree removal quote — capture: number of trees, approximate height, proximity to house/power lines/fences, access for equipment. Book a Free Estimate.
+  2. Trimming/pruning — capture: which trees, goals (view, clearance, health), last time trimmed. Quote per-tree range, book estimate or trimming visit.
+  3. Stump grinding — capture: number of stumps, diameter, surface roots visible. Often bookable without an estimate.
+  4. Storm damage — capture: what's down or leaning, whether it's on a structure/vehicle/power line, photos if safe. Priority triage.
+  5. Tree health concerns — capture: symptoms (dying limbs, fungus, leaning), offer the Tree Health Assessment.
+
+  BOOKING FLOW:
+  1. Identify the work: removal, trimming, stump grinding, storm cleanup, or health check.
+  2. Capture hazard flags: near power lines (utility notification needed), over structures, leaning, root damage to sidewalks.
+  3. Offer the next Free Estimate slot for removals and complex work; stump grinding and simple trims can book direct.
+  4. Collect: name, callback number, address, gate/access notes, best contact window.
+  5. Confirm: date, arrival window, that the estimate is free and written, and ask them to mark sprinkler heads if grinding is planned.
+  6. Send confirmation text with appointment details.
+
+  URGENT HANDLING: Tree on a house/vehicle, blocking a road or driveway, leaning after a storm, or limbs on power lines — flag as emergency. Advise: stay clear, do NOT touch anything near power lines (call the utility), and if safe, send photos. Dispatch the Emergency Response slot and page the on-call crew. Cosmetic trimming is NEVER urgent.
+
+  AFTER-HOURS: Take the full intake with hazard details, promise a callback by 9 AM next business day; active hazards (tree on structure, blocking egress) route to the on-call emergency number immediately.
+triage:
+  - id: tree_work_type
+    question: "What do you need — a tree removed, trimmed, a stump ground, or storm cleanup?"
+    options: ["Tree removal", "Trimming/pruning", "Stump grinding", "Storm damage", "Health check"]
+    route: "Removals and storm damage get priority estimate slots; stump grinding can book direct."
+  - id: tree_hazard
+    question: "Is the tree touching or near power lines, a house, or leaning dangerously?"
+    options: ["Near power lines", "Overhanging house", "Leaning/fallen", "None of these"]
+    route: "Power line contact: advise calling the utility first, we coordinate. Leaning/fallen: emergency dispatch."
+  - id: tree_size_access
+    question: "Roughly how tall is the tree, and can our trucks get close to it?"
+    options: ["Under 25 ft", "25–50 ft", "Over 50 ft", "Not sure"]
+    route: "Sizes the estimate; over 50 ft or tight access flags possible crane need."
+  - id: tree_count
+    question: "How many trees are we talking about?"
+    options: ["Just one", "2–3", "4 or more", "Whole property / lot clearing"]
+    route: "Multiple trees get volume consideration on the estimate; lot clearing routes to commercial estimator."
+  - id: tree_timeline
+    question: "How soon does this need to happen?"
+    options: ["Emergency / today", "This week", "This month", "Flexible"]
+    route: "Emergencies screened for hazards first; flexible dates get best crew pricing."
+automation_templates:
+  - name: "Estimate Photo Request"
+    trigger: "free estimate booked for removal"
+    steps:
+      - "Send SMS: 'A photo of the tree helps us come prepared: {link}'"
+      - "Attach received photos to the job for the estimator"
+      - "24 hours before: reminder with arrival window and access notes"
+      - "After estimate: written quote emailed within 24 hours, SMS when sent"
+  - name: "Storm Lead Blitz"
+    trigger: "severe weather alert in service area"
+    steps:
+      - "Pull waitlist of storm-vulnerable customers (leaning trees noted)"
+      - "Send proactive SMS: 'Storms coming — reply STORM if you need us after'"
+      - "Prioritize inbound storm calls into emergency slots"
+      - "After event: follow up with photo-documented cleanup quotes"
+  - name: "Stump Grinding Upsell"
+    trigger: "removal job marked complete without stump grinding"
+    steps:
+      - "Same day: SMS offering stump grinding at a return-visit discount"
+      - "If accepted within 14 days, book at 15% off"
+      - "After 14 days, close the offer"
+  - name: "Annual Trim Reminder"
+    trigger: "12 months after trimming visit"
+    steps:
+      - "Send email with before/after photos from last visit"
+      - "Offer priority scheduling for the trimming season"
+      - "SMS follow-up 5 days later with one-tap booking"
+review_templates:
+  - name: "Removal Completion"
+    channel: sms
+    template: "Hi {customer_name}, {tech_name} from {shop_name} here — your tree work is done and the yard's cleaned up! If you're happy with the crew's work, a review would mean a lot: {review_link}"
+  - name: "Storm Cleanup Email"
+    channel: email
+    template: "Subject: Your property is clear — {shop_name}\n\nHi {customer_name},\n\n{tech_name} and the crew finished your storm cleanup. We know that was stressful, and we're glad we could help quickly. If our response earned it, we'd appreciate a review: {review_link}\n\n— {shop_name}"
+  - name: "Trimming Follow-Up"
+    channel: sms
+    template: "Hi {customer_name}, {tech_name} from {shop_name} — your trees are trimmed and looking great! A quick review of your experience helps other homeowners find us: {review_link}"

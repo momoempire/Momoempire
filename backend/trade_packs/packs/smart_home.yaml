@@ -1,0 +1,179 @@
+id: smart_home
+trade: Smart Home & Security
+tagline: "Your AI office, preloaded for Smart Home & Security"
+terms:
+  worker: Technician
+  worker_plural: Technicians
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#0EA5E9"
+pricebook:
+  - name: Smart Home Consultation
+    category: service
+    price: 99
+    cost: 30
+    duration_min: 60
+    description: Walk the home, map WiFi coverage, and design a device plan around the customer's ecosystem.
+  - name: Smart Thermostat Install
+    category: service
+    price: 249
+    cost: 110
+    duration_min: 60
+    description: Thermostat installed, C-wire verified, and connected to the customer's app with schedules set.
+  - name: Video Doorbell Install
+    category: service
+    price: 199
+    cost: 90
+    duration_min: 45
+    description: Wired or battery video doorbell mounted, chime configured, and app alerts tested.
+  - name: Outdoor Camera Install (per camera)
+    category: service
+    price: 249
+    cost: 100
+    duration_min: 75
+    description: Weatherproof camera mounted with clean wiring, night-vision verified, and recording configured.
+  - name: Smart Lock Install (per door)
+    category: service
+    price: 189
+    cost: 85
+    duration_min: 45
+    description: Keypad or fingerprint deadbolt fitted to the existing door with guest codes and auto-lock set up.
+  - name: Doorbell + 2 Cameras Bundle
+    category: addon
+    price: 599
+    cost: 260
+    duration_min: 150
+    description: "Entry-security bundle: video doorbell plus two outdoor cameras installed and unified in one app."
+  - name: Mesh WiFi Network Install
+    category: service
+    price: 399
+    cost: 150
+    duration_min: 90
+    description: Multi-node mesh WiFi covering the whole home — the backbone every smart device depends on.
+  - name: Smart Lighting (per room)
+    category: service
+    price: 179
+    cost: 70
+    duration_min: 60
+    description: Smart switches or bulbs installed per room with scenes and voice control configured.
+  - name: Alarm Panel & Sensor Package
+    category: service
+    price: 899
+    cost: 380
+    duration_min: 180
+    description: Hub, keypad, door/window sensors, and motion detector installed with arming routines and alerts.
+  - name: Whole-Home Hub Setup
+    category: service
+    price: 149
+    cost: 40
+    duration_min: 45
+    description: Central hub configured so lights, locks, thermostats, and cameras all work from one app.
+  - name: Voice Assistant Integration
+    category: addon
+    price: 99
+    cost: 25
+    duration_min: 30
+    description: Alexa, Google, or Siri routines wired into every installed device.
+  - name: Annual System Health Check
+    category: service
+    price: 149
+    cost: 40
+    duration_min: 60
+    description: Firmware updates, battery swaps, WiFi re-tune, and a full device-by-device test.
+equipment_types:
+  - name: Camera Inventory
+    fields: [brand, model, resolution, power_type, mount_type, stock_count]
+  - name: Control Panels
+    fields: [brand, model, cellular_backup, zone_count, firmware_version, stock_count]
+  - name: Smart Lock Inventory
+    fields: [brand, model, lock_type, keypad_backlit, stock_count]
+  - name: Sensor Inventory
+    fields: [sensor_type, brand, battery_type, stock_count, warehouse_location]
+  - name: NVR / DVR Units
+    fields: [brand, channel_count, storage_tb, poe_ports, stock_count]
+appointment_types:
+  - name: In-Home Consultation
+    duration_min: 60
+    description: Walkthrough, WiFi survey, and a written device plan with pricing.
+  - name: Install Appointment
+    duration_min: 120
+    description: Device installation, wiring, and app setup with the customer.
+  - name: System Walkthrough
+    duration_min: 45
+    description: "Post-install training: apps, routines, guest codes, and troubleshooting basics."
+  - name: Troubleshooting Call
+    duration_min: 90
+    description: Diagnostics for offline devices, weak signals, or ecosystem conflicts.
+receptionist_script: |
+  Greeting: "Thanks for calling {shop_name}, this is the AI assistant. Are you looking to add smart devices, or do you have a system that needs a hand?"
+
+  Common call types and what to do:
+  - New smart home setup: ask which devices they want (cameras, doorbell, locks, thermostat, lighting) and which ecosystem they use (Alexa, Google, Apple/Siri). Book an In-Home Consultation and mention the $99 consult is credited toward any install.
+  - Security concerns (break-in, package theft, kids home alone): empathize briefly, then recommend the doorbell-plus-cameras bundle and offer the earliest consultation. Do not promise crime prevention — talk about visibility and deterrence.
+  - Device offline or not working: ask which device, when it last worked, and whether the WiFi is fine. Power-cycle guidance is fine to give; if it persists, book a Troubleshooting Call.
+  - Moving into a new home: ask if devices are already installed (hand-me-down from the seller) or if they are starting fresh. Offer the take-over service — factory reset, re-setup, and training — priced as a System Walkthrough plus devices added.
+  - Monitoring questions: explain the difference between self-monitored alerts and professional monitoring if the shop offers it; take their preference and note it on the intake.
+
+  Booking flow:
+  1. Capture name, address, phone, and email.
+  2. Confirm ecosystem preference, WiFi provider/speed if known, and whether they own or rent.
+  3. Book the slot and text confirmation with a pre-visit checklist (app logins ready, routers accessible).
+  4. Note gate codes, pets, and alarm codes for the current system.
+
+  Urgent handling: a customer who just had a break-in or attempted break-in gets the earliest available slot, same-day if possible. Offer practical immediate steps (leave lights on, ask a neighbor to watch, call police non-emergency to report). Flag the shop owner.
+
+  After-hours: "Thanks for calling {shop_name}. If this is an emergency, please call 911. Otherwise leave your name, address, and what you're looking to set up — we'll call you back first thing in the morning and hold a consultation slot for you."
+triage:
+  - id: device_goals
+    question: Which smart devices are you most interested in?
+    options: [Cameras and doorbell, Smart locks, Thermostat and climate, Lighting, A full security system]
+    route: Log device_goals; full security system routes to a longer 90-minute consultation slot.
+  - id: ecosystem
+    question: Which voice assistant or ecosystem do you use today?
+    options: [Amazon Alexa, Google Home, Apple HomeKit / Siri, None yet — help me choose]
+    route: Log ecosystem on the intake; 'None yet' flags the technician to bring ecosystem comparison materials.
+  - id: security_goals
+    question: What is driving this — what do you want the system to do for you?
+    options: [See who's at the door from anywhere, Deter break-ins, Watch kids or pets, Lower energy bills, Automate daily routines]
+    route: Log security_goals so the technician's device plan matches the customer's stated outcome.
+  - id: connectivity
+    question: How is your home WiFi — any dead spots?
+    options: [Solid everywhere, Dead spots in some rooms, Not sure, I know I need better WiFi]
+    route: Dead spots or unknown flags the Mesh WiFi line item in the consult prep; the technician brings a mesh demo kit.
+automation_templates:
+  - name: Consult to Install Follow-up
+    trigger: consultation_completed
+    steps:
+      - Send the written device plan with line-item pricing within 24 hours.
+      - Text a one-tap "approve and schedule" link with the plan.
+      - Follow up on day 4 with the top-priority device bundle highlighted.
+      - Day 10: offer a limited-time install discount to close.
+      - Booked jobs trigger the install-prep automation.
+  - name: Post-Install Walkthrough & Review
+    trigger: install_job_completed
+    steps:
+      - Send a personalized video walkthrough link showing their system and routines.
+      - Text the quick-start card: app links, guest-code instructions, support number.
+      - Day 3: check in — "Everything still online? Reply if anything is acting up."
+      - Day 7: request a review with photos of the clean install highlighted.
+  - name: Firmware & Battery Season
+    trigger: annual_system_health_due
+    steps:
+      - SMS customers 11 months after install: time for the annual health check.
+      - Offer two scheduling windows by text.
+      - Pre-visit: remind them to have app logins and router access ready.
+      - Post-visit: send the health report with battery levels and firmware versions.
+review_templates:
+  - name: Post-Install Review Request
+    channel: sms
+    template: "Hi {customer_name}, {tech_name} from {shop_name} here — your system is live and everything tested clean. If the install was tidy and the walkthrough made sense, would you leave us a review? {review_link} Thanks!"
+  - name: Ecosystem Upgrade Review
+    channel: email
+    template: "Subject: Your home just got smarter, {customer_name}\n\nHi {customer_name},\n\nYour new devices are online and your routines are set. If {shop_name} made the smart home stuff actually simple, we'd love a review: {review_link}\n\nNeed a tweak? Just reply — {tech_name} can adjust routines remotely.\n\nThanks,\n{shop_name}"
+  - name: Security System Review
+    channel: sms
+    template: "{customer_name}, your {shop_name} security system is armed and watching. Peace of mind is the whole point — if {tech_name} delivered it, a review here means a lot: {review_link}"

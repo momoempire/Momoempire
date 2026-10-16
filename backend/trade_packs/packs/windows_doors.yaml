@@ -1,0 +1,215 @@
+id: windows_doors
+trade: Windows & Doors
+tagline: "Your AI office, preloaded for Window & Door pros"
+terms:
+  worker: Installer
+  worker_plural: Installers
+  shop: business
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#0284C7"
+pricebook:
+  - name: Double-Hung Window (installed, per unit)
+    category: service
+    price: 650
+    cost: 380
+    duration_min: 90
+    description: Energy-efficient replacement window, installed and sealed.
+  - name: Casement Window (installed, per unit)
+    category: service
+    price: 700
+    cost: 400
+    duration_min: 90
+    description: Crank-out casement with premium weather sealing.
+  - name: Sliding Patio Door (installed)
+    category: service
+    price: 2400
+    cost: 1500
+    duration_min: 240
+    description: Full-frame sliding patio door with Low-E glass.
+  - name: Entry Door Replacement (installed)
+    category: service
+    price: 2800
+    cost: 1700
+    duration_min: 180
+    description: Fiberglass or steel entry system with new hardware and trim.
+  - name: Storm Door Installation
+    category: service
+    price: 550
+    cost: 300
+    duration_min: 90
+    description: Heavy-duty storm door with retractable screen.
+  - name: Glass / Sash Repair
+    category: service
+    price: 275
+    cost: 110
+    duration_min: 60
+    description: Replace fogged or broken insulated glass unit, frame kept.
+  - name: Home Energy Audit
+    category: service
+    price: 149
+    cost: 50
+    duration_min: 60
+    description: Blower-door and infrared scan; fee credited toward replacement.
+  - name: Screen Replacement (per screen)
+    category: part
+    price: 45
+    cost: 18
+    duration_min: 15
+    description: New screen mesh and spline, most sizes same-day.
+  - name: Whole-House Package (10+ windows)
+    category: service
+    price: 7500
+    cost: 4800
+    duration_min: 480
+    description: Full-home window replacement, typically done in one day.
+  - name: Smart Lock Add-On (with door install)
+    category: addon
+    price: 250
+    cost: 120
+    duration_min: 30
+    description: Keypad smart lock installed and paired to your phone.
+  - name: Interior Trim / Casing Upgrade
+    category: addon
+    price: 180
+    cost: 70
+    duration_min: 45
+    description: Premium casing and sill trim around new windows or doors.
+  - name: Broken Glass Emergency Board-Up
+    category: service
+    price: 200
+    cost: 60
+    duration_min: 45
+    description: Same-day secure board-up until the replacement arrives.
+equipment_types:
+  - name: Installation Truck
+    fields: [unit_number, make_model, year, mileage, insurance_renewal, condition]
+  - name: Glass Handling Set
+    fields: [suction_cup_count, max_panel_size, purchase_date, condition]
+  - name: Caulking & Sealant Kit
+    fields: [kit_id, sealant_types, restock_date, truck_assigned]
+  - name: Laser Measuring Kit
+    fields: [brand, purchase_date, last_calibration, condition]
+  - name: Replacement Sash Inventory
+    fields: [location, common_sizes_stocked, inventory_value, restock_date]
+  - name: Ladder & Scaffolding Set
+    fields: [set_id, max_height_ft, last_safety_check, condition]
+appointment_types:
+  - name: Free In-Home Estimate
+    duration_min: 60
+    description: Measure, assess, and quote — no obligation.
+  - name: Precision Measurement
+    duration_min: 45
+    description: Final laser measurements before the factory order.
+  - name: Installation Day
+    duration_min: 480
+    description: Full crew install with cleanup and walkthrough.
+  - name: Service / Repair Visit
+    duration_min: 60
+    description: Diagnose drafts, fogging, or operation issues.
+  - name: Final Inspection
+    duration_min: 30
+    description: Post-install quality check and warranty registration.
+receptionist_script: |
+  GREETING:
+  "Thanks for calling {shop_name}! This is the {shop_name} assistant. Are you
+  looking at new windows, a new door, or do you need a repair?"
+
+  COMMON CALL TYPES:
+  1. NEW WINDOWS/DOORS: Ask how many, what's wrong with the current ones
+     (drafts, fogging, hard to open, ugly), and their goals — energy savings,
+     noise, curb appeal. Book a free in-home estimate.
+  2. PRICE QUESTIONS: Give per-window ranges honestly — "Most replacement
+     windows run $600-$800 installed depending on size and options." Whole-house
+     packages get volume pricing. Never firm-quote without measuring.
+  3. REPAIR (FOGGED/BROKEN): Ask if it's fog between panes, a broken pane, or
+     a bad seal/operation. Fogged glass usually means sash replacement —
+     book a service visit.
+  4. BROKEN GLASS EMERGENCY: Treat as urgent — offer same-day board-up, then
+     schedule the replacement. Get photos if they can send them.
+  5. WARRANTY CLAIM: Ask install date and issue. Look up the job — manufacturer
+     and labor warranties differ; explain both clearly.
+
+  BOOKING FLOW:
+  1. Collect: name, phone, email, address, window/door count, issue or goal.
+  2. Book the free estimate; note parking/access and pets.
+  3. Send confirmation with a prep note: "Clear access to each window helps
+     our estimator — no need to move heavy furniture."
+  4. Say: "The estimate is free with zero pressure. We'll measure everything
+     and leave you a written quote good for 30 days."
+
+  URGENT HANDLING:
+  - Broken window from storm or break-in: dispatch board-up same-day, order
+    the replacement glass immediately, keep the customer updated on lead time.
+  - Door that won't lock (security issue): prioritize within 24 hours, offer a
+    temporary security solution on the first visit.
+  - Water leaking around a recent install: same-day warranty visit, document
+    with photos, fix flashing/seal on the spot if possible.
+
+  AFTER-HOURS:
+  "You've reached {shop_name}. If you have broken glass or a door that won't
+  secure, say 'emergency' and I'll arrange our on-call response right now.
+  Otherwise I can book your free estimate for tomorrow — what works for you?"
+triage:
+  - id: window_count
+    question: How many windows or doors are we talking about?
+    options: [1-2, 3-5, 6-10, Whole house (10+)]
+    route: 10+ → whole-house package pricing and a senior estimator.
+  - id: issue_type
+    question: What's driving this?
+    options: [Drafty / high energy bills, Fogged or broken glass, Hard to open/close, Curb appeal / remodel, Storm damage]
+    route: Storm damage → check insurance claim guidance; drafts → energy audit offer.
+  - id: energy_goals
+    question: Are energy savings a priority?
+    options: [Yes — cut my bills, Somewhat, Just want them to look good, Need noise reduction]
+    route: Yes → quote triple-pane / Low-E upgrades; noise → laminated glass option.
+  - id: budget_range
+    question: What's your comfortable budget?
+    options: [Under $2k, $2k-$7k, $7k-$15k, $15k+]
+    route: Match product lines to budget; under $2k → repair-first approach.
+  - id: home_age
+    question: Roughly how old is the home?
+    options: [Under 10 years, 10-30 years, 30-50 years, 50+ years / historic]
+    route: 50+ or historic → flag lead-paint protocol and custom sizing needs.
+automation_templates:
+  - name: Estimate Follow-Up Sequence
+    trigger: estimate delivered, no signed contract
+    steps:
+      - "Send thank-you SMS the same evening with the quote link."
+      - "Day 3: send an email with energy-savings math for their home."
+      - "Day 7: call-script task for a human follow-up."
+      - "Day 14: send a limited-time 5% incentive expiring with the 30-day quote."
+      - "Day 30: quote expires — send a re-measure offer."
+  - name: Install Day Confirmation
+    trigger: installation scheduled
+    steps:
+      - "Send confirmation with date, crew arrival window, and prep checklist."
+      - "Evening before: reminder SMS with crew lead name."
+      - "Morning of: crew-on-the-way text with live ETA."
+      - "After install: walkthrough checklist and warranty registration."
+  - name: Post-Install Energy Check-In
+    trigger: 60 days after installation
+    steps:
+      - "Ask about comfort and any draft or operation issues."
+      - "Request a review with before/after photos."
+      - "Share a referral offer ($100 per signed referral)."
+      - "Offer the seasonal maintenance check (re-caulk inspection)."
+  - name: Seasonal Storm-Door Promo
+    trigger: October 1 each year
+    steps:
+      - "Email past customers the fall storm-door and weatherproofing offer."
+      - "Include a self-check guide for drafts."
+      - "Offer a free 15-minute draft inspection with any service visit."
+review_templates:
+  - name: Post-Install SMS Review Ask
+    channel: sms
+    template: "Hi {customer_name}, {tech_name} from {shop_name} here — your new windows/door are in! If the install was clean and the crew treated your home right, a quick review means the world: {review_link}"
+  - name: Energy Savings Follow-Up Email
+    channel: email
+    template: "Hi {customer_name}, it's been two months since {shop_name} installed your new windows — have you noticed the difference in comfort (and hopefully the energy bill)? {tech_name} would love to hear how they're performing. If we've earned it, a review here helps neighbors find us: {review_link}"
+  - name: Repair Visit Review Ask
+    channel: sms
+    template: "Hey {customer_name}, {shop_name} here — glad {tech_name} got that glass sorted for you today! Quick favor: a 5-star review here keeps our trucks in your neighborhood: {review_link}"
