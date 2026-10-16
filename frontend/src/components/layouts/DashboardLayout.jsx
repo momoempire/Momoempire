@@ -2,18 +2,22 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Logo } from "@/components/Logo";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import ThemeToggle from "@/components/ThemeToggle";
 import { useTranslation } from "react-i18next";
 import {
   Home, Bot, PhoneCall, MessageSquare, Target, Users, CalendarClock,
   Wrench, CreditCard, Globe, UserRound, Star, LineChart, Compass,
   BookOpenText, Workflow, Plug, PhoneForwarded, Gauge, Receipt, Settings,
-  LogOut, ShieldCheck, Rocket, Repeat,
+  LogOut, ShieldCheck, Rocket, Repeat, ClipboardList, BookOpen, Camera, Megaphone, PhoneOutgoing, TrendingUp,
+  Headset, CalendarCheck, Truck, HardHat, Clock, Package, MapPin, Code2, ClipboardCheck,
+  Trophy, Video, PackagePlus, HandCoins, House,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 
+import { BRAND_NAME } from "@/config/brand";
 const GROUPS = [
   {
     label: "nav.workspace",
@@ -26,6 +30,8 @@ const GROUPS = [
     label: "nav.communications",
     items: [
       { to: "/app/calls", icon: PhoneCall, label: "nav.calls", testId: "nav-calls" },
+      { to: "/app/voice", icon: PhoneOutgoing, label: "nav.voice", testId: "nav-voice" },
+      { to: "/app/call-coaching", icon: Headset, label: "nav.call_coaching", testId: "nav-call-coaching" },
       { to: "/app/messages", icon: MessageSquare, label: "nav.messages", testId: "nav-messages" },
     ],
   },
@@ -35,22 +41,47 @@ const GROUPS = [
       { to: "/app/leads", icon: Target, label: "nav.leads", testId: "nav-leads" },
       { to: "/app/customers", icon: Users, label: "nav.customers", testId: "nav-customers" },
       { to: "/app/appointments", icon: CalendarClock, label: "nav.appointments", testId: "nav-appointments" },
+      { to: "/app/dispatch", icon: ClipboardList, label: "nav.dispatch", testId: "nav-dispatch" },
+      { to: "/app/ai-dispatcher", icon: Bot, label: "nav.ai_dispatcher", testId: "nav-ai-dispatcher" },
       { to: "/app/repeat", icon: Repeat, label: "nav.repeat", testId: "nav-repeat" },
       { to: "/app/services", icon: Wrench, label: "nav.services", testId: "nav-services" },
+      { to: "/app/pricebook", icon: BookOpen, label: "nav.pricebook", testId: "nav-pricebook" },
+      { to: "/app/trade-packs", icon: Package, label: "nav.trade_packs", testId: "nav-trade-packs" },
+      { to: "/app/price-intel", icon: LineChart, label: "nav.price_intel", testId: "nav-price-intel" },
+      { to: "/app/photo-estimates", icon: Camera, label: "nav.photo_estimates", testId: "nav-photo-estimates" },
+      { to: "/app/video-estimates", icon: Video, label: "nav.video_estimates", testId: "nav-video-estimates" },
+      { to: "/app/home-hub", icon: House, label: "nav.home_hub", testId: "nav-home-hub" },
+      { to: "/app/parts-ordering", icon: PackagePlus, label: "nav.parts_ordering", testId: "nav-parts-ordering" },
+      { to: "/app/ai-collections", icon: HandCoins, label: "nav.ai_collections", testId: "nav-ai-collections" },
+      { to: "/app/maintenance", icon: CalendarClock, label: "nav.maintenance", testId: "nav-maintenance" },
+      { to: "/app/gamification", icon: Trophy, label: "nav.gamification", testId: "nav-gamification" },
+      { to: "/app/onboarding", icon: Rocket, label: "nav.onboarding", testId: "nav-onboarding" },
+      { to: "/app/equipment", icon: Wrench, label: "nav.equipment", testId: "nav-equipment" },
       { to: "/app/payments", icon: CreditCard, label: "nav.payments", testId: "nav-payments" },
       { to: "/app/website", icon: Globe, label: "nav.website", testId: "nav-website" },
       { to: "/app/customer-portal", icon: UserRound, label: "nav.customer_portal", testId: "nav-customer-portal" },
       { to: "/app/reviews", icon: Star, label: "nav.reviews", testId: "nav-reviews" },
       { to: "/app/testimonials", icon: Star, label: "nav.testimonials", testId: "nav-testimonials" },
+      { to: "/app/triage", icon: CalendarCheck, label: "nav.triage", testId: "nav-triage" },
+      { to: "/app/warranty", icon: ShieldCheck, label: "nav.warranty", testId: "nav-warranty" },
+      { to: "/app/supplier-pricing", icon: Truck, label: "nav.supplier_pricing", testId: "nav-supplier-pricing" },
+      { to: "/app/subcontractors", icon: HardHat, label: "nav.subcontractors", testId: "nav-subcontractors" },
+      { to: "/app/time-tracking", icon: Clock, label: "nav.time_tracking", testId: "nav-time-tracking" },
+      { to: "/app/inventory", icon: Package, label: "nav.inventory", testId: "nav-inventory" },
+      { to: "/app/locations", icon: MapPin, label: "nav.locations", testId: "nav-locations" },
+      { to: "/app/checklists", icon: ClipboardCheck, label: "nav.checklists", testId: "nav-checklists" },
     ],
   },
   {
     label: "nav.intelligence",
     items: [
       { to: "/app/analytics", icon: LineChart, label: "nav.analytics", testId: "nav-analytics" },
+      { to: "/app/profitability", icon: Gauge, label: "nav.profitability", testId: "nav-profitability" },
       { to: "/app/advisor", icon: Compass, label: "nav.advisor", testId: "nav-advisor" },
       { to: "/app/sales-intel", icon: Target, label: "nav.sales_intel", testId: "nav-sales-intel" },
       { to: "/app/growth", icon: Rocket, label: "nav.growth", testId: "nav-growth" },
+      { to: "/app/revenue", icon: TrendingUp, label: "nav.revenue", testId: "nav-revenue" },
+      { to: "/app/marketing", icon: Megaphone, label: "nav.marketing", testId: "nav-marketing" },
       { to: "/app/knowledge", icon: BookOpenText, label: "nav.knowledge", testId: "nav-knowledge" },
     ],
   },
@@ -61,6 +92,7 @@ const GROUPS = [
       { to: "/app/integrations", icon: Plug, label: "nav.integrations", testId: "nav-integrations" },
       { to: "/app/phone-numbers", icon: PhoneForwarded, label: "nav.phone_numbers", testId: "nav-phone-numbers" },
       { to: "/app/usage", icon: Gauge, label: "nav.usage", testId: "nav-usage" },
+      { to: "/app/developers", icon: Code2, label: "nav.developers", testId: "nav-developers" },
       { to: "/app/billing", icon: Receipt, label: "nav.billing", testId: "nav-billing" },
       { to: "/app/settings", icon: Settings, label: "nav.settings", testId: "nav-settings" },
     ],
@@ -86,12 +118,13 @@ export default function DashboardLayout({ children }) {
   }, [user?.tenant_id, location.pathname, i18n, user?.lang]);
 
   // Apply tenant branding tokens to CSS vars
+  // Same deps as before (the two colors), read into locals so the hook lint can see them.
+  const brandPrimary = tenant?.branding?.primary_color;
+  const brandAccent = tenant?.branding?.accent_color;
   useEffect(() => {
-    if (!tenant?.branding) return;
-    const b = tenant.branding;
-    if (b.primary_color) document.documentElement.style.setProperty("--tenant-primary", b.primary_color);
-    if (b.accent_color) document.documentElement.style.setProperty("--tenant-accent", b.accent_color);
-  }, [tenant?.branding?.primary_color, tenant?.branding?.accent_color]);
+    if (brandPrimary) document.documentElement.style.setProperty("--tenant-primary", brandPrimary);
+    if (brandAccent) document.documentElement.style.setProperty("--tenant-accent", brandAccent);
+  }, [brandPrimary, brandAccent]);
 
   const needsOnboarding = user?.tenant_id && tenant && !tenant.onboarding_complete;
 
@@ -166,10 +199,11 @@ export default function DashboardLayout({ children }) {
       <main className="flex-1 min-w-0">
         <div className="flex items-center justify-end border-b border-border px-6 py-2 bg-card">
           <LanguageSwitcher compact />
+          <ThemeToggle lang={(i18n.language || "en").slice(0, 2)} />
         </div>
         {needsOnboarding && (
           <div className="border-b border-amber-200/70 bg-amber-50 text-amber-900 px-6 py-2 text-[13px] flex items-center justify-between">
-            <span data-testid="onboarding-banner">Finish setting up your AI Office to unlock the full dashboard.</span>
+            <span data-testid="onboarding-banner">Finish setting up your {BRAND_NAME} to unlock the full dashboard.</span>
             <Link to="/onboarding" className="font-medium underline underline-offset-4" data-testid="resume-onboarding-link">Resume setup</Link>
           </div>
         )}
