@@ -1,0 +1,186 @@
+id: decks_outdoor
+trade: Decks & Outdoor Living
+tagline: "Your AI office, preloaded for Decks & Outdoor Living"
+terms:
+  worker: Installer
+  worker_plural: Installers
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#92400E"
+pricebook:
+  - name: Design Consultation
+    category: service
+    price: 149
+    cost: 40
+    duration_min: 60
+    description: On-site design consult with measurements, material samples, and a 3D concept sketch.
+  - name: Pressure-Treated Deck (per sqft)
+    category: service
+    price: 28
+    cost: 12
+    duration_min: 480
+    description: Classic pressure-treated pine deck, code-built with proper footings and flashing.
+  - name: Composite Deck (per sqft)
+    category: service
+    price: 48
+    cost: 22
+    duration_min: 480
+    description: Low-maintenance composite decking with hidden fasteners and color-matched fascia.
+  - name: PVC Deck (per sqft)
+    category: service
+    price: 55
+    cost: 26
+    duration_min: 480
+    description: Premium PVC decking — coolest underfoot, best for poolside and full-sun exposures.
+  - name: Railings (per linear ft)
+    category: service
+    price: 95
+    cost: 40
+    duration_min: 300
+    description: Cable, composite, or aluminum railing systems installed to code with permits.
+  - name: Pergola Build (per project)
+    category: service
+    price: 4500
+    cost: 1800
+    duration_min: 480
+    description: Custom cedar or composite pergola, anchored and permitted, sized to the patio or deck.
+  - name: Under-Deck Drainage (per sqft)
+    category: service
+    price: 12
+    cost: 5
+    duration_min: 300
+    description: Under-deck ceiling system turning the space below into dry, usable storage or patio.
+  - name: Stair Package (per stair)
+    category: service
+    price: 650
+    cost: 260
+    duration_min: 180
+    description: Code-compliant stair stringers, treads, and railings matched to the deck material.
+  - name: Deck Lighting Package
+    category: addon
+    price: 1200
+    cost: 450
+    duration_min: 180
+    description: Low-voltage post-cap, stair, and rail lighting on a timer — the upgrade everyone notices at night.
+  - name: Outdoor Kitchen Frame-Out
+    category: service
+    price: 6500
+    cost: 2800
+    duration_min: 480
+    description: Structural frame-out for grill island, counters, and utilities — ready for the customer's finish contractor.
+  - name: Fire Pit Install
+    category: service
+    price: 1800
+    cost: 700
+    duration_min: 240
+    description: Gas or wood-burning fire pit with paver surround, set to local fire-code clearances.
+  - name: Deck Resurfacing (per sqft)
+    category: service
+    price: 18
+    cost: 8
+    duration_min: 300
+    description: New composite surface over a sound existing frame — the budget path to a new-looking deck.
+  - name: Annual Deck Sealing
+    category: service
+    price: 549
+    cost: 150
+    duration_min: 180
+    description: Wash, brighten, and seal service keeping wood decks protected and under warranty.
+equipment_types:
+  - name: Lumber Inventory
+    fields: [board_footage, species, treatment, yard_location, date_received]
+  - name: Composite Board Stock
+    fields: [brand, color, length_ft, count_on_hand, warehouse_location]
+  - name: Power Tool Sets
+    fields: [set_id, contents, assigned_crew, condition, last_checked]
+  - name: Footing & Concrete Supplies
+    fields: [product, size, count_on_hand, warehouse_location, reorder_point]
+  - name: Material Delivery Trailer
+    fields: [unit_id, length_ft, capacity_lbs, assigned_crew, last_inspection_date]
+appointment_types:
+  - name: Design Consultation
+    duration_min: 60
+    description: Measurements, material samples, and a concept sketch with ballpark pricing.
+  - name: Build Kickoff
+    duration_min: 120
+    description: "Pre-build walkthrough: staging, access, utility marking, and the build schedule."
+  - name: Build Day
+    duration_min: 480
+    description: Full construction day — framing, decking, or railings per the phase schedule.
+  - name: Final Walkthrough
+    duration_min: 45
+    description: Punch-list walk with the customer, care instructions, and warranty paperwork.
+receptionist_script: |
+  Greeting: "Thanks for calling {shop_name}, this is the AI assistant. Are you dreaming up a new deck, or does an existing one need some love?"
+
+  Common call types and what to do:
+  - New deck build: ask rough size (or which yard area), material preference (wood vs composite — explain the maintenance trade-off in one line), and whether they have an HOA. Book a Design Consultation and mention the $149 consult is credited toward the build.
+  - Deck repair or resurfacing: ask the deck's age, material, and what is failing (soft boards, wobbly rail, stairs). If the frame sounds solid, pitch resurfacing as the budget option. Book a consult.
+  - Pergola, outdoor kitchen, or fire pit: treat as project consults — ask about the space, gas availability for fire features, and timeline. Book a Design Consultation.
+  - Railing-only or lighting add-on: confirm linear footage if known and the existing deck material. These can often be quoted from photos — ask them to text pictures.
+  - Permit questions: explain the shop handles permits as part of the build and the timeline it adds (typically 2-4 weeks). Never promise a permit outcome.
+
+  Booking flow:
+  1. Capture name, address, phone, and email.
+  2. Confirm project type, rough dimensions, material leaning, and HOA status.
+  3. Book the consultation and text confirmation with a link to upload yard photos and the material gallery.
+  4. Note gate codes, dogs, and sprinkler heads near the build area.
+
+  Urgent handling: a deck with a collapsed section, broken stair, or railing that gives way = safety urgent. Advise them to keep people off it, offer the earliest repair assessment, and flag the shop owner.
+
+  After-hours: "Thanks for calling {shop_name}. Leave your name, address, and what you're planning — a new build or a repair. Snap a few photos of the space if you can. We'll call you back first thing in the morning and hold a design consult slot for you."
+triage:
+  - id: project_size
+    question: About how big is the deck or outdoor space you're thinking?
+    options: [Under 200 sqft — small patio deck, 200–400 sqft — standard backyard deck, 400–600 sqft — large entertaining deck, Over 600 sqft or multi-level, Just a repair or add-on]
+    route: Log project_size; over 600 sqft or multi-level flags a longer 90-minute design consult.
+  - id: material_preference
+    question: Any leaning on decking material?
+    options: ["Pressure-treated wood — lowest cost", "Composite — low maintenance", "PVC — premium, poolside", "Help me decide at the consult"]
+    route: Log material_preference so the installer brings the right samples; 'help me decide' adds the comparison sheet to the consult prep.
+  - id: permits_hoa
+    question: Is there an HOA, and do you know if a permit will be needed?
+    options: ["HOA — yes, with design rules", "HOA — yes, unsure of rules", "No HOA", "Not sure about permits"]
+    route: HOA or unsure routes to the permit-research step in the design automation; note the HOA docs request in the confirmation text.
+  - id: timeline
+    question: When are you hoping to enjoy it?
+    options: [Before summer / event date, This season, Just planning ahead, As soon as possible]
+    route: Event-date deadlines get a feasibility check against the permit timeline before the consult is booked; ASAP books the next consult slot.
+automation_templates:
+  - name: Consult to Contract Follow-up
+    trigger: design_consultation_completed
+    steps:
+      - Send the 3D concept, line-item quote, and material samples recap within 48 hours.
+      - Text the quote link with a one-tap "accept and schedule" button.
+      - Day 5: follow up highlighting the lighting package and under-deck drainage upsells.
+      - Day 12: offer the seasonal scheduling incentive to close.
+      - Accepted contracts trigger the permit and material-order automation.
+  - name: Permit & Material Coordination
+    trigger: deck_contract_signed
+    steps:
+      - Submit the permit application with drawings within 3 business days.
+      - Order composite/PVC materials with confirmed lead times; notify the customer of the delivery window.
+      - Text the customer the build-week schedule once the permit is approved.
+      - Day-before-build text: crew arrival time, staging plan, and what to move.
+      - After final inspection: send the warranty certificate and care guide.
+  - name: Seasonal Sealing Campaign
+    trigger: spring_season_start
+    steps:
+      - Pull wood-deck customers from 1+ years ago who never booked sealing.
+      - Send before/after photos of a recent sealing job with the $549 offer.
+      - One-tap booking from the text.
+      - Post-service: enroll them in the annual reminder cycle.
+review_templates:
+  - name: Post-Build Review Request
+    channel: sms
+    template: "Hi {customer_name}, your deck is done — enjoy that first evening out there. If {tech_name} and the crew built it like they said they would, would you leave us a review? {review_link} Photos welcome — we love a good before-and-after. — {shop_name}"
+  - name: Final Walkthrough Review
+    channel: email
+    template: "Subject: Your project is complete, {customer_name}\n\nHi {customer_name},\n\nThe final walkthrough is done and your warranty paperwork is attached. If {shop_name} delivered the outdoor space you pictured, a review here means the world to our crew: {review_link}\n\nQuick care reminder: {tech_name} left the maintenance guide — composite just needs a wash, wood wants sealing each spring.\n\nThanks,\n{shop_name}"
+  - name: Repair Job Review
+    channel: sms
+    template: "{customer_name}, your deck repair is wrapped and it's solid again. If {tech_name} took good care of you, a quick review helps: {review_link} — {shop_name}"

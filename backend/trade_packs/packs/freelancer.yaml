@@ -1,0 +1,208 @@
+id: freelancer
+trade: Freelancer
+tagline: "Your AI office, preloaded for Freelancers"
+terms:
+  worker: Freelancer
+  worker_plural: Freelancers
+  shop: business
+  job: project
+  job_plural: projects
+  customer: client
+  customer_plural: clients
+colors:
+  accent: "#7C3AED"
+pricebook:
+  - name: Discovery Call
+    category: service
+    price: 0
+    cost: 25
+    duration_min: 30
+    description: Free intro call to scope the project and check fit.
+  - name: Basic Website (up to 5 pages)
+    category: service
+    price: 2500
+    cost: 600
+    duration_min: 0
+    description: Custom responsive site with copy polish and launch support.
+  - name: Landing Page
+    category: service
+    price: 900
+    cost: 200
+    duration_min: 0
+    description: High-converting single page with copy and analytics setup.
+  - name: Logo & Brand Package
+    category: service
+    price: 800
+    cost: 150
+    duration_min: 0
+    description: Logo suite, color palette, typography, and brand guide.
+  - name: SEO Audit & Action Plan
+    category: service
+    price: 500
+    cost: 100
+    duration_min: 0
+    description: Full technical and content audit with prioritized fixes.
+  - name: Blog Post / Article
+    category: service
+    price: 250
+    cost: 50
+    duration_min: 0
+    description: 1,000-word researched article with SEO optimization.
+  - name: Social Media Content Pack
+    category: addon
+    price: 400
+    cost: 80
+    duration_min: 0
+    description: 12 designed posts with captions for one platform.
+  - name: Hourly Consulting
+    category: labor
+    price: 150
+    cost: 0
+    duration_min: 60
+    description: Strategy, training, or troubleshooting billed by the hour.
+  - name: Email Newsletter Setup
+    category: service
+    price: 600
+    cost: 120
+    duration_min: 0
+    description: Platform setup, template design, and welcome sequence.
+  - name: Monthly Retainer (10 hrs)
+    category: service
+    price: 1200
+    cost: 0
+    duration_min: 0
+    description: Priority ongoing support, 10 hours per month, rolls 1 month.
+  - name: Rush Delivery Fee
+    category: addon
+    price: 300
+    cost: 0
+    duration_min: 0
+    description: Priority turnaround — delivery in under 72 hours.
+equipment_types:
+  - name: Software Seat
+    fields: [app_name, plan, monthly_cost, renewal_date, seats, license_holder]
+  - name: Workstation / Laptop
+    fields: [device, purchase_date, warranty_expiry, specs, condition]
+  - name: Active Contract
+    fields: [client_name, project_name, value, start_date, end_date, status]
+  - name: Retainer Slot
+    fields: [client_name, hours_per_month, rate, renewal_date, status]
+  - name: Portfolio Asset
+    fields: [title, client_name, project_type, publish_date, public_url]
+  - name: Reference Library
+    fields: [title, format, purchase_date, cost, category]
+appointment_types:
+  - name: Discovery Call
+    duration_min: 30
+    description: Free intro call to qualify the project and the client.
+  - name: Project Kickoff
+    duration_min: 60
+    description: Deep-dive on goals, deliverables, timeline, and milestones.
+  - name: Design / Draft Review
+    duration_min: 45
+    description: Walk through the first draft and collect structured feedback.
+  - name: Retainer Check-In
+    duration_min: 30
+    description: Monthly sync on priorities and hours used.
+  - name: Final Handoff
+    duration_min: 45
+    description: Deliver files, walk through everything, and close out.
+  - name: Rush Consult
+    duration_min: 15
+    description: Quick emergency consult for urgent client needs.
+receptionist_script: |
+  GREETING:
+  "Thanks for reaching out to {shop_name}! This is the {shop_name} assistant.
+  Are you looking to start a new project, or are you an existing client?"
+
+  COMMON CALL TYPES:
+  1. NEW PROJECT INQUIRY: Ask what they need (website, branding, writing,
+     marketing), their timeline, and budget range. Book a free discovery call.
+  2. QUOTE REQUEST: Collect the scope details — deliverables, deadline, and any
+     examples they like. Say: "I'll have a detailed proposal to you within
+     48 hours."
+  3. EXISTING CLIENT STATUS: Look up their project, give the current milestone
+     and next delivery date. If it's urgent, flag it for same-day response.
+  4. SUPPORT/REVISIONS: Ask which project and what's needed. Minor tweaks go
+     in the revision queue; new scope gets a fresh quote.
+  5. PRICING QUESTIONS: Quote the standard packages. Mention the monthly
+     retainer as the best value for ongoing work.
+
+  BOOKING FLOW:
+  1. Collect: name, email, phone, project type, timeline, budget range.
+  2. Book the free 30-minute discovery call at their preferred time.
+  3. Send a calendar invite with a short pre-call questionnaire.
+  4. Say: "You're booked! A quick questionnaire is on its way — filling it
+     out helps us make the most of your call."
+
+  URGENT HANDLING:
+  - Client emergency (site down, launch blocker): treat as top priority, offer
+    the rush consult slot, and apply the rush fee transparently.
+  - Missed deadline: acknowledge honestly, give the new delivery date, and
+    offer a goodwill discount or bonus deliverable.
+
+  AFTER-HOURS:
+  "You've reached {shop_name} — I'm offline right now, but I can take your
+  project details and book you a discovery call for the next business day.
+  What's the project about?"
+triage:
+  - id: project_type
+    question: What kind of project is this?
+    options: [Website, Branding/design, Writing/content, Marketing, Something else]
+    route: Route to the right service line and attach the matching portfolio samples.
+  - id: budget_range
+    question: What's your budget range?
+    options: ["Under $500", "$500-$1,500", "$1,500-$5,000", "$5,000+"]
+    route: Under $500 → suggest productized packages; $1,500+ → full custom proposal.
+  - id: deadline
+    question: When do you need this done?
+    options: [ASAP / rush, Within 2 weeks, Within a month, Flexible]
+    route: Rush → quote the rush fee; tight timelines get priority scheduling.
+  - id: deliverables
+    question: What does "done" look like for this project?
+    options: [One-time deliverable, Ongoing monthly work, Not sure yet]
+    route: Ongoing → pitch the monthly retainer; unsure → discovery call agenda set.
+  - id: decision_maker
+    question: Are you the final decision-maker?
+    options: [Yes, No — I need approval, It's a team decision]
+    route: Not the decider → send a shareable one-page proposal summary.
+automation_templates:
+  - name: Inquiry to Proposal
+    trigger: new project inquiry
+    steps:
+      - "Send instant acknowledgment with portfolio samples for their project type."
+      - "Book the discovery call and send the pre-call questionnaire."
+      - "After the call, send a detailed proposal within 48 hours."
+      - "Follow up on unanswered proposals at day 3 and day 7."
+      - "On acceptance, send the contract and deposit invoice automatically."
+  - name: Project Milestone Check-Ins
+    trigger: project milestone due
+    steps:
+      - "Send the client a progress update with what's done and what's next."
+      - "Request feedback or approval to unlock the next milestone."
+      - "Log hours against the project budget."
+      - "If feedback is overdue 3 days, send a gentle nudge."
+  - name: Invoice Follow-Up
+    trigger: invoice 7 days overdue
+    steps:
+      - "Send a polite reminder with the invoice link."
+      - "At 14 days, send a firmer reminder noting the late fee policy."
+      - "At 30 days, pause active work until the balance is settled."
+      - "On payment, send a thank-you and resume the schedule."
+  - name: Post-Project Review & Referral
+    trigger: project marked complete
+    steps:
+      - "Send a thank-you email with final files and a project recap."
+      - "Ask for a testimonial and permission to feature the work."
+      - "Offer the monthly retainer for ongoing needs."
+      - "Enroll the client in the referral program (10% credit per referral)."
+review_templates:
+  - name: Post-Project Email Testimonial Ask
+    channel: email
+    template: "Hi {customer_name}, it's {tech_name} from {shop_name} — the project is officially wrapped, and I loved working with you on it! Would you be open to sharing a few words about the experience? A short testimonial (even 2-3 sentences) makes a huge difference: {review_link}. Thank you!"
+  - name: Project Handoff SMS Review Ask
+    channel: sms
+    template: "Hey {customer_name}, {tech_name} here from {shop_name} — your project files are delivered and live! If you're happy with how it turned out, a quick review would mean a lot: {review_link}"
+  - name: Retainer Client Quarterly Review Ask
+    channel: email
+    template: "Hi {customer_name}, we've now worked together for a full quarter at {shop_name}, and I wanted to say thanks for the trust. {tech_name} here — if the retainer has been valuable, would you mind leaving us a review? {review_link}"
