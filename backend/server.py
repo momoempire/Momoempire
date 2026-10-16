@@ -77,6 +77,16 @@ from routers.predictive_revenue import router as predictive_revenue_router
 from routers.outbound_voice import router as outbound_voice_router
 from routers.job_profitability import router as job_profitability_router
 from routers.price_intelligence import router as price_intelligence_router
+from routers.call_coaching import router as call_coaching_router
+from routers.warranty import router as warranty_router
+from routers.supplier_pricing import router as supplier_pricing_router
+from routers.triage import router as triage_router, public_router as triage_public_router
+from routers.subcontractors import router as subcontractors_router
+from routers.time_tracking import router as time_tracking_router
+from routers.inventory import router as inventory_router
+from routers.locations import router as locations_router
+from routers.developer import router as developer_router, public_api_router
+from routers.checklists import router as checklists_router
 
 app = FastAPI(title="AI Office Platform API")
 api = APIRouter(prefix="/api")
@@ -179,6 +189,18 @@ api.include_router(ai_dispatcher_router)
 api.include_router(ai_onboarding_router)
 api.include_router(predictive_revenue_router)
 api.include_router(outbound_voice_router)
+api.include_router(call_coaching_router)
+api.include_router(warranty_router)
+api.include_router(supplier_pricing_router)
+api.include_router(triage_router)
+api.include_router(triage_public_router)
+api.include_router(subcontractors_router)
+api.include_router(time_tracking_router)
+api.include_router(inventory_router)
+api.include_router(locations_router)
+api.include_router(developer_router)
+api.include_router(checklists_router)
+app.include_router(public_api_router)
 # Stripe is registered to deliver webhooks to /api/stripe/webhook (top-level, platform account).
 api.add_api_route("/stripe/webhook", _stripe_wh, methods=["POST"], include_in_schema=False)
 # Stripe Connect webhook (connected accounts) → /api/stripe/connect-webhook. Separate signing secret.
