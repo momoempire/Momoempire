@@ -21,6 +21,7 @@ import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 import Onboarding from "@/pages/Onboarding";
 import Revenue from "@/pages/dashboard/Revenue.jsx";
+import Locations from "@/pages/dashboard/Locations.jsx";
 import VoiceCampaigns from "@/pages/dashboard/VoiceCampaigns.jsx";
 import PublicBusiness from "@/pages/PublicBusiness";
 import PaymentSuccess from "@/pages/PaymentSuccess";
@@ -49,7 +50,16 @@ import Marketing from "@/pages/dashboard/Marketing";
 import Profitability from "@/pages/dashboard/Profitability.jsx";
 import PriceIntel from "@/pages/dashboard/PriceIntel.jsx";
 import AiDispatcher from "@/pages/dashboard/AiDispatcher.jsx";
-import Onboarding from "@/pages/dashboard/Onboarding.jsx";
+import OnboardingDash from "@/pages/dashboard/Onboarding.jsx";
+import CallCoaching from "@/pages/dashboard/CallCoaching.jsx";
+import Warranty from "@/pages/dashboard/Warranty.jsx";
+import SupplierPricing from "@/pages/dashboard/SupplierPricing.jsx";
+import TriageSettings from "@/pages/dashboard/TriageSettings.jsx";
+import Subcontractors from "@/pages/dashboard/Subcontractors.jsx";
+import TimeTracking from "@/pages/dashboard/TimeTracking.jsx";
+import Inventory from "@/pages/dashboard/Inventory.jsx";
+import Developer from "@/pages/dashboard/Developer.jsx";
+import Checklists from "@/pages/dashboard/Checklists.jsx";
 import Equipment from "@/pages/dashboard/Equipment";
 import KnowledgeBase from "@/pages/dashboard/KnowledgeBase";
 import BusinessAdvisor from "@/pages/dashboard/BusinessAdvisor";
@@ -135,13 +145,23 @@ function Router() {
       <Route path="/app/dispatch" element={<Protected><Dispatch /></Protected>} />
       <Route path="/app/pricebook" element={<Protected><Pricebook /></Protected>} />
       <Route path="/app/photo-estimates" element={<Protected><PhotoEstimates /></Protected>} />
-      <Route path="/app/marketing" element={<Protected>
-      <Route path="/app/profitability" element={<Protected>
-      <Route path="/app/price-intel" element={<Protected><PriceIntel /></Protected>} /><Profitability /></Protected>} />
-      <Route path="/app/ai-dispatcher" element={<Protected>
-      <Route path="/app/onboarding" element={<Protected>
-      <Route path="/app/revenue" element={<Protected>
-      <Route path="/app/voice" element={<Protected><VoiceCampaigns /></Protected>} /><Revenue /></Protected>} /><Onboarding /></Protected>} /><AiDispatcher /></Protected>} /><Marketing /></Protected>} />
+      <Route path="/app/marketing" element={<Protected><Marketing /></Protected>} />
+      <Route path="/app/profitability" element={<Protected><Profitability /></Protected>} />
+      <Route path="/app/price-intel" element={<Protected><PriceIntel /></Protected>} />
+      <Route path="/app/ai-dispatcher" element={<Protected><AiDispatcher /></Protected>} />
+      <Route path="/app/onboarding" element={<Protected><OnboardingDash /></Protected>} />
+      <Route path="/app/revenue" element={<Protected><Revenue /></Protected>} />
+      <Route path="/app/voice" element={<Protected><VoiceCampaigns /></Protected>} />
+      <Route path="/app/call-coaching" element={<Protected><CallCoaching /></Protected>} />
+      <Route path="/app/warranty" element={<Protected><Warranty /></Protected>} />
+      <Route path="/app/supplier-pricing" element={<Protected><SupplierPricing /></Protected>} />
+      <Route path="/app/triage" element={<Protected><TriageSettings /></Protected>} />
+      <Route path="/app/subcontractors" element={<Protected><Subcontractors /></Protected>} />
+      <Route path="/app/time-tracking" element={<Protected><TimeTracking /></Protected>} />
+      <Route path="/app/inventory" element={<Protected><Inventory /></Protected>} />
+      <Route path="/app/developers" element={<Protected><Developer /></Protected>} />
+      <Route path="/app/checklists" element={<Protected><Checklists /></Protected>} />
+      <Route path="/app/locations" element={<Protected><Locations /></Protected>} />
       <Route path="/app/equipment" element={<Protected><Equipment /></Protected>} />
       <Route path="/app/services" element={<Protected><ServicesPage /></Protected>} />
       <Route path="/app/payments" element={<Protected><Payments /></Protected>} />

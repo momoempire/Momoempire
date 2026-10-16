@@ -9,6 +9,7 @@ import {
   Wrench, CreditCard, Globe, UserRound, Star, LineChart, Compass,
   BookOpenText, Workflow, Plug, PhoneForwarded, Gauge, Receipt, Settings,
   LogOut, ShieldCheck, Rocket, Repeat, ClipboardList, BookOpen, Camera, Megaphone, PhoneOutgoing, TrendingUp,
+  Headset, CalendarCheck, Truck, HardHat, Clock, Package, MapPin, Code2, ClipboardCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -29,6 +30,7 @@ const GROUPS = [
     items: [
       { to: "/app/calls", icon: PhoneCall, label: "nav.calls", testId: "nav-calls" },
       { to: "/app/voice", icon: PhoneOutgoing, label: "nav.voice", testId: "nav-voice" },
+      { to: "/app/call-coaching", icon: Headset, label: "nav.call_coaching", testId: "nav-call-coaching" },
       { to: "/app/messages", icon: MessageSquare, label: "nav.messages", testId: "nav-messages" },
     ],
   },
@@ -52,6 +54,14 @@ const GROUPS = [
       { to: "/app/customer-portal", icon: UserRound, label: "nav.customer_portal", testId: "nav-customer-portal" },
       { to: "/app/reviews", icon: Star, label: "nav.reviews", testId: "nav-reviews" },
       { to: "/app/testimonials", icon: Star, label: "nav.testimonials", testId: "nav-testimonials" },
+      { to: "/app/triage", icon: CalendarCheck, label: "nav.triage", testId: "nav-triage" },
+      { to: "/app/warranty", icon: ShieldCheck, label: "nav.warranty", testId: "nav-warranty" },
+      { to: "/app/supplier-pricing", icon: Truck, label: "nav.supplier_pricing", testId: "nav-supplier-pricing" },
+      { to: "/app/subcontractors", icon: HardHat, label: "nav.subcontractors", testId: "nav-subcontractors" },
+      { to: "/app/time-tracking", icon: Clock, label: "nav.time_tracking", testId: "nav-time-tracking" },
+      { to: "/app/inventory", icon: Package, label: "nav.inventory", testId: "nav-inventory" },
+      { to: "/app/locations", icon: MapPin, label: "nav.locations", testId: "nav-locations" },
+      { to: "/app/checklists", icon: ClipboardCheck, label: "nav.checklists", testId: "nav-checklists" },
     ],
   },
   {
@@ -74,6 +84,7 @@ const GROUPS = [
       { to: "/app/integrations", icon: Plug, label: "nav.integrations", testId: "nav-integrations" },
       { to: "/app/phone-numbers", icon: PhoneForwarded, label: "nav.phone_numbers", testId: "nav-phone-numbers" },
       { to: "/app/usage", icon: Gauge, label: "nav.usage", testId: "nav-usage" },
+      { to: "/app/developers", icon: Code2, label: "nav.developers", testId: "nav-developers" },
       { to: "/app/billing", icon: Receipt, label: "nav.billing", testId: "nav-billing" },
       { to: "/app/settings", icon: Settings, label: "nav.settings", testId: "nav-settings" },
     ],

@@ -9,7 +9,7 @@ export const ESTIMATOR_RULES_STATUS = "PLACEHOLDER — Brann to confirm";
 
 export const ESTIMATOR_RULES = {
   // Paid plans considered, by key (must exist in GET /api/plans). Order comes from the data.
-  standardPlanKeys: ["starter", "growth", "ai_office", "high_volume"],
+  standardPlanKeys: ["lite", "starter", "pro", "empire"],
   // Shown only when answers exceed every standard plan (name taken from plan data if present).
   customPlanKey: "enterprise",
 
@@ -61,11 +61,11 @@ export const ESTIMATOR_RULES = {
   // `features` text in backend/routers/plans.py where it mentions them, otherwise null
   // (= any paid plan) until Brann decides.
   capabilities: [
-    { id: "ai_receptionist", minPlan: "starter" },   // "Basic AI receptionist" (Starter)
-    { id: "booking", minPlan: "growth" },            // "Appointment booking" (Growth)
-    { id: "reviews", minPlan: "ai_office" },         // "Reviews" (AI Office)
-    { id: "customer_portal", minPlan: "ai_office" }, // "Customer portal" (AI Office)
-    { id: "business_advisor", minPlan: "ai_office" },// "AI business advisor" (AI Office)
+    { id: "ai_receptionist", minPlan: "lite" },   // "AI receptionist" (Lite)
+    { id: "booking", minPlan: "starter" },         // "Appointment booking" (Starter)
+    { id: "reviews", minPlan: "starter" },         // "Reviews" (Starter)
+    { id: "customer_portal", minPlan: "pro" },     // "Customer portal" (Pro)
+    { id: "business_advisor", minPlan: "pro" },    // "AI business advisor" (Pro)
     { id: "sales_intel", minPlan: null },            // not in any plan's features list — TODO Brann
     { id: "growth_autopilot", minPlan: null },       // not in any plan's features list — TODO Brann
     { id: "payments", minPlan: null },               // not in any plan's features list — TODO Brann
