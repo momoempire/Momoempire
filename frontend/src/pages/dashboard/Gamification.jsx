@@ -124,7 +124,7 @@ function RulesEditor() {
   const [saving, setSaving] = useState(false);
   const load = useCallback(async () => {
     try {
-      const r = await api.get("/api/gamification/tenants/rules");
+      const r = await api.get("/gamification/tenants/rules");
       setValues(r.data.point_values || {});
       setDefaults(r.data.defaults || {});
     } catch (e) {
@@ -141,7 +141,7 @@ function RulesEditor() {
         if (!(Number.isInteger(n) && n >= 0)) return toast.error(t("gamif.rules_invalid", "Point values must be whole numbers ≥ 0"));
         payload[k] = n;
       }
-      const r = await api.post("/api/gamification/tenants/rules", { point_values: payload });
+      const r = await api.post("/gamification/tenants/rules", { point_values: payload });
       setValues(r.data.point_values || {});
       toast.success(t("gamif.rules_saved", "Point values saved"));
     } catch (e) {
@@ -205,9 +205,9 @@ export default function Gamification() {
     setLoading(true);
     try {
       const [boardRes, badgeRes, eventsRes] = await Promise.all([
-        api.get("/api/gamification/tenants/leaderboard", { params: { period } }),
-        api.get("/api/gamification/tenants/badges"),
-        api.get("/api/gamification/tenants/events", { params: { limit: 50 } }),
+        api.get("/gamification/tenants/leaderboard", { params: { period } }),
+        api.get("/gamification/tenants/badges"),
+        api.get("/gamification/tenants/events", { params: { limit: 50 } }),
       ]);
       setBoard(boardRes.data.entries || []);
       setBadges(badgeRes.data.badges || []);

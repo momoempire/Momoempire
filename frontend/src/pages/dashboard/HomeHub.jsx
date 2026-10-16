@@ -10,7 +10,7 @@ import {
   Plus, Search, Home, Wrench, Bell, History, ClipboardList, Copy, RefreshCw, X,
 } from "lucide-react";
 
-const BASE = "/api/home-hub";
+const BASE = "/home-hub";
 
 const EMPTY_FORM = {
   homeowner_name: "",
