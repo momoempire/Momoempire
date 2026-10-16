@@ -1,0 +1,184 @@
+id: solar
+trade: Solar
+tagline: "Your AI office, preloaded for Solar"
+terms:
+  worker: Installer
+  worker_plural: Installers
+  shop: shop
+  job: job
+  job_plural: jobs
+  customer: customer
+  customer_plural: customers
+colors:
+  accent: "#F97316"
+pricebook:
+  - name: "Residential System (per watt)"
+    category: service
+    price: 2.85
+    cost: 1.9
+    duration_min: 1
+    description: "Turnkey residential install priced per DC watt before incentives; typical 8kW system ~$22,800."
+  - name: "Solar Consultation & Site Assessment"
+    category: service
+    price: 0
+    cost: 85
+    duration_min: 90
+    description: "Free roof assessment, shade analysis and production estimate; credited design work included."
+  - name: "Panel Addition (per panel)"
+    category: addon
+    price: 850
+    cost: 520
+    duration_min: 45
+    description: "Add panels to an existing array, includes mounting, wiring and inverter capacity check."
+  - name: "Battery Backup (10 kWh)"
+    category: part
+    price: 11500
+    cost: 7800
+    duration_min: 300
+    description: "Installed 10 kWh battery with automatic backup panel; whole-home sizing available."
+  - name: "Main Panel Upgrade (200A)"
+    category: service
+    price: 2800
+    cost: 1500
+    duration_min: 360
+    description: "Upgrade to 200-amp service panel required for many solar installs, permit included."
+  - name: "System Monitoring Setup"
+    category: service
+    price: 150
+    cost: 40
+    duration_min: 45
+    description: "Commission monitoring app, verify per-panel reporting, train homeowner."
+  - name: "Annual Maintenance & Cleaning"
+    category: service
+    price: 299
+    cost: 110
+    duration_min: 120
+    description: "Panel cleaning, torque check, inverter inspection and production report."
+  - name: "Inverter Replacement"
+    category: part
+    price: 2200
+    cost: 1400
+    duration_min: 180
+    description: "Replace failed string inverter with equivalent unit, recommission and warranty registered."
+  - name: "Critter Guard Installation"
+    category: addon
+    price: 12
+    cost: 5
+    duration_min: 2
+    description: "Per-panel mesh guard against birds and squirrels; priced per panel."
+  - name: "Roof Assessment Report"
+    category: service
+    price: 199
+    cost: 60
+    duration_min: 60
+    description: "Detailed roof condition report with remaining-life estimate; credited if you install with us."
+  - name: "EV Charger Installation"
+    category: service
+    price: 750
+    cost: 380
+    duration_min: 180
+    description: "Install 48A Level 2 EV charger on existing panel capacity; charger hardware separate."
+equipment_types:
+  - name: "Solar Panel Pallet"
+    fields: ["panel_model", "wattage", "quantity", "warehouse_location", "received_date", "assigned_to"]
+  - name: "Inverter"
+    fields: ["brand", "model", "capacity_kw", "serial_number", "warranty_expires", "assigned_to"]
+  - name: "Battery Unit"
+    fields: ["brand", "model", "capacity_kwh", "serial_number", "install_date", "warranty_expires", "assigned_to"]
+  - name: "Racking / Mounting Hardware"
+    fields: ["brand", "roof_type", "quantity", "warehouse_location", "assigned_to"]
+  - name: "Company Vehicle"
+    fields: ["make", "model", "year", "mileage", "last_service", "insurance_expires", "assigned_to"]
+appointment_types:
+  - name: "Free Site Assessment"
+    duration_min: 90
+    description: "Roof measurements, shade analysis, electrical panel check and production proposal."
+  - name: "Design Review Call"
+    duration_min: 30
+    description: "Walk through the system design, panel layout and savings numbers before permitting."
+  - name: "Installation Day"
+    duration_min: 480
+    description: "Full crew install day; most residential systems complete in 1-2 days."
+  - name: "Inspection Walkthrough"
+    duration_min: 60
+    description: "Meet the utility/city inspector on site and confirm sign-off."
+  - name: "Monitoring & Handoff Visit"
+    duration_min: 45
+    description: "Commission monitoring, train the homeowner, hand over warranty docs."
+receptionist_script: |
+  GREETING: "Thanks for calling {shop_name}, your solar specialists. This is the AI assistant — are you looking to go solar or do you need help with an existing system?"
+
+  COMMON CALL TYPES:
+  1. New solar interest — capture: address (for satellite roof look), average electric bill, roof age/condition, timeline. Book a Free Site Assessment.
+  2. Bill/savings questions — give typical numbers (average 8kW system offsets most of a $200/mo bill), explain the federal tax credit and local incentives generally, note we are not tax advisors.
+  3. Existing system issues — capture: system age, symptoms (low production, inverter error code, monitoring offline), and whether we installed it. Book a diagnostic visit.
+  4. Battery backup interest — capture: outage concerns, critical loads, existing solar or new. Book a site assessment with battery focus.
+  5. Maintenance/cleaning — offer the Annual Maintenance & Cleaning package, book a visit.
+
+  BOOKING FLOW:
+  1. Confirm the address and that they own the home (renters need landlord approval — note it).
+  2. Ask for the average monthly electric bill and the electric provider — this sizes the proposal.
+  3. Offer the next Free Site Assessment slot; explain what happens: roof measurements, shade analysis, panel check, and a written production + savings proposal within 48 hours.
+  4. Collect: name, callback number, email (for the proposal), best contact window.
+  5. Confirm and send a text with the appointment plus a link to upload a recent electric bill photo for a more accurate proposal.
+
+  URGENT HANDLING: Inverter fault with burning smell, arcing sounds, or panels physically damaged after a storm — treat as urgent, advise shutting off the solar disconnect if safe to reach, and dispatch the soonest diagnostic. Monitoring offline or slightly low production is NOT urgent; book the next diagnostic slot.
+
+  AFTER-HOURS: Take the intake, promise a callback by 9 AM next business day; for suspected electrical danger (burning smell, arcing), advise calling 911 if there is fire risk and route to the on-call number.
+triage:
+  - id: solar_new_or_existing
+    question: "Do you already have solar panels, or are you looking to get them?"
+    options: ["Looking to get solar", "Have panels, need service", "Have panels, want battery added", "Have panels, want more panels"]
+    route: "New interest goes to site assessment; existing systems go to diagnostic intake."
+  - id: solar_homeownership
+    question: "Do you own your home?"
+    options: ["Yes", "No — I rent", "HOA community", "Commercial property"]
+    route: "Renters need landlord approval noted; HOA communities get an HOA packet offer; commercial goes to commercial estimator."
+  - id: solar_bill
+    question: "What's your average monthly electric bill?"
+    options: ["Under $100", "$100–$200", "$200–$350", "Over $350", "Not sure"]
+    route: "Sizes the proposal; under $100 gets a frank payback discussion, over $350 flagged as high-value lead."
+  - id: solar_roof
+    question: "How old is your roof, and do you know its material?"
+    options: ["Under 10 years", "10–20 years", "Over 20 years", "Not sure", "Metal/tile/special"]
+    route: "Roofs over 20 years trigger the roof assessment report offer; special materials noted for racking planning."
+  - id: solar_issue
+    question: "For existing systems: what's going on with your system?"
+    options: ["Production dropped", "Inverter error/alert", "Monitoring app offline", "Storm damage", "Just want a checkup"]
+    route: "Error codes and damage photos collected before dispatch; checkups booked as maintenance visits."
+automation_templates:
+  - name: "Bill Upload Nudge"
+    trigger: "site assessment booked, no bill uploaded 24h before"
+    steps:
+      - "Send SMS: 'Snap a photo of your electric bill here for a more accurate proposal: {link}'"
+      - "Morning of visit: remind tech to ask for the bill on arrival if still missing"
+      - "After assessment: proposal sent within 48 hours, SMS confirmation when emailed"
+  - name: "Proposal Follow-Up"
+    trigger: "proposal sent, no signature in 5 days"
+    steps:
+      - "Day 5: SMS with savings summary and one-tap 'Schedule design review'"
+      - "Day 12: email with FAQ addressing top objections (roof, HOA, incentives)"
+      - "Day 20: final SMS offering to answer any questions; mark warm for quarterly check-in"
+  - name: "Install Milestone Updates"
+    trigger: "job moves through permit/install/inspection stages"
+    steps:
+      - "Permit submitted: SMS with expected timeline"
+      - "Permit approved: SMS + schedule install day options"
+      - "Install complete: SMS with inspection date"
+      - "Permission to operate received: celebration SMS + monitoring handoff booking"
+  - name: "Annual Checkup Reminder"
+    trigger: "11 months after install or last maintenance"
+    steps:
+      - "Send email: production summary for the year + maintenance offer"
+      - "3 days later: SMS reminder with one-tap booking"
+      - "Book the Annual Maintenance & Cleaning visit"
+review_templates:
+  - name: "Post-Install Celebration"
+    channel: sms
+    template: "Hi {customer_name}, {tech_name} from {shop_name} here — your system is live and producing clean power! If you're thrilled with the experience, a review would mean a lot: {review_link}"
+  - name: "Savings Check-In Email"
+    channel: email
+    template: "Subject: Your first months with solar ☀️\n\nHi {customer_name},\n\nIt's {tech_name} from {shop_name}. Your system has been running for a few months now — we hope the bills are looking great! If our team earned it, we'd love a review: {review_link}\n\nQuestions about your monitoring app? Just reply."
+  - name: "Service Visit Follow-Up"
+    channel: sms
+    template: "Hi {customer_name}, {tech_name} from {shop_name} — your system service is complete and everything's back to full production. A quick review of your service experience helps us a ton: {review_link}"
