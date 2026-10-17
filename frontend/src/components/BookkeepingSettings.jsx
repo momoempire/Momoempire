@@ -16,6 +16,11 @@ import { toast } from "sonner";
 // competitor) — there is deliberately no QuickBooks integration. Paid
 // invoices auto-sync (customer → invoice → payment) when enabled; the raw
 // API token is write-only and is never returned by the API.
+//
+// The CSV bridge section below (GET /tenants/csv-bridge/export/*,
+// POST /tenants/csv-bridge/import/customers) is the file-based handoff for
+// accountants in QuickBooks/spreadsheets: downloads + a dry-run-first
+// customer import. Files only — still no QuickBooks connection.
 export default function BookkeepingSettings() {
   const { t } = useTranslation();
   const [settings, setSettings] = useState(null);
@@ -24,6 +29,13 @@ export default function BookkeepingSettings() {
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
+  // CSV bridge (files for QuickBooks/spreadsheet accountants — no live sync)
+  const [csvStart, setCsvStart] = useState("");
+  const [csvEnd, setCsvEnd] = useState("");
+  const [csvFile, setCsvFile] = useState(null);
+  const [csvPlan, setCsvPlan] = useState(null);
+  const [csvPlanFile, setCsvPlanFile] = useState(null);
+  const [csvBusy, setCsvBusy] = useState("");
 
   const load = () => {
     api.get("/tenants/bookkeeping-link/settings").then((r) => setSettings(r.data)).catch(() => setSettings({}));
@@ -61,6 +73,39 @@ export default function BookkeepingSettings() {
       load();
     } catch (e) { toast.error(errMessage(e)); }
     finally { setTesting(false); }
+  };
+
+  const downloadCsv = async (kind) => {
+    setCsvBusy(`export-${kind}`);
+    try {
+      const params = {};
+      if (csvStart) params.start = csvStart;
+      if (csvEnd) params.end = csvEnd;
+      const { data } = await api.get(`/tenants/csv-bridge/export/${kind}`, { params, responseType: "blob" });
+      const url = URL.createObjectURL(data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `momo-${kind}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) { toast.error(errMessage(e) || t("bookkeeping.csv_download_failed")); }
+    finally { setCsvBusy(""); }
+  };
+
+  const runImport = async (dryRun) => {
+    if (!csvFile) { toast.error(t("bookkeeping.csv_need_file")); return; }
+    setCsvBusy(dryRun ? "preview" : "run");
+    try {
+      const fd = new FormData();
+      fd.append("file", csvFile);
+      const { data } = await api.post("/tenants/csv-bridge/import/customers", fd, { params: { dry_run: dryRun } });
+      setCsvPlan(data);
+      if (dryRun) setCsvPlanFile(csvFile);
+      else toast.success(t("bookkeeping.csv_done", data.summary));
+    } catch (e) { toast.error(errMessage(e) || t("bookkeeping.csv_read_failed")); }
+    finally { setCsvBusy(""); }
   };
 
   const counts = status?.counts || {};
@@ -147,6 +192,81 @@ export default function BookkeepingSettings() {
         </dl>
         {status?.last_error && (
           <p className="mt-2 text-sm text-red-600" data-testid="bookkeeping-last-error">✗ {status.last_error}</p>
+        )}
+      </div>
+
+      <div className="mt-6 rounded-lg border border-border p-4" data-testid="bookkeeping-csv-bridge">
+        <div className="overline mb-2">{t("bookkeeping.csv_title")}</div>
+        <p className="text-sm text-muted-foreground">{t("bookkeeping.csv_sub")}</p>
+
+        <div className="mt-4 flex flex-wrap items-end gap-3">
+          <div className="space-y-1.5">
+            <Label>{t("bookkeeping.csv_start_label")}</Label>
+            <Input type="date" value={csvStart} onChange={(e) => setCsvStart(e.target.value)} data-testid="bookkeeping-csv-start" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>{t("bookkeeping.csv_end_label")}</Label>
+            <Input type="date" value={csvEnd} onChange={(e) => setCsvEnd(e.target.value)} data-testid="bookkeeping-csv-end" />
+          </div>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => downloadCsv("customers")} disabled={csvBusy !== ""} data-testid="bookkeeping-csv-export-customers">
+            {csvBusy === "export-customers" ? "…" : t("bookkeeping.csv_export_customers")}
+          </Button>
+          <Button variant="outline" onClick={() => downloadCsv("invoices")} disabled={csvBusy !== ""} data-testid="bookkeeping-csv-export-invoices">
+            {csvBusy === "export-invoices" ? "…" : t("bookkeeping.csv_export_invoices")}
+          </Button>
+          <Button variant="outline" onClick={() => downloadCsv("payments")} disabled={csvBusy !== ""} data-testid="bookkeeping-csv-export-payments">
+            {csvBusy === "export-payments" ? "…" : t("bookkeeping.csv_export_payments")}
+          </Button>
+        </div>
+
+        <div className="overline mt-6 mb-2">{t("bookkeeping.csv_import_title")}</div>
+        <p className="text-sm text-muted-foreground">{t("bookkeeping.csv_import_sub")}</p>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <Input
+            type="file"
+            accept=".csv,text/csv"
+            onChange={(e) => { setCsvFile(e.target.files?.[0] || null); setCsvPlan(null); }}
+            data-testid="bookkeeping-csv-import-file"
+            className="max-w-xs"
+          />
+          <Button variant="outline" onClick={() => runImport(true)} disabled={csvBusy !== "" || !csvFile} data-testid="bookkeeping-csv-preview-btn">
+            {csvBusy === "preview" ? "…" : t("bookkeeping.csv_preview_button")}
+          </Button>
+          <Button
+            onClick={() => runImport(false)}
+            disabled={csvBusy !== "" || !csvPlan?.dry_run || csvPlanFile !== csvFile}
+            data-testid="bookkeeping-csv-run-btn"
+          >
+            {csvBusy === "run" ? "…" : t("bookkeeping.csv_run_button")}
+          </Button>
+        </div>
+
+        {csvPlan && (
+          <div className="mt-4" data-testid="bookkeeping-csv-plan">
+            <p className="text-sm font-medium">{t("bookkeeping.csv_summary", csvPlan.summary)}</p>
+            <table className="mt-2 w-full text-sm">
+              <thead>
+                <tr className="text-left text-muted-foreground">
+                  <th className="py-1 pr-2">{t("bookkeeping.csv_col_row")}</th>
+                  <th className="py-1 pr-2">{t("bookkeeping.csv_col_action")}</th>
+                  <th className="py-1 pr-2">{t("bookkeeping.csv_col_customer")}</th>
+                  <th className="py-1">{t("bookkeeping.csv_col_detail")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {csvPlan.rows.map((row) => (
+                  <tr key={row.row} className="border-t border-border" data-testid={`bookkeeping-csv-plan-row-${row.row}`}>
+                    <td className="py-1 pr-2">{row.row}</td>
+                    <td className="py-1 pr-2">{t(`bookkeeping.csv_action_${row.action}`)}</td>
+                    <td className="py-1 pr-2">{row.name || row.email || "—"}</td>
+                    <td className="py-1">{row.detail}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 

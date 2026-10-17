@@ -65,6 +65,7 @@ from routers.equipment import router as equipment_router
 from routers.tracking import router as tracking_router, public_router as tracking_public_router
 from routers.financing import router as financing_router, public_router as financing_public_router
 from routers.bookkeeping_link import router as bookkeeping_link_router
+from routers.csv_bridge import router as csv_bridge_router
 from routers.photo_estimates import router as photo_estimates_router
 from routers.marketing_automation import (
     router as marketing_automation_router,
@@ -204,6 +205,7 @@ api.include_router(tracking_public_router)
 api.include_router(financing_router)
 api.include_router(financing_public_router)
 api.include_router(bookkeeping_link_router)
+api.include_router(csv_bridge_router)
 api.include_router(photo_estimates_router)
 api.include_router(marketing_automation_router)
 api.include_router(marketing_automation_public_router)
