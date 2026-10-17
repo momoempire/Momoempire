@@ -12,10 +12,10 @@ const attrs = (tags) => tags.map((t) => t.attributes);
 const find = (tags, key, value) => attrs(tags).find((a) => a[key] === value);
 
 describe("siteConfig", () => {
-  test("defaults use the brand name and the niche brand URL", () => {
+  test("defaults use the brand name and the generic brand URL", () => {
     const cfg = siteConfig({});
     expect(cfg).toEqual({
-      name: DEFAULT_SITE_NAME, description: DEFAULT_DESCRIPTION, siteUrl: "https://hvac.mindateasesolutions.com", ogImage: "", waitlistOnly: false,
+      name: DEFAULT_SITE_NAME, description: DEFAULT_DESCRIPTION, siteUrl: "https://mindateasesolutions.com", ogImage: "", waitlistOnly: false,
     });
   });
 
@@ -34,7 +34,7 @@ describe("meta tags", () => {
     const tags = metaTags(siteConfig({}));
     expect(find(tags, "name", "description").content).toBe(DEFAULT_DESCRIPTION);
     expect(find(tags, "property", "og:title").content).toBe(DEFAULT_SITE_NAME);
-    expect(find(tags, "property", "og:url").content).toBe("https://hvac.mindateasesolutions.com/");
+    expect(find(tags, "property", "og:url").content).toBe("https://mindateasesolutions.com/");
     expect(find(tags, "property", "og:image")).toBeUndefined();
     expect(find(tags, "name", "twitter:image")).toBeUndefined();
     expect(find(tags, "name", "twitter:card").content).toBe("summary");
@@ -66,7 +66,7 @@ describe("meta tags", () => {
 describe("robots.txt and sitemap.xml", () => {
   test("no site URL: defaults to the brand URL for Sitemap; sitemapXml needs a URL", () => {
     const cfg = siteConfig({ REACT_APP_WAITLIST_ONLY: "true" });
-    expect(robotsTxt(cfg)).toBe("User-agent: *\nAllow: /\n\nSitemap: https://hvac.mindateasesolutions.com/sitemap.xml\n");
+    expect(robotsTxt(cfg)).toBe("User-agent: *\nAllow: /\n\nSitemap: https://mindateasesolutions.com/sitemap.xml\n");
     expect(sitemapXml({ ...cfg, siteUrl: "" })).toBeNull();
   });
 

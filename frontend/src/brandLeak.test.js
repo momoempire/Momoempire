@@ -3,7 +3,7 @@
 const fs = require("fs");
 const path = require("path");
 const { findLeaks, PATTERN } = require("../scripts/check-brand-leak");
-const { DEFAULT_BRAND_NAME, DEFAULT_BRAND_SLOGAN, brandConfig } = require("./config/brand");
+const { DEFAULT_BRAND_NAME, DEFAULT_BRAND_SLOGAN, GENERIC_DESCRIPTOR, brandConfig } = require("./config/brand");
 
 const root = path.resolve(__dirname, "..");
 
@@ -19,8 +19,8 @@ test("built bundle (if present) never mentions the internal name", () => {
   expect(findLeaks(build)).toEqual([]);
 });
 
-test("brand comes from env with the Mind At Ease Solutions HVAC defaults", () => {
-  expect(brandConfig({})).toEqual({ niche: "hvac", name: DEFAULT_BRAND_NAME, slogan: DEFAULT_BRAND_SLOGAN, siteUrl: "https://hvac.mindateasesolutions.com" });
+test("brand comes from env with the generic Mind At Ease Solutions defaults", () => {
+  expect(brandConfig({})).toEqual({ niche: "generic", name: DEFAULT_BRAND_NAME, descriptor: GENERIC_DESCRIPTOR, slogan: DEFAULT_BRAND_SLOGAN, siteUrl: "https://mindateasesolutions.com" });
   expect(brandConfig({ REACT_APP_BRAND_NAME: " Acme ", REACT_APP_BRAND_SLOGAN: "Hi" })).toMatchObject({ name: "Acme", slogan: "Hi" });
 });
 

@@ -11,7 +11,7 @@ def test_defaults_are_placeholders(monkeypatch):
     monkeypatch.delenv("SITE_URL", raising=False)
     assert site_contact.contact_email() == "contact@example.com"
     monkeypatch.delenv("NICHE", raising=False)
-    assert site_contact.site_url() == "https://hvac.mindateasesolutions.com"
+    assert site_contact.site_url() == "https://mindateasesolutions.com"
 
 
 def test_env_override(monkeypatch):
@@ -38,7 +38,7 @@ def test_confirmation_email_links_site_url_only_when_set(monkeypatch):
     monkeypatch.delenv("SITE_URL", raising=False)
     monkeypatch.delenv("NICHE", raising=False)
     html = _confirmation_html(monkeypatch)
-    assert "href='https://hvac.mindateasesolutions.com/'" in html
+    assert "href='https://mindateasesolutions.com/'" in html
     monkeypatch.setenv("SITE_URL", "https://site.test")
     html = _confirmation_html(monkeypatch)
     assert "href='https://site.test/'" in html
