@@ -560,7 +560,11 @@ class IntegrationConfigIn(BaseModel):
 class IntegrationConfig(IntegrationConfigIn):
     id: str = Field(default_factory=_uuid)
     tenant_id: str
-    status: Literal["disconnected", "connected", "error"] = "disconnected"
+    # "connected" is earned only by a successful live verification (see
+    # services/integration_verify.py). A complete-but-unverified config is
+    # "configured"; a failed verification is "error" with status_detail set.
+    status: Literal["disconnected", "configured", "connected", "error"] = "disconnected"
+    status_detail: Optional[str] = None
     last_checked_at: Optional[str] = None
     updated_at: str = Field(default_factory=_now_iso)
 
