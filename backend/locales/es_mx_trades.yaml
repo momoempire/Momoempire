@@ -1,0 +1,150 @@
+# ES-MX trade overlay — Mexico entry playbook §3.1 (2026-10-16).
+# Per trade pack: the trade name as a Mexican shop prints it on its van,
+# plus the worker noun customers actually use. Loaded by locales/__init__.py
+# and surfaced on the trade x market face when market = "mx".
+# "avoid" lists the peninsular/generic-ES word this trade must never use
+# in customer-facing Mexican Spanish (playbook §3.1 purge list).
+trades:
+  hvac:
+    trade: "aire acondicionado y calefacción"
+    worker: "técnico de clima"
+    worker_plural: "técnicos de clima"
+    notes: "El equipo ductless se llama minisplit."
+  plumbing:
+    trade: "plomería"
+    worker: "plomero"
+    worker_plural: "plomeros"
+    avoid: ["fontanería", "fontanero"]
+  electrical:
+    trade: "instalaciones eléctricas"
+    worker: "electricista"
+    worker_plural: "electricistas"
+  roofing:
+    trade: "techos e impermeabilización"
+    worker: "techero"
+    worker_plural: "techeros"
+  appliance_repair:
+    trade: "reparación de línea blanca y electrodomésticos"
+    worker: "técnico de línea blanca"
+    worker_plural: "técnicos de línea blanca"
+  garage_door:
+    trade: "puertas de garaje y portones eléctricos"
+    worker: "técnico de portones"
+    worker_plural: "técnicos de portones"
+  pest_control:
+    trade: "control de plagas y fumigación"
+    worker: "fumigador"
+    worker_plural: "fumigadores"
+  landscaping:
+    trade: "jardinería y mantenimiento de jardines"
+    worker: "jardinero"
+    worker_plural: "jardineros"
+  pool_service:
+    trade: "mantenimiento de albercas"
+    worker: "alberquero"
+    worker_plural: "alberqueros"
+    avoid: ["piscina"]
+  painting:
+    trade: "pintura"
+    worker: "pintor"
+    worker_plural: "pintores"
+  handyman:
+    trade: "mantenimiento y reparaciones del hogar"
+    worker: "técnico de mantenimiento"
+    worker_plural: "técnicos de mantenimiento"
+    avoid: ["manitas"]
+  solar:
+    trade: "paneles solares y energía solar"
+    worker: "instalador solar"
+    worker_plural: "instaladores solares"
+  cleaning:
+    trade: "limpieza profesional"
+    worker: "personal de limpieza"
+    worker_plural: "personal de limpieza"
+  tree_service:
+    trade: "poda y derribo de árboles"
+    worker: "podador"
+    worker_plural: "podadores"
+  fencing_concrete:
+    trade: "cercas y concreto"
+    worker: "albañil"
+    worker_plural: "albañiles"
+    avoid: ["hormigón"]
+  restoration:
+    trade: "restauración por daños de agua e incendio"
+    worker: "técnico de restauración"
+    worker_plural: "técnicos de restauración"
+  auto_repair:
+    trade: "taller mecánico y reparación de autos"
+    worker: "mecánico"
+    worker_plural: "mecánicos"
+    avoid: ["coche"]
+  barbershop:
+    trade: "barbería"
+    worker: "barbero"
+    worker_plural: "barberos"
+  real_estate:
+    trade: "bienes raíces"
+    worker: "asesor inmobiliario"
+    worker_plural: "asesores inmobiliarios"
+  freelancer:
+    trade: "servicios profesionales independientes"
+    worker: "profesional independiente"
+    worker_plural: "profesionales independientes"
+    avoid: ["autónomo"]
+  locksmith:
+    trade: "cerrajería"
+    worker: "cerrajero"
+    worker_plural: "cerrajeros"
+  septic_well:
+    trade: "fosas sépticas, pozos y desazolve"
+    worker: "técnico de desazolve"
+    worker_plural: "técnicos de desazolve"
+  kitchen_bath:
+    trade: "remodelación de cocina y baño"
+    worker: "remodelador"
+    worker_plural: "remodeladores"
+  windows_doors:
+    trade: "ventanas, puertas y cancelería"
+    worker: "cancelero"
+    worker_plural: "canceleros"
+  flooring:
+    trade: "pisos y recubrimientos"
+    worker: "instalador de pisos"
+    worker_plural: "instaladores de pisos"
+    avoid: ["suelos"]
+  foundation_repair:
+    trade: "reparación de cimientos y cimentaciones"
+    worker: "contratista de cimentaciones"
+    worker_plural: "contratistas de cimentaciones"
+  generators:
+    trade: "plantas de luz y generadores eléctricos"
+    worker: "técnico electricista"
+    worker_plural: "técnicos electricistas"
+  smart_home:
+    trade: "casa inteligente y automatización del hogar"
+    worker: "instalador"
+    worker_plural: "instaladores"
+    avoid: ["domótica"]
+  junk_removal:
+    trade: "retiro de escombro y cacharros"
+    worker: "equipo de retiro"
+    worker_plural: "equipo de retiro"
+  decks_outdoor:
+    trade: "terrazas, pérgolas y exteriores"
+    worker: "carpintero de exteriores"
+    worker_plural: "carpinteros de exteriores"
+  irrigation:
+    trade: "sistemas de riego"
+    worker: "técnico de riego"
+    worker_plural: "técnicos de riego"
+  siding_gutters:
+    trade: "fachadas, lámina, tablaroca y canalones"
+    worker: "instalador"
+    worker_plural: "instaladores"
+    notes: "Mercado delgado en MX: se vende como parte de techos e impermeabilización."
+  home_inspection:
+    trade: "inspección de vivienda"
+    worker: "inspector"
+    worker_plural: "inspectores"
+    notes: "La inspección formal en MX suele ser un peritaje."

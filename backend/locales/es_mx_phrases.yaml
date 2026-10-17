@@ -1,0 +1,37 @@
+# Canonical ES-MX phrase pack + role terms — Mexico entry playbook §3.1.
+# These strings are the customer-facing voice of the AI front office in the
+# MX market. Rules (playbook §3.1): usted by default for homeowners; never a
+# peninsular trap word (see locales.PENINSULAR_TRAPS); a non-stamped document
+# is a "recibo", never a "factura".
+terms:
+  worker: "técnico"
+  worker_plural: "técnicos"
+  shop: "negocio"
+  job: "servicio"
+  job_plural: "servicios"
+  customer: "cliente"
+  customer_plural: "clientes"
+  estimate: "cotización"
+  invoice: "factura (CFDI)"
+  receipt: "recibo"
+  appointment: "cita"
+  work_order: "orden de servicio"
+  down_payment: "anticipo"
+  balance_due: "saldo pendiente"
+  diagnostic_visit: "visita de diagnóstico"
+  warranty: "garantía"
+
+phrases:
+  greeting: "Buenas tardes, ¿en qué le puedo ayudar?"
+  booking_confirmed: "Su cita quedó agendada para el {dia} a las {hora}. Su técnico es {nombre}."
+  appointment_reminder: "Le recordamos su cita de mañana a las {hora}. Responda SÍ para confirmar o CAMBIO si necesita otro horario."
+  on_my_way: "Voy en camino, llego en aproximadamente {minutos} minutos."
+  job_done: "El servicio quedó terminado. El total es {total}."
+  invoice_ready: "Su factura (CFDI) está lista. Se la enviamos en PDF y XML; también puede descargarla aquí: {liga}."
+  payment_methods: "Puede pagar por transferencia SPEI, tarjeta o en efectivo al terminar el servicio."
+  payment_received: "Recibimos su pago de {total}. ¡Gracias!"
+  balance_reminder: "Su servicio del {dia} tiene un saldo pendiente de {total}. Puede pagar por transferencia SPEI o tarjeta."
+  review_request: "¿Nos regala una reseña en Google? Significa mucho para un negocio local como el nuestro."
+  opt_in_prompt: "¿Le confirmamos su cita por WhatsApp?"
+  opt_out_done: "Listo, ya no le enviaremos mensajes por este medio."
+  missed_call_textback: "Se nos pasó su llamada. Cuéntenos qué necesita y le ayudamos de inmediato."
