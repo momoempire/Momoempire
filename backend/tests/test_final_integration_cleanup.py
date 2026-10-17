@@ -1,6 +1,6 @@
 """Final-integration cleanup tests (2026-10-17):
 
-1. Plan truth-in-advertising: Pro copy must match its finite 25-user limit,
+1. Plan truth-in-advertising: Pro copy must match its finite 12-user limit,
    and DEFAULT_PLANS prices must equal the locked prices
    (Lite 999 / Starter 3999 / Pro 15999 / Empire 36999 cents).
 2. Integration status honesty: saving a complete config must NEVER yield
@@ -48,11 +48,18 @@ class TestPlanTruthInAdvertising:
             assert "unlimited users" not in copy.lower(), (
                 f"plan {plan['key']} advertises unlimited users but limits.users={users}")
 
-    def test_pro_copy_states_the_real_25_user_cap(self):
+    def test_pro_copy_states_the_real_12_user_cap(self):
         pro = next(p for p in DEFAULT_PLANS if p["key"] == "pro")
-        assert pro["limits"]["users"] == 25
-        assert "Up to 25 users" in pro["description"]
-        assert "Up to 25 users" in pro["features"]
+        assert pro["limits"]["users"] == 12
+        assert "Up to 12 users" in pro["description"]
+        assert "Up to 12 users" in pro["features"]
+
+    def test_empire_user_cap_is_25(self):
+        # User decision 2026-10-17: Empire users cap 100 -> 25. The new
+        # Empire cap numerically equals Pro's OLD cap — pin it by plan key
+        # so the two are never confused in a future sweep.
+        empire = next(p for p in DEFAULT_PLANS if p["key"] == "empire")
+        assert empire["limits"]["users"] == 25
 
 
 # ================= fake mongo =================
