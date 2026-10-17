@@ -19,6 +19,10 @@ class CheckoutRequest(BaseModel):
     plan_id: str                   # Plan.key
     origin_url: str
     quantity: int = Field(1, ge=1, le=5)
+    # WS-3 (playbook §3.3/§3.4): market="mx" switches this checkout to the
+    # MXN price book + local rails (card/MSI, OXXO, SPEI). Absent/other
+    # values keep the USD path byte-for-byte.
+    market: str | None = None
 
 
 async def _get_db_plan(plan_id: str) -> dict:
@@ -40,6 +44,23 @@ async def list_plans():
     return plans
 
 
+@router.get("/plans/mx")
+async def list_plans_mx():
+    """MX-market price book (playbook §3.3/§3.4): MXN anchors at the stated
+    FX assumption, IVA-inclusive display, local payment rails, and the
+    annual-via-transfer billing copy. Data only — checkout stays key-gated."""
+    from services.stripe_mx import MX_BILLING_COPY, MX_PAYMENT_METHOD_TYPES, mx_plans_display
+
+    return {
+        "market": "mx",
+        "currency": "MXN",
+        "iva_included": True,
+        "payment_method_types": MX_PAYMENT_METHOD_TYPES,
+        "plans": mx_plans_display(),
+        "billing_copy": MX_BILLING_COPY,
+    }
+
+
 @router.post("/checkout")
 async def create_checkout(req: CheckoutRequest, user: dict = Depends(require_tenant_user)):
     db = get_db()
@@ -47,8 +68,21 @@ async def create_checkout(req: CheckoutRequest, user: dict = Depends(require_ten
     if plan.get("price_cents", 0) <= 0:
         raise HTTPException(400, "Plan not purchasable — contact sales")
 
+    is_mx = (req.market or "").strip().lower() == "mx"
+    session_kwargs: dict = {}
+    amount = plan["price_cents"] * req.quantity
+    currency = "usd"
     line_item: dict
-    if plan.get("stripe_price_id"):
+    if is_mx:
+        # MX price book (playbook §3.3): anchor-priced MXN line item + local
+        # rails. The admin USD stripe_price_id is never reused for MX.
+        from services.stripe_mx import mx_checkout_kwargs
+
+        session_kwargs = mx_checkout_kwargs(plan, req.quantity)
+        line_item = session_kwargs.pop("line_items")[0]
+        amount = line_item["price_data"]["unit_amount"] * req.quantity
+        currency = "mxn"
+    elif plan.get("stripe_price_id"):
         # Real Stripe product/price configured by admin
         line_item = {"price": plan["stripe_price_id"], "quantity": req.quantity}
     else:
@@ -70,7 +104,9 @@ async def create_checkout(req: CheckoutRequest, user: dict = Depends(require_ten
             mode="subscription",
             success_url=f"{req.origin_url}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
             cancel_url=f"{req.origin_url}/payment/cancel",
-            metadata={"tenant_id": user["tenant_id"], "plan_id": req.plan_id, "user_id": user["id"]},
+            metadata={"tenant_id": user["tenant_id"], "plan_id": req.plan_id, "user_id": user["id"],
+                      **({"market": "mx"} if is_mx else {})},
+            **session_kwargs,
         )
     except Exception as e:
         raise HTTPException(500, f"Stripe error: {e}")
@@ -80,8 +116,9 @@ async def create_checkout(req: CheckoutRequest, user: dict = Depends(require_ten
         "tenant_id": user["tenant_id"],
         "user_id": user["id"],
         "plan_id": req.plan_id,
-        "amount": plan["price_cents"] * req.quantity,
-        "currency": "usd",
+        "amount": amount,
+        "currency": currency,
+        **({"market": "mx"} if is_mx else {}),
         "status": "initiated",
         "payment_status": "pending",
         "created_at": datetime.now(timezone.utc).isoformat(),
@@ -177,6 +214,19 @@ async def stripe_webhook(request: Request):
                     "stripe_customer_id": obj.get("customer"),
                     "updated_at": now,
                 }})
+        elif t == "checkout.session.async_payment_failed":
+            # WS-3 (playbook §3.4): a delayed rail never settled — OXXO
+            # voucher expired unpaid, SPEI transfer never arrived. Close
+            # the transaction as failed; NEVER activate the subscription
+            # (the §4.5 gate: no activation on unpaid vouchers).
+            await db.payment_transactions.update_one(
+                {"session_id": obj["id"], "payment_status": {"$ne": "paid"}},
+                {"$set": {
+                    "status": "failed",
+                    "payment_status": "failed",
+                    "updated_at": now,
+                }},
+            )
     except Exception:
         if ev_id:  # let Stripe's retry through instead of treating it as a duplicate
             await db.platform_webhook_events.delete_one({"_id": ev_id})
