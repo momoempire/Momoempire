@@ -1,10 +1,30 @@
-// Public brand, set at build time. Pattern: "Mind At Ease Solutions <Niche>" served from
-// https://<niche>.mindateasesolutions.com. The niche comes from REACT_APP_NICHE (default "hvac").
-// REACT_APP_BRAND_NAME / REACT_APP_SITE_URL still override. The brand name is never translated.
+// Public brand, set at build time. Trade faces are "Mind At Ease Solutions <Niche>" served
+// from https://<niche>.mindateasesolutions.com; with NO niche selected the face is the
+// GENERIC parent brand — plain "Mind At Ease Solutions" on the apex domain, no trade
+// attached (the same default-face pattern as the bookkeeping app's GENERIC_PACK).
+// The niche comes from REACT_APP_NICHE (default "generic"). REACT_APP_BRAND_NAME /
+// REACT_APP_SITE_URL still override. The brand name is never translated.
 // Kept as plain CommonJS so craco/site-meta.js (Node) and the app share one source of defaults.
 const BRAND_ROOT = "Mind At Ease Solutions";
 const BRAND_DOMAIN = "mindateasesolutions.com";
-const DEFAULT_NICHE = "hvac";
+
+// The generic parent face: parent name, generic descriptor, neutral accent, neutral
+// glyph. NO trade-specific wording, imagery or terminology — a future pack edit must
+// not leak a trade in here (guarded by brandConfig.test.js / brandLeak.test.js).
+const GENERIC_NICHE = "generic";
+const GENERIC_DESCRIPTOR = "AI Office Assistant";
+const GENERIC_ACCENT = "#334155"; // neutral slate
+const GENERIC_GLYPH = "Sparkles"; // neutral glyph — the landing chrome's neutral fallback
+const GENERIC_BRAND = {
+  niche: GENERIC_NICHE,
+  name: BRAND_ROOT,
+  descriptor: GENERIC_DESCRIPTOR,
+  siteUrl: `https://${BRAND_DOMAIN}`,
+  accent: GENERIC_ACCENT,
+  glyph: GENERIC_GLYPH,
+};
+
+const DEFAULT_NICHE = GENERIC_NICHE;
 // Display label per niche slug; unknown slugs are title-cased.
 const NICHE_LABELS = {
   hvac: "HVAC",
@@ -26,8 +46,10 @@ function nicheSlug(raw) {
 
 function brandForNiche(raw) {
   const niche = nicheSlug(raw);
+  if (niche === GENERIC_NICHE) return { ...GENERIC_BRAND };
   const label = NICHE_LABELS[niche] || niche.replace(/(^|-)([a-z])/g, (_, d, c) => (d ? " " : "") + c.toUpperCase());
-  return { niche, name: `${BRAND_ROOT} ${label}`, siteUrl: `https://${niche}.${BRAND_DOMAIN}` };
+  // Trade faces take their accent/icon from their trade pack, not the brand config.
+  return { niche, name: `${BRAND_ROOT} ${label}`, descriptor: label, siteUrl: `https://${niche}.${BRAND_DOMAIN}`, accent: null, glyph: null };
 }
 
 const DEFAULT_BRAND_NAME = brandForNiche(DEFAULT_NICHE).name;
@@ -38,6 +60,7 @@ function brandConfig(env = process.env) {
   return {
     niche: nb.niche,
     name: clean(env.REACT_APP_BRAND_NAME) || nb.name,
+    descriptor: nb.descriptor,
     slogan: clean(env.REACT_APP_BRAND_SLOGAN) || DEFAULT_BRAND_SLOGAN,
     siteUrl: clean(env.REACT_APP_SITE_URL).replace(/\/+$/, "") || nb.siteUrl,
   };
@@ -51,10 +74,12 @@ const BRAND = brandConfig({
   REACT_APP_SITE_URL: process.env.REACT_APP_SITE_URL,
 });
 const BRAND_NAME = BRAND.name;
+const BRAND_DESCRIPTOR = BRAND.descriptor;
 const BRAND_SLOGAN = BRAND.slogan;
 const BRAND_SITE_URL = BRAND.siteUrl;
 
 module.exports = {
-  BRAND_ROOT, BRAND_DOMAIN, DEFAULT_NICHE, NICHE_LABELS, DEFAULT_BRAND_NAME, DEFAULT_BRAND_SLOGAN,
-  DEFAULT_SITE_URL, brandForNiche, brandConfig, BRAND_NAME, BRAND_SLOGAN, BRAND_SITE_URL,
+  BRAND_ROOT, BRAND_DOMAIN, GENERIC_NICHE, GENERIC_DESCRIPTOR, GENERIC_ACCENT, GENERIC_GLYPH,
+  GENERIC_BRAND, DEFAULT_NICHE, NICHE_LABELS, DEFAULT_BRAND_NAME, DEFAULT_BRAND_SLOGAN,
+  DEFAULT_SITE_URL, brandForNiche, brandConfig, BRAND_NAME, BRAND_DESCRIPTOR, BRAND_SLOGAN, BRAND_SITE_URL,
 };

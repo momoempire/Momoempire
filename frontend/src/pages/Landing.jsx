@@ -192,7 +192,7 @@ export default function Landing({ industry = null }) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           <div className="min-w-0 lg:col-span-7">
             <Badge className="bg-white/10 text-white/80 border border-white/15 mb-5 hover:bg-white/10">
-              {industry && industry.slug !== "hvac" ? <Sparkles className="h-3 w-3 mr-1.5" aria-hidden /> : <Thermometer className="h-3 w-3 mr-1.5" aria-hidden />} {industry ? industry.copy.label : t("landing.badge_platform")}
+              {industry && industry.slug === "hvac" ? <Thermometer className="h-3 w-3 mr-1.5" aria-hidden /> : <Sparkles className="h-3 w-3 mr-1.5" aria-hidden />} {industry ? industry.copy.label : t("landing.badge_platform")}
             </Badge>
             <h1 className="font-display text-4xl sm:text-5xl md:text-7xl leading-[0.95] tracking-tight text-white break-words">
               {industry ? industry.copy.title : <>{t("landing.hero_title_lead")} <span className="hvac-accent-text">{t("landing.hero_title_trail")}</span></>}
