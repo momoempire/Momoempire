@@ -8,7 +8,7 @@ from security import require_platform_admin
 router = APIRouter(prefix="/admin/plans", tags=["admin-plans"], dependencies=[Depends(require_platform_admin)])
 
 
-# Locked pricing (decided 2026-10-15): Lite $9.99 / Starter $39.99 / Pro $159 / Empire $369.
+# Locked pricing (decided 2026-10-15): Lite $9.99 / Starter $39.99 / Pro $159.99 / Empire $369.99.
 # Telephony bundled with minute allowances; overage in cents/min or cents/sms.
 # NOTE: keys were renamed from the old growth/ai_office/high_volume scheme. On any
 # DB seeded before this change, delete the stale keys via the admin plans API.
@@ -27,12 +27,12 @@ DEFAULT_PLANS = [
      "limits": {"ai_minutes": 60, "calls": 150, "sms": 200, "ai_interactions": 1500, "locations": 1, "users": 2, "phone_numbers": 1, "personas": 1, "integrations": 2},
      "overage": {"ai_minutes": 30, "calls": 5, "sms": 2},
      "features": ["Everything in Lite", "AI photo estimates", "GPS tracking", "Review requests", "60 AI minutes/mo", "Up to 2 users"]},
-    {"key": "pro", "name": "Pro", "price_cents": 15900, "sort_order": 20,
+    {"key": "pro", "name": "Pro", "price_cents": 15999, "sort_order": 20,
      "description": "Your full AI office. Unlimited users.",
      "limits": {"ai_minutes": 300, "calls": 800, "sms": 1000, "ai_interactions": 8000, "locations": 2, "users": 25, "phone_numbers": 3, "personas": 2, "integrations": 10},
      "overage": {"ai_minutes": 25, "calls": 4, "sms": 1.5},
      "features": ["Everything in Starter", "Unlimited users", "Full AI receptionist", "Marketing automation", "Outbound voice AI", "3 phone numbers"]},
-    {"key": "empire", "name": "Empire", "price_cents": 36900, "sort_order": 30,
+    {"key": "empire", "name": "Empire", "price_cents": 36999, "sort_order": 30,
      "description": "Superpowers for growing empires.",
      "limits": {"ai_minutes": 1000, "calls": 2500, "sms": 5000, "ai_interactions": 25000, "locations": 10, "users": 100, "phone_numbers": 10, "personas": 5, "integrations": 25},
      "overage": {"ai_minutes": 20, "calls": 3, "sms": 1},

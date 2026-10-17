@@ -69,8 +69,8 @@ class TestPublicPlans:
         by_key = {p["key"]: p for p in plans}
         assert by_key["lite"]["price_cents"] == 999
         assert by_key["starter"]["price_cents"] == 3999
-        assert by_key["pro"]["price_cents"] == 15900
-        assert by_key["empire"]["price_cents"] == 36900
+        assert by_key["pro"]["price_cents"] == 15999
+        assert by_key["empire"]["price_cents"] == 36999
 
 
 # ============== Admin plans CRUD ==============
