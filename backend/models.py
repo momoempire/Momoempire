@@ -142,6 +142,20 @@ class TenantOnboardingIn(BaseModel):
     appointment_availability: str = ""
 
 
+class MxFiscalProfile(BaseModel):
+    """Mexico fiscal identity (Mexico playbook §3.2) — optional, MX-market-gated.
+
+    Captured at Books-MX onboarding and validated against the shop's
+    Constancia de Situación Fiscal. All fields optional until then; shape
+    checks live in locales.validate_mx_fiscal. CSD artefacts are NOT stored
+    here — they belong in the encrypted vault (playbook §1.1), never on the
+    tenant document."""
+    rfc: str = ""                # 12 chars (persona moral) / 13 (persona física)
+    razon_social: str = ""       # exact SAT-registered legal name
+    regimen_fiscal: str = ""     # SAT catalogue code, e.g. "626" (RESICO físicas)
+    cp_fiscal: str = ""          # 5-digit fiscal postal code
+
+
 class Tenant(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=_uuid)
@@ -173,6 +187,8 @@ class Tenant(BaseModel):
     subscription_status: Literal["trial", "active", "past_due", "canceled"] = "trial"
     status: Literal["active", "suspended"] = "active"
     country: str = "US"
+    # MX fiscal identity — only meaningful when country == "MX" (playbook §3.2).
+    mx_fiscal: Optional[MxFiscalProfile] = None
     created_at: str = Field(default_factory=_now_iso)
     updated_at: str = Field(default_factory=_now_iso)
 
@@ -281,6 +297,8 @@ class TenantUpdate(BaseModel):
     branding: Optional[Branding] = None
     ai_employee: Optional[AIEmployee] = None
     review_url: Optional[str] = None  # Google Business review URL used by review-request flow
+    country: Optional[str] = None
+    mx_fiscal: Optional[MxFiscalProfile] = None  # MX-market-gated (playbook §3.2)
 
 
 # ---------- Country ----------
