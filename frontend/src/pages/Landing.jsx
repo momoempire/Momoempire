@@ -16,7 +16,7 @@ import TurnstileWidget from "@/components/TurnstileWidget";
 import ThemeToggle from "@/components/ThemeToggle";
 import {
   ArrowRight, Bot, Target, Rocket, PhoneCall, UserPlus,
-  Headphones, ChevronDown, Check, Snowflake, Flame, Thermometer, Wind, Fan,
+  Headphones, ChevronDown, Check, Snowflake, Flame, Thermometer, Wind, Fan, Sparkles,
 } from "lucide-react";
 
 import { BRAND_NAME } from "@/config/brand";
@@ -192,7 +192,7 @@ export default function Landing({ industry = null }) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           <div className="min-w-0 lg:col-span-7">
             <Badge className="bg-white/10 text-white/80 border border-white/15 mb-5 hover:bg-white/10">
-              <Thermometer className="h-3 w-3 mr-1.5" aria-hidden /> {industry ? industry.copy.label : t("landing.badge_platform")}
+              {industry && industry.slug !== "hvac" ? <Sparkles className="h-3 w-3 mr-1.5" aria-hidden /> : <Thermometer className="h-3 w-3 mr-1.5" aria-hidden />} {industry ? industry.copy.label : t("landing.badge_platform")}
             </Badge>
             <h1 className="font-display text-4xl sm:text-5xl md:text-7xl leading-[0.95] tracking-tight text-white break-words">
               {industry ? industry.copy.title : <>{t("landing.hero_title_lead")} <span className="hvac-accent-text">{t("landing.hero_title_trail")}</span></>}
@@ -234,7 +234,7 @@ export default function Landing({ industry = null }) {
             )}
           </div>
           <div className="min-w-0 lg:col-span-5">
-            {industry ? <IndustryPoints copy={industry.copy} /> : <HeroPreview />}
+            {industry ? <IndustryPoints copy={industry.copy} slug={industry.slug} /> : <HeroPreview />}
           </div>
         </div>
       </section>
@@ -464,10 +464,12 @@ export default function Landing({ industry = null }) {
 }
 
 // Industry pages: plain list of the page's points (draft copy, see config/industries.js).
-function IndustryPoints({ copy }) {
+// The snowflake/flame glyph pair is HVAC iconography — only the HVAC page wears
+// it; other industries get a neutral sparkle so shared chrome stays trade-neutral.
+function IndustryPoints({ copy, slug }) {
   return (
     <div className="glass-crystal rounded-2xl p-6 text-white" data-testid="industry-points">
-      <h2 className="font-display text-xl flex items-center gap-2"><Snowflake className="hvac-cool h-5 w-5" aria-hidden /><Flame className="hvac-warm h-5 w-5" aria-hidden />{copy.pointsTitle}</h2>
+      <h2 className="font-display text-xl flex items-center gap-2">{slug === "hvac" ? (<><Snowflake className="hvac-cool h-5 w-5" aria-hidden /><Flame className="hvac-warm h-5 w-5" aria-hidden /></>) : (<Sparkles className="h-5 w-5" aria-hidden />)}{copy.pointsTitle}</h2>
       <ul className="mt-4 space-y-3">
         {copy.points.map((pt) => (
           <li key={pt} className="flex gap-2 text-white/80"><Check className="hvac-cool h-4 w-4 mt-1 shrink-0" aria-hidden />{pt}</li>
