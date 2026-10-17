@@ -313,13 +313,20 @@ class TestIntegrations:
         assert body["integration"]["status"] == "disconnected"
         assert "auth_token" in body["missing"] and "phone_number" in body["missing"]
 
-    def test_upsert_twilio_full_fields_connected(self, owner):
+    def test_upsert_twilio_full_fields_not_connected_without_real_verification(self, owner):
+        # Status honesty: complete-looking fields are NOT proof of connectivity.
+        # These are fake credentials, so the live Twilio check must fail and the
+        # status must be "error" (never "connected" from config alone).
         r = owner.post(f"{API}/tenants/integrations", json={
             "key": "twilio", "enabled": True,
             "config": {"account_sid": "AC_x", "auth_token": "tkn", "phone_number": "+15555550000"}
         })
         assert r.status_code == 200
-        assert r.json()["integration"]["status"] == "connected"
+        body = r.json()
+        assert body["integration"]["status"] == "error"
+        assert body["integration"]["status_detail"]
+        assert body["verification"]["attempted"] is True
+        assert body["verification"]["ok"] is False
 
 
 # ============== Automations ==============
