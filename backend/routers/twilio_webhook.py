@@ -13,11 +13,19 @@ from routers.usage import record_usage, usage_capped
 
 async def _resolve_tenant(to_number: str) -> dict | None:
     """Match the dialed number to a tenant via its phone_numbers or integrations.config."""
+    from services.whatsapp import parse_whatsapp_address
+
     db = get_db()
     t = await db.tenants.find_one({"human_fallback_number": to_number}, {"_id": 0})
     if t:
         return t
     row = await db.integrations.find_one({"key": "twilio", "config.from_number": to_number}, {"_id": 0, "tenant_id": 1})
+    if row:
+        return await db.tenants.find_one({"id": row["tenant_id"]}, {"_id": 0})
+    # WhatsApp senders live under integrations key "whatsapp" (playbook §2.1);
+    # inbound arrives addressed to the bare number, prefix already stripped.
+    bare = parse_whatsapp_address(to_number)
+    row = await db.integrations.find_one({"key": "whatsapp", "config.sender_number": bare}, {"_id": 0, "tenant_id": 1})
     if row:
         return await db.tenants.find_one({"id": row["tenant_id"]}, {"_id": 0})
     return None
@@ -38,6 +46,11 @@ async def require_twilio_signature(request: Request) -> None:
         tenant_id = (conv or {}).get("tenant_id")
     elif path.endswith("/outbound-callback"):
         tenant_id = request.query_params.get("tenant_id") or None
+    elif path.endswith("/message-status"):
+        # Status callbacks are addressed From our sender number to the
+        # customer, so the tenant resolves by From, not To.
+        tenant = await _resolve_tenant(form.get("From") or "")
+        tenant_id = (tenant or {}).get("id")
     else:
         tenant = await _resolve_tenant(form.get("To") or "")
         tenant_id = (tenant or {}).get("id")
@@ -127,13 +140,34 @@ async def sms_incoming(request: Request):
     from_num = form.get("From") or ""
     to_num = form.get("To") or ""
     body = (form.get("Body") or "").strip()
-    tenant = await _resolve_tenant(to_num)
+    # WhatsApp inbound rides the same Twilio webhook with whatsapp:-prefixed
+    # addresses (playbook §2.1). Normalise to the bare number + channel.
+    from services.whatsapp import (
+        classify_keyword, is_whatsapp_address, note_inbound,
+        parse_whatsapp_address, record_opt_in, record_opt_out,
+    )
+    is_wa = is_whatsapp_address(from_num)
+    channel = "whatsapp" if is_wa else "sms"
+    phone = parse_whatsapp_address(from_num) if is_wa else from_num
+    tenant = await _resolve_tenant(parse_whatsapp_address(to_num) if is_wa else to_num)
     if not tenant:
         return Response('<?xml version="1.0" encoding="UTF-8"?><Response/>', media_type="application/xml")
+    if is_wa:
+        # Any customer message (re)opens the 24-hour window (playbook §2.2).
+        await note_inbound(tenant["id"], phone)
+        keyword = classify_keyword(body)
+        if keyword == "opt_out":
+            await record_opt_out(tenant["id"], phone, keyword=body)
+            from locales import get_phrase
+            reply = get_phrase("opt_out_done").replace("<", " ")
+            twiml = f'<?xml version="1.0" encoding="UTF-8"?><Response><Message>{reply}</Message></Response>'
+            return Response(twiml, media_type="application/xml")
+        if keyword == "opt_in":
+            await record_opt_in(tenant["id"], phone, source="keyword")
     # Try confirmation shortcut first (YES / RESCHEDULE / CANCEL)
     try:
         from routers.phase9 import handle_confirmation_reply
-        conf = await handle_confirmation_reply(tenant["id"], from_num, body)
+        conf = await handle_confirmation_reply(tenant["id"], phone, body)
     except Exception as e:
         print(f"[sms confirm reply] {e}"); conf = None
     if conf:
@@ -141,9 +175,9 @@ async def sms_incoming(request: Request):
         twiml = f'<?xml version="1.0" encoding="UTF-8"?><Response><Message>{reply}</Message></Response>'
         return Response(twiml, media_type="application/xml")
     db = get_db()
-    thread = await db.conversations.find_one({"tenant_id": tenant["id"], "channel": "sms", "caller_phone": from_num})
+    thread = await db.conversations.find_one({"tenant_id": tenant["id"], "channel": channel, "caller_phone": phone})
     if not thread:
-        c = Conversation(tenant_id=tenant["id"], channel="sms", caller_phone=from_num, is_simulation=False)
+        c = Conversation(tenant_id=tenant["id"], channel=channel, caller_phone=phone, is_simulation=False)
         thread = c.model_dump()
         await db.conversations.insert_one(thread)
     await db.conv_messages.insert_one(ConvMessage(conversation_id=thread["id"], tenant_id=tenant["id"],
@@ -162,10 +196,26 @@ async def sms_incoming(request: Request):
     reply = (ai.get("reply") or "").replace("<", " ")[:1500]
     await db.conv_messages.insert_one(ConvMessage(conversation_id=thread["id"], tenant_id=tenant["id"],
                                                  role="ai", content=reply, action=ai.get("action")).model_dump())
-    await record_usage(tenant["id"], "sms", 2, {"from": from_num})
+    await record_usage(tenant["id"], "sms", 2, {"from": phone, "channel": channel})
     await record_usage(tenant["id"], "ai_interactions", 1)
     twiml = f'<?xml version="1.0" encoding="UTF-8"?><Response><Message>{reply}</Message></Response>'
     return Response(twiml, media_type="application/xml")
+
+
+@router.post("/message-status", include_in_schema=False)
+async def message_status(request: Request):
+    """Twilio message-status callback (sent/delivered/read/failed).
+
+    WhatsApp adds "read" to the SMS status set (playbook §2.1); both are
+    stored via services.whatsapp.record_message_status for telemetry."""
+    from services.whatsapp import parse_whatsapp_address, record_message_status
+
+    form = await request.form()
+    tenant = await _resolve_tenant(parse_whatsapp_address(form.get("From") or ""))
+    if not tenant:
+        return {"ignored": True}
+    doc = await record_message_status(tenant["id"], dict(form))
+    return {"status": "ok", "message_status": doc["status"], "channel": doc["channel"]}
 
 
 @router.post("/outbound-callback", include_in_schema=False)

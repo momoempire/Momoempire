@@ -344,7 +344,7 @@ class AdvisorMessageIn(BaseModel):
 # ---- Comms: conversations, estimates, invoices, reviews, invitations, domains, usage, portal ----
 
 # ---------- Conversations (calls + SMS) ----------
-Channel = Literal["call", "sms", "web_chat"]
+Channel = Literal["call", "sms", "web_chat", "whatsapp"]
 ConvStatus = Literal["active", "completed", "escalated", "voicemail", "missed", "failed"]
 
 
