@@ -42,7 +42,20 @@ HTTP_TIMEOUT_SECONDS = 10.0
 
 
 class AccountingError(Exception):
-    """Anything the provider could not do (network, auth, API error)."""
+    """Anything the provider could not do (network, auth, API error).
+
+    `kind` classifies the failure for connection-health reporting:
+      config    — no credential configured on the Momo side
+      auth      — the bookkeeping API rejected the credential (401)
+      forbidden — authenticated but not permitted (403)
+      revoked   — the bookkeeping API reports the credential revoked
+      http      — any other HTTP error status
+      timeout / network / bad_response — transport-level failures
+    """
+
+    def __init__(self, message: str, *, kind: str = "error"):
+        super().__init__(message)
+        self.kind = kind
 
 
 # ---------- value objects ----------
@@ -88,6 +101,29 @@ def idempotency_key(*parts: str) -> str:
     return h.hexdigest()
 
 
+def _body_signals_revoked(resp) -> bool:
+    """True when an error response body says the credential was revoked.
+
+    CONTRACT ASSUMPTION (books-side integration credentials are being
+    built in parallel — see the audit report): a revoked credential is
+    signalled either by a machine-readable code ("credential_revoked"
+    in a `code`/`error` field) or by the word "revoked" in the detail
+    text of a 401/403 response. If the final books contract uses a
+    different signal, this one function is the only place to update.
+    """
+    try:
+        data = resp.json()
+    except Exception:
+        data = None
+    if isinstance(data, dict):
+        for field in ("code", "error", "detail", "message"):
+            value = data.get(field)
+            if isinstance(value, str) and "revoked" in value.lower():
+                return True
+    text = (getattr(resp, "text", "") or "").lower()
+    return "revoked" in text
+
+
 # ---------- provider ABC ----------
 
 class AccountingProvider(ABC):
@@ -117,11 +153,16 @@ class AccountingProvider(ABC):
 class MindAtEaseProvider(AccountingProvider):
     """Provider for the user's OWN bookkeeping app (the QuickBooks competitor).
 
-    Auth: the tenant's bookkeeping-app owner JWT as a Bearer token
-    (obtained from the bookkeeping app's POST /auth/login; 7-day expiry).
-    Fast-follow: the bookkeeping app should expose long-lived scoped API
-    keys so tenants stop pasting session tokens — see the PR body for the
-    minimal receiving contract.
+    Auth: a Bearer credential stored per tenant (encrypted at rest in
+    routers/bookkeeping_link.py). Two kinds are accepted by this client:
+      * a dedicated INTEGRATION credential issued by the bookkeeping app
+        (long-lived, scoped to sync, revocable/rotatable — the target
+        state), and
+      * a LEGACY owner JWT pasted from the bookkeeping app (POST
+        /auth/login; ~7-day expiry) — still supported so existing
+        tenants keep syncing; the link layer flags it for migration.
+    Errors carry a `kind` (auth/forbidden/revoked/network/...) that the
+    link layer turns into connection health: healthy/degraded/revoked.
     """
 
     name = "mindatease"
@@ -148,26 +189,34 @@ class MindAtEaseProvider(AccountingProvider):
                        json: Optional[dict] = None,
                        idem: Optional[str] = None) -> Any:
         if not self.api_token:
-            raise AccountingError("No bookkeeping-app API token configured")
+            raise AccountingError("No bookkeeping-app API token configured", kind="config")
         url = f"{self.base_url}{path}"
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 resp = await client.request(method, url, headers=self._headers(idem), json=json)
         except httpx.TimeoutException as e:
-            raise AccountingError(f"Bookkeeping API timed out ({self.timeout}s): {e}")
+            raise AccountingError(f"Bookkeeping API timed out ({self.timeout}s): {e}", kind="timeout")
         except httpx.HTTPError as e:
-            raise AccountingError(f"Bookkeeping API unreachable: {e}")
+            raise AccountingError(f"Bookkeeping API unreachable: {e}", kind="network")
+        if resp.status_code in (401, 403) and _body_signals_revoked(resp):
+            # The books side revoked this integration credential. This is
+            # terminal until a new credential is connected — the health
+            # layer pauses sync instead of hammering a dead credential.
+            raise AccountingError(
+                "Bookkeeping API reports this integration credential revoked — "
+                "reconnect the bookkeeping link with a new credential",
+                kind="revoked")
         if resp.status_code == 401:
-            raise AccountingError("Bookkeeping API rejected the token (401) — it may have expired; re-enter it in settings")
+            raise AccountingError("Bookkeeping API rejected the token (401) — it may have expired; re-enter it in settings", kind="auth")
         if resp.status_code == 403:
-            raise AccountingError("Bookkeeping API refused (403) — the linked user needs the owner role")
+            raise AccountingError("Bookkeeping API refused (403) — the linked user needs the owner role", kind="forbidden")
         if resp.status_code >= 400:
             body = (resp.text or "")[:200]
-            raise AccountingError(f"Bookkeeping API error {resp.status_code}: {body}")
+            raise AccountingError(f"Bookkeeping API error {resp.status_code}: {body}", kind="http")
         try:
             return resp.json()
         except Exception as e:
-            raise AccountingError(f"Bookkeeping API returned non-JSON: {e}")
+            raise AccountingError(f"Bookkeeping API returned non-JSON: {e}", kind="bad_response")
 
     async def test_connection(self) -> Dict[str, Any]:
         me = await self._request("GET", "/auth/me")

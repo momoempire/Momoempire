@@ -10,6 +10,7 @@ from security import (
     hash_password, require_tenant_owner_or_admin,
     create_access_token, create_refresh_token, set_auth_cookies,
 )
+from services.seat_limits import assert_seat_available
 
 router = APIRouter(prefix="/tenants/invitations", tags=["invitations"])
 
@@ -23,6 +24,9 @@ async def list_invites(user: dict = Depends(require_tenant_owner_or_admin)):
 @router.post("")
 async def create_invite(data: InvitationIn, user: dict = Depends(require_tenant_owner_or_admin)):
     db = get_db()
+    # Plan seat cap (services/seat_limits.py): outstanding invitations
+    # count against the cap so a tenant cannot over-invite past it.
+    await assert_seat_available(db, user["tenant_id"], include_pending_invites=True)
     email = data.email.lower()
     inv = Invitation(
         tenant_id=user["tenant_id"], email=email,
@@ -107,6 +111,9 @@ async def accept(data: InvitationAccept, response: Response):
     email = inv["email"].lower()
     if await db.users.find_one({"email": email}):
         raise HTTPException(400, "Email already registered — log in instead")
+    # Seat-cap backstop: the invite stays pending when the plan is full,
+    # so it can be accepted after a seat frees up or the plan upgrades.
+    await assert_seat_available(db, inv["tenant_id"])
     user_id = _uuid()
     await db.users.insert_one({
         "id": user_id,
@@ -167,6 +174,10 @@ async def accept_google(data: InvitationAcceptGoogle, response: Response):
     picture = info.get("picture") or ""
 
     user = await db.users.find_one({"email": inv_email})
+    # Seat cap: joining this tenant consumes a seat — unless the user
+    # already belongs to it (they already occupy one).
+    if not user or user.get("tenant_id") != inv["tenant_id"]:
+        await assert_seat_available(db, inv["tenant_id"])
     if user:
         # Existing user → attach to tenant with the invited role.
         patch = {

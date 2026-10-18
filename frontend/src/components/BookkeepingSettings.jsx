@@ -10,12 +10,20 @@ import { toast } from "sonner";
 // Bookkeeping settings tab content for the dashboard Settings page.
 // Backend: GET/PUT /api/tenants/bookkeeping-link/settings (PUT is owner/admin
 // only), POST /api/tenants/bookkeeping-link/test-connection,
+// POST /api/tenants/bookkeeping-link/health-check,
+// POST /api/tenants/bookkeeping-link/rotate-credential,
+// POST /api/tenants/bookkeeping-link/disconnect,
 // GET /api/tenants/bookkeeping-link/sync-status.
 //
 // Links the shop to the owner's OWN bookkeeping app (the QuickBooks
 // competitor) — there is deliberately no QuickBooks integration. Paid
 // invoices auto-sync (customer → invoice → payment) when enabled; the raw
-// API token is write-only and is never returned by the API.
+// API token is write-only and is never returned by the API. The stored
+// credential is either a dedicated integration credential (target state)
+// or a legacy pasted login token — the API flags the latter via
+// `migration.required` so the tenant is prompted to reconnect before the
+// token's ~7-day expiry can silently stop sync. Connection health
+// (healthy/degraded/revoked) comes from settings/sync-status `health`.
 //
 // The CSV bridge section below (GET /tenants/csv-bridge/export/*,
 // POST /tenants/csv-bridge/import/customers) is the file-based handoff for
@@ -29,6 +37,10 @@ export default function BookkeepingSettings() {
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
+  const [healthBusy, setHealthBusy] = useState(false);
+  const [newCredential, setNewCredential] = useState("");
+  const [rotating, setRotating] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
   // CSV bridge (files for QuickBooks/spreadsheet accountants — no live sync)
   const [csvStart, setCsvStart] = useState("");
   const [csvEnd, setCsvEnd] = useState("");
@@ -73,6 +85,44 @@ export default function BookkeepingSettings() {
       load();
     } catch (e) { toast.error(errMessage(e)); }
     finally { setTesting(false); }
+  };
+
+  const checkHealth = async () => {
+    setHealthBusy(true);
+    try {
+      const { data } = await api.post("/tenants/bookkeeping-link/health-check");
+      if (data.ok) toast.success(t("bookkeeping.test_ok"));
+      else toast.error(data.detail || t("bookkeeping.test_failed"));
+      load();
+    } catch (e) { toast.error(errMessage(e)); }
+    finally { setHealthBusy(false); }
+  };
+
+  const rotateCredential = async () => {
+    if (!newCredential) return;
+    setRotating(true);
+    try {
+      const { data } = await api.post("/tenants/bookkeeping-link/rotate-credential", {
+        api_token: newCredential,
+      });
+      setSettings(data);
+      setNewCredential("");
+      toast.success(t("bookkeeping.rotate_ok"));
+      load();
+    } catch (e) { toast.error(errMessage(e) || t("bookkeeping.rotate_failed")); }
+    finally { setRotating(false); }
+  };
+
+  const disconnect = async () => {
+    if (!window.confirm(t("bookkeeping.disconnect_confirm"))) return;
+    setDisconnecting(true);
+    try {
+      const { data } = await api.post("/tenants/bookkeeping-link/disconnect");
+      setSettings(data);
+      toast.success(t("bookkeeping.disconnect_ok"));
+      load();
+    } catch (e) { toast.error(errMessage(e)); }
+    finally { setDisconnecting(false); }
   };
 
   const downloadCsv = async (kind) => {
@@ -122,6 +172,15 @@ export default function BookkeepingSettings() {
         )}
       </div>
       <p className="mt-2 text-sm text-muted-foreground">{t("bookkeeping.settings_sub")}</p>
+
+      {settings.migration?.required && (
+        <div className="mt-4 rounded-lg border border-amber-500/50 bg-amber-500/10 p-4" data-testid="bookkeeping-migration-banner">
+          <div className="text-sm font-medium">{t("bookkeeping.migration_title")}</div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t(settings.migration.reason === "credential_revoked" ? "bookkeeping.migration_revoked" : "bookkeeping.migration_legacy")}
+          </p>
+        </div>
+      )}
 
       <label className="mt-5 flex items-center gap-3 text-sm">
         <input
@@ -192,6 +251,78 @@ export default function BookkeepingSettings() {
         </dl>
         {status?.last_error && (
           <p className="mt-2 text-sm text-red-600" data-testid="bookkeeping-last-error">✗ {status.last_error}</p>
+        )}
+        <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+          <dt className="text-muted-foreground">{t("bookkeeping.health_label")}</dt>
+          <dd data-testid="bookkeeping-health">
+            <Badge
+              variant={status?.health?.status === "healthy" ? "default" : status?.health?.status === "revoked" ? "destructive" : "secondary"}
+              data-testid={`bookkeeping-health-${status?.health?.status || "unknown"}`}
+            >
+              {t(`bookkeeping.health_${status?.health?.status || "unknown"}`)}
+            </Badge>
+            {status?.health?.checked_at && (
+              <span className="ml-2 text-xs text-muted-foreground">
+                {t("bookkeeping.health_checked_at", { when: new Date(status.health.checked_at).toLocaleString() })}
+              </span>
+            )}
+          </dd>
+          {settings.api_token_set && (
+            <>
+              <dt className="text-muted-foreground">{t("bookkeeping.token_label")}</dt>
+              <dd data-testid="bookkeeping-credential-meta">
+                {t(settings.credential_kind === "legacy_jwt" ? "bookkeeping.credential_kind_legacy" : "bookkeeping.credential_kind_integration")}
+                {settings.credential_fingerprint && (
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    {t("bookkeeping.credential_fingerprint", { fingerprint: settings.credential_fingerprint })}
+                  </span>
+                )}
+              </dd>
+            </>
+          )}
+        </dl>
+        {status?.health?.detail && status.health.status !== "healthy" && (
+          <p className="mt-2 text-sm text-red-600" data-testid="bookkeeping-health-detail">✗ {status.health.detail}</p>
+        )}
+        {Array.isArray(status?.recent_failures) && status.recent_failures.length > 0 && (
+          <div className="mt-3" data-testid="bookkeeping-recent-failures">
+            <div className="text-xs text-muted-foreground">{t("bookkeeping.recent_failures")}</div>
+            <ul className="mt-1 space-y-1 text-sm text-red-600">
+              {status.recent_failures.map((f, i) => (
+                <li key={i}>✗ {f.error}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <Button variant="outline" onClick={checkHealth} disabled={healthBusy || !settings.api_token_set} data-testid="bookkeeping-health-btn">
+            {healthBusy ? "…" : t("bookkeeping.health_check_button")}
+          </Button>
+          {settings.api_token_set && (
+            <Button variant="outline" onClick={disconnect} disabled={disconnecting} data-testid="bookkeeping-disconnect-btn">
+              {disconnecting ? "…" : t("bookkeeping.disconnect_button")}
+            </Button>
+          )}
+        </div>
+        {settings.api_token_set && (
+          <div className="mt-4 space-y-1.5">
+            <Label>{t("bookkeeping.rotate_label")}</Label>
+            <div className="flex flex-wrap items-center gap-2">
+              <Input
+                type="password"
+                value={newCredential}
+                onChange={(e) => setNewCredential(e.target.value)}
+                placeholder={t("bookkeeping.rotate_placeholder")}
+                data-testid="bookkeeping-rotate-input"
+                autoComplete="off"
+                className="max-w-md"
+              />
+              <Button variant="outline" onClick={rotateCredential} disabled={rotating || !newCredential} data-testid="bookkeeping-rotate-btn">
+                {rotating ? "…" : t("bookkeeping.rotate_button")}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">{t("bookkeeping.rotate_hint")}</p>
+          </div>
         )}
       </div>
 

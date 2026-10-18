@@ -513,12 +513,17 @@ class UsageEvent(BaseModel):
 
 
 # Default limits per plan (mirrors DEFAULT_PLANS in routers/plans.py)
+# The "users" caps are the owner-approved seat limits (2026-10-17, PR #97):
+# Lite 1 / Starter 2 / Pro 12 / Empire 25. Seat enforcement lives in
+# services/seat_limits.py and resolves the DB plan doc first; these values
+# are the fallback when no plan doc exists. "enterprise" has no entry on
+# purpose: custom plans have no seat cap unless the plan doc sets one.
 PLAN_LIMITS: Dict[str, Dict[str, float]] = {
-    "trial":   {"ai_minutes": 30,    "calls": 50,    "sms": 100,   "ai_interactions": 300},
-    "lite":    {"ai_minutes": 10,    "calls": 25,    "sms": 50,    "ai_interactions": 500},
-    "starter": {"ai_minutes": 60,    "calls": 150,   "sms": 200,   "ai_interactions": 1500},
-    "pro":     {"ai_minutes": 300,   "calls": 800,   "sms": 1000,  "ai_interactions": 8000},
-    "empire":  {"ai_minutes": 1000,  "calls": 2500,  "sms": 5000,  "ai_interactions": 25000},
+    "trial":   {"ai_minutes": 30,    "calls": 50,    "sms": 100,   "ai_interactions": 300,   "users": 1},
+    "lite":    {"ai_minutes": 10,    "calls": 25,    "sms": 50,    "ai_interactions": 500,   "users": 1},
+    "starter": {"ai_minutes": 60,    "calls": 150,   "sms": 200,   "ai_interactions": 1500,  "users": 2},
+    "pro":     {"ai_minutes": 300,   "calls": 800,   "sms": 1000,  "ai_interactions": 8000,  "users": 12},
+    "empire":  {"ai_minutes": 1000,  "calls": 2500,  "sms": 5000,  "ai_interactions": 25000, "users": 25},
 }
 
 WARNING_THRESHOLDS = [0.70, 0.85, 0.90, 0.95, 1.00]
