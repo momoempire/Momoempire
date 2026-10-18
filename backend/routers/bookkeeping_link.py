@@ -197,6 +197,14 @@ def credential_fingerprint(token: str) -> str:
 def _classify_kind(token: str, explicit: Optional[str]) -> str:
     if explicit in ("integration", "legacy_jwt"):
         return explicit
+    if token.startswith("mae1."):
+        # Track E reconciliation fix (audit 2026-10-17): a dedicated
+        # integration credential is mae1.<client_id>.<secret> — three
+        # dot-separated segments, so the JWT shape test below would
+        # misclassify it as a legacy JWT and the migration prompt would
+        # never clear. The mae1. prefix is the contract's own format
+        # marker (INTEGRATION_CONTRACT.md §1.1); check it first.
+        return "integration"
     return "legacy_jwt" if _looks_like_jwt(token) else "integration"
 
 

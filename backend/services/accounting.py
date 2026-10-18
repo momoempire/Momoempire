@@ -180,8 +180,9 @@ class MindAtEaseProvider(AccountingProvider):
             "User-Agent": "momo-bookkeeping-link/1.0",
         }
         if idem:
-            # The bookkeeping app does not honor this yet (fast-follow);
-            # harmless today, correct tomorrow.
+            # Honored server-side by the bookkeeping app since the
+            # 2026-10-17 audit (INTEGRATION_CONTRACT.md §3): duplicates
+            # replay the recorded response, payload mismatches 409.
             headers["Idempotency-Key"] = idem
         return headers
 
@@ -219,6 +220,25 @@ class MindAtEaseProvider(AccountingProvider):
             raise AccountingError(f"Bookkeeping API returned non-JSON: {e}", kind="bad_response")
 
     async def test_connection(self) -> Dict[str, Any]:
+        # Track E reconciliation fix (audit 2026-10-17): integration
+        # credentials (mae1.*) are NOT user JWTs — books rejects them on
+        # /auth/me by design (INTEGRATION_CONTRACT.md §1.3/§2). Their
+        # identity/health endpoint is GET /integrations/me (§1.4), whose
+        # response carries no user `id`. Branch on the token format,
+        # exactly as the contract's §4.2 prescribes; legacy JWTs keep
+        # the /auth/me path.
+        if self.api_token.startswith("mae1."):
+            me = await self._request("GET", "/integrations/me")
+            if not isinstance(me, dict) or not me.get("ok"):
+                raise AccountingError("Bookkeeping API /integrations/me returned an unexpected response")
+            return {
+                "ok": True,
+                "user_name": me.get("label"),
+                "user_email": None,
+                "tenant_name": me.get("tenant_name"),
+                "client_id": me.get("client_id"),
+                "expires_at": me.get("expires_at"),
+            }
         me = await self._request("GET", "/auth/me")
         if not isinstance(me, dict) or not me.get("id"):
             raise AccountingError("Bookkeeping API /auth/me returned an unexpected response")
