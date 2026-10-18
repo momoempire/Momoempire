@@ -758,15 +758,27 @@ async def _apply_refund(db, charge: dict, account: str | None = None):
     if not inv:
         return
     # charge.amount_refunded is CUMULATIVE for the charge. Track how much of
-    # it has already been applied (on the payment record; on the invoice for
-    # the legacy path) and subtract only the new delta — replayed or
-    # follow-up refund events must never double-subtract.
+    # it has already been applied and subtract only the new delta — replayed
+    # or follow-up refund events must never double-subtract.
+    #
+    # The applied total lives in TWO stores that must be reconciled: the
+    # payment record (refunded_cents, per charge) and, for payments that
+    # predate per-payment records, the invoice itself. The invoice-level
+    # figure only ever accumulates refunds for the charge named by
+    # last_payment_intent_id (the legacy resolver matches nothing else), so
+    # it is consulted only for that charge — but for that charge the two
+    # stores can disagree: a charge whose early refunds were recorded on
+    # the invoice and whose payment record appeared later would otherwise
+    # have its already-applied refunds subtracted a second time (CB-1).
+    # Reconcile with max() (the applied cumulative is monotonic per charge)
+    # and write the reconciled total back to every store this charge owns,
+    # so the stores cannot split again.
     refunded_total = int(charge.get("amount_refunded") or 0)
     rec = await db.invoice_payments.find_one({"stripe_payment_intent_id": pi_id}, {"_id": 0})
-    if rec:
-        already_applied = int(rec.get("refunded_cents") or 0)
-    else:
-        already_applied = int(inv.get("refunded_cents") or 0)
+    rec_applied = int(rec.get("refunded_cents") or 0) if rec else 0
+    owns_invoice_slot = pi_id == inv.get("last_payment_intent_id")
+    inv_applied = int(inv.get("refunded_cents") or 0) if owns_invoice_slot else 0
+    already_applied = max(rec_applied, inv_applied)
     delta = max(0, refunded_total - already_applied)
     new_paid = max(0, int(inv.get("amount_paid_cents") or 0) - delta)
     status = "paid" if new_paid >= int(inv["total_cents"]) else ("sent" if new_paid > 0 else "sent")
@@ -779,7 +791,7 @@ async def _apply_refund(db, charge: dict, account: str | None = None):
     if rec:
         await db.invoice_payments.update_one(
             {"stripe_payment_intent_id": pi_id}, {"$set": {"refunded_cents": refunded_total}})
-    else:
+    if not rec or owns_invoice_slot:
         await db.invoices.update_one({"id": inv["id"]}, {"$set": {"refunded_cents": refunded_total}})
 
 
