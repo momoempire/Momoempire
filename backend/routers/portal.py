@@ -111,7 +111,15 @@ async def magic_link(slug: str, data: PortalMagicLinkIn):
             "id": _uuid(), "token": token, "tenant_id": t["id"], "customer_id": cust["id"],
             "expires_at": expires, "created_at": _now_iso(), "used": False,
         })
-        print(f"[PORTAL MAGIC LINK] /portal/{slug}/me?token={token}")
+        # The magic link is a bearer credential. Printing it is the demo-mode
+        # delivery channel ONLY — never in strict (staging/production) envs,
+        # where log readers would gain portal access to the customer's data.
+        from deploy_security import is_strict_env
+
+        if is_strict_env():
+            print(f"[PORTAL MAGIC LINK] issued for tenant {t['id']} (link not logged)")
+        else:
+            print(f"[PORTAL MAGIC LINK] /portal/{slug}/me?token={token}")
     return {"status": "ok", "message": "If a matching customer exists we've sent a link."}
 
 

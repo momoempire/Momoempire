@@ -135,7 +135,12 @@ _TOKEN_SEP = "."
 
 
 def _signing_key() -> bytes:
-    return (os.environ.get("JWT_SECRET") or "marketing-dev-secret").encode("utf-8")
+    secret = os.environ.get("JWT_SECRET")
+    if not secret:
+        # Never sign with a hardcoded fallback: anyone could forge
+        # unsubscribe tokens with the publicly-known dev string.
+        raise RuntimeError("JWT_SECRET is not set — cannot sign marketing tokens")
+    return secret.encode("utf-8")
 
 
 def make_unsubscribe_token(*, campaign_id: str, contact: str) -> str:

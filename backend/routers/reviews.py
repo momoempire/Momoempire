@@ -42,7 +42,9 @@ async def create_review_request(data: ReviewRequestIn, user: dict = Depends(requ
                             html=html, from_name=biz)
     except Exception as e:
         print(f"[REVIEW-REQ send error] {e}")
-    print(f"[REVIEW-REQ {channel}->{data.customer_phone or data.customer_email}] {msg} (token={doc['public_token']})")
+    # Log the send without the review URL/token — the public_token is a bearer
+    # credential for the review page and must not land in logs.
+    print(f"[REVIEW-REQ {channel}->{data.customer_phone or data.customer_email}] request {doc['id']} sent")
     return doc
 
 

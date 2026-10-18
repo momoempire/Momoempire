@@ -110,6 +110,9 @@ async def login(data: LoginIn, request: Request, response: Response):
     if not user or not verify_password(data.password, user["password_hash"]):
         raise HTTPException(401, "Invalid email or password")
 
+    if user.get("disabled"):
+        raise HTTPException(403, "Account disabled")
+
     if user.get("role") == "platform_admin" and _is_known_default(data.password):
         # Defense in depth (startup seed normally already replaced this hash): never let a
         # known default password sign in as admin; neutralize it and require the reset flow.
@@ -207,6 +210,8 @@ async def refresh_token(request: Request, response: Response):
     user = await db.users.find_one({"id": payload["sub"]}, {"_id": 0, "password_hash": 0})
     if not user:
         raise HTTPException(401, "User not found")
+    if user.get("disabled"):
+        raise HTTPException(403, "Account disabled")
     access = create_access_token(user["id"], user["email"], user["role"], user.get("tenant_id"))
     new_refresh = create_refresh_token(user["id"])
     set_auth_cookies(response, access, new_refresh)
@@ -214,7 +219,18 @@ async def refresh_token(request: Request, response: Response):
 
 
 @router.post("/forgot-password")
-async def forgot_password(data: ForgotIn):
+async def forgot_password(data: ForgotIn, request: Request):
+    # Rate-limit reset requests per (IP, account): without a limit this
+    # endpoint is an email-bombing / token-spray vector. The response stays
+    # enumeration-safe (always ok) — only the volume is capped.
+    from rate_limit import check_rate_limit, rate_limit_headers
+
+    ip = request.client.host if request.client else "unknown"
+    allowed, retry_after = await check_rate_limit(
+        f"forgot:{ip}:{data.email.lower()}", LOGIN_LIMIT, LOGIN_WINDOW_S)
+    if not allowed:
+        raise HTTPException(429, "Too many reset requests. Try again later.",
+                            headers=rate_limit_headers(retry_after))
     db = get_db()
     user = await db.users.find_one({"email": data.email.lower()})
     # Always respond ok (prevents account enumeration)
@@ -229,7 +245,23 @@ async def forgot_password(data: ForgotIn):
             "created_at": _now_iso(),
         })
         frontend = os.environ.get("FRONTEND_URL", "http://localhost:3000")
-        print(f"[AUTH] Password reset link for {data.email}: {frontend}/reset-password?token={token}")
+        reset_url = f"{frontend}/reset-password?token={token}"
+        # Deliver by email (fire-and-forget, same pattern as invitations).
+        # The link is a bearer credential: it must never be written to logs.
+        try:
+            from services.email import send_email, followup_html
+            from brand import brand_name
+
+            html = followup_html(
+                business=brand_name(),
+                message=("We received a request to reset your password. "
+                         f"<a href=\"{reset_url}\">Reset your password</a> — "
+                         "this link expires in 1 hour. If you didn't request "
+                         "this, you can ignore this email."),
+            )
+            await send_email(to=user["email"], subject="Reset your password", html=html)
+        except Exception:
+            pass
     return {"status": "ok", "message": "If an account exists we've sent reset instructions."}
 
 
@@ -245,17 +277,31 @@ async def reset_password(data: ResetIn):
     if is_expired(rec.get("expires_at")):
         raise HTTPException(400, "Token expired")
     target = await db.users.find_one({"id": rec["user_id"]}) or {}
+    # The strength policy applies to EVERY account on reset — previously only
+    # admins / must-change accounts were checked, so a regular user could reset
+    # to a 1-character password (ResetIn carries no validation of its own).
+    from password_policy import password_problems
+    problems = password_problems(data.new_password)
+    if problems:
+        raise HTTPException(400, "Password " + "; ".join(problems))
     patch = {"password_hash": hash_password(data.new_password)}
     if target.get("must_change_password") or target.get("role") == "platform_admin":
-        from password_policy import password_problems
-        problems = password_problems(data.new_password)
-        if problems:
-            raise HTTPException(400, "Password " + "; ".join(problems))
         patch["must_change_password"] = False
         patch["password_changed_at"] = _now_iso()
     patch["password_unusable"] = False
     await db.users.update_one({"id": rec["user_id"]}, {"$set": patch})
     await db.password_reset_tokens.update_one({"token": data.token}, {"$set": {"used": True}})
+    # A successful reset burns every other outstanding reset token for the
+    # account and drops Google session rows, so a leaked older link or a
+    # hijacked browser session cannot survive the password change. (Stateless
+    # JWT access/refresh tokens cannot be revoked without a denylist — see
+    # the audit report; access tokens expire within 24h.)
+    remaining = await db.password_reset_tokens.find(
+        {"user_id": rec["user_id"]}).to_list(100)
+    for other in remaining:
+        if other.get("token") and other["token"] != data.token:
+            await db.password_reset_tokens.delete_one({"token": other["token"]})
+    await db.user_sessions.delete_many({"user_id": rec["user_id"]})
     return {"status": "ok"}
 
 
