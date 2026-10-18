@@ -25,13 +25,42 @@ const GENERIC_BRAND = {
 };
 
 const DEFAULT_NICHE = GENERIC_NICHE;
-// Display label per niche slug; unknown slugs are title-cased.
+// Display label per niche slug; unknown slugs are title-cased. Covers every one of the
+// 33 trade packs (slug = pack id hyphenated; see config/industries.js INDUSTRY_PACK_IDS).
 const NICHE_LABELS = {
   hvac: "HVAC",
   plumbing: "Plumbing",
   electrical: "Electrical",
   roofing: "Roofing",
   landscaping: "Landscaping",
+  "appliance-repair": "Appliance Repair",
+  "auto-repair": "Auto Repair",
+  barbershop: "Barbershop",
+  cleaning: "Cleaning",
+  "decks-outdoor": "Decks & Outdoor Living",
+  "fencing-concrete": "Fencing & Concrete",
+  flooring: "Flooring",
+  "foundation-repair": "Foundation Repair",
+  freelancer: "Freelancer",
+  "garage-door": "Garage Door",
+  generators: "Whole-Home Generators",
+  handyman: "Handyman",
+  "home-inspection": "Home Inspection",
+  irrigation: "Irrigation",
+  "junk-removal": "Junk Removal",
+  "kitchen-bath": "Kitchen & Bath Remodeling",
+  locksmith: "Locksmith",
+  painting: "Painting",
+  "pest-control": "Pest Control",
+  "pool-service": "Pool Service",
+  "real-estate": "Real Estate",
+  restoration: "Restoration",
+  "septic-well": "Septic & Well",
+  "siding-gutters": "Siding & Gutters",
+  "smart-home": "Smart Home & Security",
+  solar: "Solar",
+  "tree-service": "Tree Service",
+  "windows-doors": "Windows & Doors",
 };
 const DEFAULT_BRAND_SLOGAN = "Your slogan here";
 

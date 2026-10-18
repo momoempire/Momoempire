@@ -56,3 +56,21 @@ def test_per_niche(monkeypatch):
     assert brand.brand_for_niche("hvac")["site_url"] == "https://hvac.mindateasesolutions.com"
     assert brand.brand_for_niche("pest-control")["name"] == "Mind At Ease Solutions Pest Control"
     assert brand.brand_for_niche("bad niche!")["niche"] == "generic"
+
+
+def test_all_33_trade_pack_faces():
+    # Track C (owner audit, 2026-10-17): every trade pack resolves a canonical
+    # parent-brand face — slug = pack id hyphenated (frontend config/industries.js).
+    from trade_packs import list_packs
+    pack_ids = [p["id"] for p in list_packs() if p.get("valid", True)]
+    assert len(pack_ids) == 33
+    assert len(brand.NICHE_LABELS) == 33
+    for pack_id in pack_ids:
+        slug = pack_id.replace("_", "-")
+        assert slug in brand.NICHE_LABELS, slug
+        face = brand.brand_for_niche(slug)
+        assert face["niche"] == slug
+        assert face["name"] == f"Mind At Ease Solutions {brand.NICHE_LABELS[slug]}"
+        assert face["site_url"] == f"https://{slug}.mindateasesolutions.com"
+    assert brand.brand_for_niche("real-estate")["name"] == "Mind At Ease Solutions Real Estate"
+    assert brand.brand_for_niche("barbershop")["name"] == "Mind At Ease Solutions Barbershop"
