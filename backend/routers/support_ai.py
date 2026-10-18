@@ -60,7 +60,7 @@ MIN_MATCHED_TERMS = 2      # need at least this many question terms in a chunk
 RETRIEVE_LIMIT = 500
 
 METERED = ["ai_minutes", "calls", "sms", "ai_interactions", "voice_seconds"]
-PLAN_RANK = {"trial": 0, "lite": 1, "starter": 2, "pro": 3, "empire": 4}
+PLAN_RANK = {"trial": 0, "lite": 1, "starter": 2, "pro": 3, "empire": 4, "unlimited": 5}
 
 USAGE_W, LOGIN_W, TICKET_W, PAYMENT_W = 35, 20, 20, 25
 

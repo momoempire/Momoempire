@@ -166,7 +166,10 @@ def client(monkeypatch, fake_db):
 
 def test_plan_limits_fallback_pins_owner_approved_caps():
     users = {k: v.get("users") for k, v in PLAN_LIMITS.items()}
-    assert users == {"trial": 1, "lite": 1, "starter": 2, "pro": 12, "empire": 25}
+    # "unlimited" (owner decision 2026-10-17) is pinned as None on purpose:
+    # seats are uncapped on that tier; every capped tier keeps its PR #97 cap.
+    assert users == {"trial": 1, "lite": 1, "starter": 2, "pro": 12,
+                     "empire": 25, "unlimited": None}
 
 
 def test_default_plans_and_fallback_never_drift():

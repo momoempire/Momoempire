@@ -9,6 +9,7 @@ router = APIRouter(prefix="/admin/plans", tags=["admin-plans"], dependencies=[De
 
 
 # Locked pricing (decided 2026-10-15): Lite $9.99 / Starter $39.99 / Pro $159.99 / Empire $369.99.
+# Unlimited $549.99 added 2026-10-17 (user decision): Empire's usage allowances except ai_minutes 3,000 (minutes stay capped on Unlimited — user decision 2026-10-17), unlimited users.
 # Telephony bundled with minute allowances; overage in cents/min or cents/sms.
 # NOTE: keys were renamed from the old growth/ai_office/high_volume scheme. On any
 # DB seeded before this change, delete the stale keys via the admin plans API.
@@ -37,6 +38,11 @@ DEFAULT_PLANS = [
      "limits": {"ai_minutes": 1000, "calls": 2500, "sms": 5000, "ai_interactions": 25000, "locations": 10, "users": 25, "phone_numbers": 10, "personas": 5, "integrations": 25},
      "overage": {"ai_minutes": 20, "calls": 3, "sms": 1},
      "features": ["Everything in Pro", "Multi-location command center", "Predictive AI suite", "Cloned owner voice", "White-label experience", "AI success manager & AI staff"]},
+    {"key": "unlimited", "name": "Unlimited", "price_cents": 54999, "sort_order": 40,
+     "description": "Everything in Empire, with unlimited users.",
+     "limits": {"ai_minutes": 3000, "calls": 2500, "sms": 5000, "ai_interactions": 25000, "locations": 10, "users": None, "phone_numbers": 10, "personas": 5, "integrations": 25},
+     "overage": {"ai_minutes": 20, "calls": 3, "sms": 1},
+     "features": ["Unlimited users", "Everything in Empire", "Multi-location command center", "Predictive AI suite", "Cloned owner voice", "White-label experience", "AI success manager & AI staff"]},
     {"key": "enterprise", "name": "Enterprise", "price_cents": 0, "interval": "custom", "sort_order": 50,
      "description": "Custom pricing. Fair-use policies apply.",
      "limits": {}, "overage": {},

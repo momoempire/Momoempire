@@ -386,6 +386,23 @@ def test_churn_watch_on_plan_downgrade(client, fake_db):
     assert b["flag_id"]
 
 
+def test_plan_rank_unlimited_above_empire():
+    # Unlimited (2026-10-17) sits strictly above Empire in the ladder; if it
+    # were missing from PLAN_RANK it would rank 0 and every Empire->Unlimited
+    # upgrade would be misread as a downgrade by the churn signal below.
+    assert sai_mod.PLAN_RANK["unlimited"] > sai_mod.PLAN_RANK["empire"]
+
+
+def test_churn_no_downgrade_flag_on_empire_to_unlimited(client, fake_db):
+    as_user()
+    seed_tenant(fake_db, status="active", plan_id="unlimited")  # now unlimited...
+    seed_health(fake_db, score=88, plan_id="empire")            # ...was empire
+    seed_usage(fake_db)  # otherwise healthy
+    seed_user(fake_db)
+    b = client.get("/api/support-ai/churn").json()
+    assert not any("plan_downgrade" in r for r in b["reasons"])
+
+
 def test_churn_high_on_past_due(client, fake_db):
     as_user()
     seed_tenant(fake_db, status="past_due")

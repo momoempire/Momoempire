@@ -20,16 +20,19 @@
 // pages to their plan happens at deploy/integration time; the component-level gate
 // proven here is what those surfaces will rely on.
 
-export const MASCOT_PLANS = ["lite", "starter", "pro", "empire"];
+export const MASCOT_PLANS = ["lite", "starter", "pro", "empire", "unlimited"];
 
-const ALL_PLANS = ["lite", "starter", "pro", "empire"];
+const ALL_PLANS = ["lite", "starter", "pro", "empire", "unlimited"];
+
+// Empire-tier premium skins; Unlimited sits above Empire and inherits them.
+const EMPIRE_TIER = ["empire", "unlimited"];
 
 export const MASCOT_SKINS = [
   { id: "mae", name: "Mae", unlockedBy: ALL_PLANS },
   { id: "mo", name: "Mo", unlockedBy: ALL_PLANS },
-  { id: "sterling", name: "Sterling", unlockedBy: ["empire"] },
-  { id: "sloane", name: "Sloane", unlockedBy: ["empire"] },
-  { id: "foreman", name: "The Foreman", unlockedBy: ["empire"] },
+  { id: "sterling", name: "Sterling", unlockedBy: EMPIRE_TIER },
+  { id: "sloane", name: "Sloane", unlockedBy: EMPIRE_TIER },
+  { id: "foreman", name: "The Foreman", unlockedBy: EMPIRE_TIER },
 ];
 
 export const DEFAULT_SKIN = "mae";

@@ -518,12 +518,16 @@ class UsageEvent(BaseModel):
 # services/seat_limits.py and resolves the DB plan doc first; these values
 # are the fallback when no plan doc exists. "enterprise" has no entry on
 # purpose: custom plans have no seat cap unless the plan doc sets one.
+# "unlimited" (2026-10-17): Empire's allowances except ai_minutes 3,000,
+# with users=None on purpose — seats are uncapped on that tier, and
+# seat_limits treats an explicit None as no cap.
 PLAN_LIMITS: Dict[str, Dict[str, float]] = {
     "trial":   {"ai_minutes": 30,    "calls": 50,    "sms": 100,   "ai_interactions": 300,   "users": 1},
     "lite":    {"ai_minutes": 10,    "calls": 25,    "sms": 50,    "ai_interactions": 500,   "users": 1},
     "starter": {"ai_minutes": 60,    "calls": 150,   "sms": 200,   "ai_interactions": 1500,  "users": 2},
     "pro":     {"ai_minutes": 300,   "calls": 800,   "sms": 1000,  "ai_interactions": 8000,  "users": 12},
     "empire":  {"ai_minutes": 1000,  "calls": 2500,  "sms": 5000,  "ai_interactions": 25000, "users": 25},
+    "unlimited": {"ai_minutes": 3000,  "calls": 2500,  "sms": 5000,  "ai_interactions": 25000, "users": None},
 }
 
 WARNING_THRESHOLDS = [0.70, 0.85, 0.90, 0.95, 1.00]
@@ -711,11 +715,12 @@ class IndustryBrief(BaseModel):
 # ---- Plans, cost config, domain providers ----
 
 class PlanIn(BaseModel):
-    key: str  # trial | lite | starter | pro | empire | enterprise | custom
+    key: str  # trial | lite | starter | pro | empire | unlimited | enterprise | custom
     name: str
     price_cents: int = 0  # 0 = custom / contact sales
     interval: Literal["month", "year", "custom"] = "month"
-    limits: Dict[str, float] = {}  # ai_minutes, calls, sms, ai_interactions, locations, users, phone_numbers, personas, integrations
+    # A limit value of None means "no cap" for that metric (e.g. Unlimited plan users).
+    limits: Dict[str, Optional[float]] = {}  # ai_minutes, calls, sms, ai_interactions, locations, users, phone_numbers, personas, integrations
     overage: Dict[str, float] = {}  # cents per unit per metric
     features: List[str] = []
     trial_days: int = 0

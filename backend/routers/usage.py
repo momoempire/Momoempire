@@ -90,7 +90,7 @@ async def my_usage(user: dict = Depends(require_tenant_user)):
             "limit": limit,
             "pct": round((used / limit) * 100, 1) if limit else 0,
             "warning_tier": tier,
-            "exhausted": used >= limit,
+            "exhausted": (used >= limit) if limit else False,
         })
     return {"plan": plan_key, "period": period_key(), "metrics": out, "thresholds": WARNING_THRESHOLDS}
 

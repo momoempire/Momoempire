@@ -23,6 +23,13 @@ test("Empire unlocks all five skins", () => {
   expect(MASCOT_SKINS.map((s) => s.name)).toEqual(["Mae", "Mo", "Sterling", "Sloane", "The Foreman"]);
 });
 
+test("Unlimited inherits the Empire premium skins", () => {
+  expect(skinsForPlan("unlimited")).toEqual(["mae", "mo", "sterling", "sloane", "foreman"]);
+  expect(resolveSkin("sterling", "unlimited")).toBe("sterling");
+  expect(resolveSkin("sloane", "unlimited")).toBe("sloane");
+  expect(resolveSkin("foreman", "unlimited")).toBe("foreman");
+});
+
 test("premium skins stay locked below Empire", () => {
   ["sterling", "sloane", "foreman"].forEach((id) => {
     expect(isSkinUnlocked(id, "pro")).toBe(false);
