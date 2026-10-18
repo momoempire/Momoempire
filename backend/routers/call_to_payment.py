@@ -739,6 +739,20 @@ async def _apply_refund(db, charge: dict):
         patch["paid_at"] = None
         patch["reminders_paused_at"] = None  # resume reminders if balance owed again
     await db.invoices.update_one({"id": inv["id"]}, {"$set": patch})
+    # Bookkeeping link: reflect the refund in the tenant's OWN
+    # bookkeeping app (fix track 2026-10-17; before this, a Stripe
+    # refund adjusted Momo only and books kept showing the invoice as
+    # paid). `refunded` is Stripe's cumulative amount_refunded for the
+    # charge; the link layer pushes only the not-yet-reflected delta.
+    # Best-effort — never raises into the webhook flow.
+    try:
+        from routers.bookkeeping_link import sync_invoice_refund as _bk_refund_sync
+        inv_fresh = await db.invoices.find_one({"id": inv["id"]}, {"_id": 0})
+        if inv_fresh:
+            await _bk_refund_sync(db, inv["tenant_id"], inv_fresh,
+                                  refunded_total_cents=refunded)
+    except Exception as e:
+        log.warning("bookkeeping-link refund sync failed: %s", e)
 
 
 async def _apply_dispute(db, dispute: dict):
