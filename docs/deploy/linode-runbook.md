@@ -203,7 +203,7 @@ Same Nginx front; same cron curls. Prefer Docker for parity with Dockerfile HEAL
 | `RESEND_API_KEY` (+ `RESEND_FROM_EMAIL`) | Email |
 | `STRIPE_SECRET_KEY` / `STRIPE_PUBLISHABLE_KEY` / `STRIPE_WEBHOOK_SECRET` / `STRIPE_CONNECT_WEBHOOK_SECRET` | Payments |
 | `WEBHOOK_CRON_SECRET` | Bearer for `/api/cron/*` |
-| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_PHONE_NUMBER` | Optional telephony |
+| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_FROM_NUMBER` | Optional telephony |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REDIRECT_URI` | Optional OAuth |
 
 Also referenced in code / health probe (set if used): see `docs/cloudflare/env-inventory.md` and `backend/routers/health_deploy.py` (`_REQUIRED` / `_OPTIONAL`).

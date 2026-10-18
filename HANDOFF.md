@@ -137,7 +137,7 @@ RESEND_FROM_EMAIL
 ```
 TWILIO_ACCOUNT_SID
 TWILIO_AUTH_TOKEN
-TWILIO_PHONE_NUMBER
+TWILIO_FROM_NUMBER
 ```
 
 Full list and purpose: `backend/.env.example` (checked in, no values).
@@ -298,7 +298,7 @@ existing user) and `ADMIN_PASSWORD` (first seed only, strong; unset = unusable p
 **AI (one of):** `AI_API_KEY` _or_ `OPENAI_API_KEY` _or_ `GEMINI_API_KEY`.
 **Email:** `RESEND_API_KEY` + `RESEND_FROM_EMAIL` (operator-owned Resend account).
 **Payments:** `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`.
-**Voice/SMS (optional):** `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`.
+**Voice/SMS (optional):** `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`.
 **Google OAuth (optional):** `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`.
 **Cron:** `WEBHOOK_CRON_SECRET`.
 
