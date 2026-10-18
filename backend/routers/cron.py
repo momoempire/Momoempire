@@ -117,6 +117,24 @@ async def cron_weekly_digest(request: Request):
     return {"accepted": True}
 
 
+async def _run_bookkeeping_health():
+    from routers.bookkeeping_link import sweep_bookkeeping_health
+    db = get_db()
+    summary = await sweep_bookkeeping_health(db)
+    print(f"[CRON BK-HEALTH] checked={summary['checked']} healthy={summary['healthy']}")
+
+
+@router.post("/bookkeeping-health")
+async def cron_bookkeeping_health(request: Request):
+    # Periodic connection-health sweep for the bookkeeping link: pings
+    # every connected tenant's bookkeeping API so degraded/revoked
+    # credentials surface before they silently stop invoice sync.
+    if not _authorized(request):
+        raise HTTPException(401, "unauthorized")
+    asyncio.create_task(_run_bookkeeping_health())
+    return {"accepted": True}
+
+
 @router.post("/appointment-reminders")
 async def cron_appointment_reminders(request: Request):
     # Cron endpoints must ack 2xx immediately; enqueue/background the actual work.
