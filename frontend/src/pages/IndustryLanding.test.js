@@ -54,6 +54,16 @@ test.each([["hvac", "en"], ["plumbing", "es"]])("%s (%s) header has the theme to
   done();
 });
 
+test("non-HVAC industry pages do not render the HVAC icon strip; the HVAC page does", () => {
+  const p = mount("pest-control", "en");
+  expect(p.el.querySelector('[data-testid="hvac-icon-strip"]')).toBeNull();
+  expect(p.el.querySelector('[data-testid="industry-page-pest-control"]')).not.toBeNull();
+  p.done();
+  const h = mount("hvac", "en");
+  expect(h.el.querySelector('[data-testid="hvac-icon-strip"]')).not.toBeNull();
+  h.done();
+});
+
 test("HVAC page shows the ROI calculator and diagrams; other niches don't yet", () => {
   const { el, done } = mount("hvac", "en");
   expect(el.querySelector('[data-testid="roi-calculator"]')).not.toBeNull();

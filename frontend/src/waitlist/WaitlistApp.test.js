@@ -49,7 +49,10 @@ function render(path) {
 }
 
 test("only /, /privacy, /terms and the industry pages exist", () => {
-  const industries = ["hvac", "plumbing", "electrical", "roofing", "landscaping"];
+  // Track C (2026-10-17): the industry pages are the 33 trade packs — the list is
+  // derived from config/industries (INDUSTRY_SLUGS), not restated here.
+  const { INDUSTRY_SLUGS } = require("../config/industries");
+  const industries = INDUSTRY_SLUGS;
   expect(WAITLIST_PATHS).toEqual(["/", "/privacy", "/terms", ...industries.flatMap((s) => [`/${s}`, `/es/${s}`])]);
   for (const s of industries) {
     expect(render(`/${s}`)).toEqual({ page: `industry-en-${s}`, path: `/${s}` });

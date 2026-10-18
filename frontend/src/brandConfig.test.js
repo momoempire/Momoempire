@@ -50,6 +50,20 @@ test("per-niche pattern and overrides", () => {
   expect(brandConfig({ REACT_APP_BRAND_NAME: "X", REACT_APP_SITE_URL: "https://y.test/" })).toMatchObject({ name: "X", siteUrl: "https://y.test" });
 });
 
+test("all 33 trade-pack niches resolve a canonical parent-brand face", () => {
+  const { NICHE_LABELS } = require("./config/brand");
+  expect(Object.keys(NICHE_LABELS)).toHaveLength(33);
+  for (const [slug, label] of Object.entries(NICHE_LABELS)) {
+    const b = brandForNiche(slug);
+    expect(b.name).toBe(`Mind At Ease Solutions ${label}`);
+    expect(b.siteUrl).toBe(`https://${slug}.mindateasesolutions.com`);
+    expect(`${b.name} ${b.siteUrl}`).not.toMatch(/momo|aioffice/i);
+  }
+  expect(brandForNiche("pest-control").name).toBe("Mind At Ease Solutions Pest Control");
+  expect(brandForNiche("real-estate").name).toBe("Mind At Ease Solutions Real Estate");
+  expect(brandForNiche("barbershop").name).toBe("Mind At Ease Solutions Barbershop");
+});
+
 test("public brand never contains the internal name or legacy domain", () => {
   for (const n of ["generic", "hvac", "plumbing", "electrical", "roofing", "landscaping"]) {
     const b = brandForNiche(n);

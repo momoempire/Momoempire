@@ -200,7 +200,10 @@ export default function Landing({ industry = null }) {
             <p className="mt-6 text-white/70 text-lg max-w-xl">
               {industry ? industry.copy.sub : t("landing.hero_sub")}
             </p>
-            <HvacIconStrip />
+            {/* The icon strip is HVAC iconography: the HVAC industry page and the main
+                (generic) landing wear it; other industries' pages stay trade-neutral,
+                like the hero badge and IndustryPoints glyphs below. */}
+            {(!industry || industry.slug === "hvac") && <HvacIconStrip />}
             {/* EMP-WL-034 / WL-001: waitlist-only hero CTA is the primary button (existing label). */}
             {waitlistOnly && (
               <div className="mt-8">
