@@ -33,6 +33,7 @@ USD_LIST_CENTS: dict = {
     "starter": 3999,    # $39.99
     "pro": 15999,       # $159.99
     "empire": 36999,    # $369.99
+    "unlimited": 54999,  # $549.99 (added 2026-10-17; anchor derived by the same FX pattern)
 }
 
 
@@ -159,12 +160,12 @@ MX_BILLING_COPY: dict = {
 }
 
 
-_PLAN_NAMES = {"lite": "Lite", "starter": "Starter", "pro": "Pro", "empire": "Empire"}
+_PLAN_NAMES = {"lite": "Lite", "starter": "Starter", "pro": "Pro", "empire": "Empire", "unlimited": "Unlimited"}
 
 
 def mx_plans_display() -> list:
     """All MX display prices + copy, for GET /payments/plans/mx."""
     return [
         {**format_price_display_mx(key), "name": _PLAN_NAMES[key]}
-        for key in ("lite", "starter", "pro", "empire")
+        for key in ("lite", "starter", "pro", "empire", "unlimited")
     ]

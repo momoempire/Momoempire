@@ -100,6 +100,10 @@ def test_anchors_match_playbook_table():
     assert mx.MXN_PRICE_ANCHORS["pro"]["mxn_pesos"] == 2944
     assert mx.MXN_PRICE_ANCHORS["empire"]["mxn_pesos"] == 6808
     assert mx.MXN_PRICE_ANCHORS["pro"]["mxn_cents"] == 294400
+    # Unlimited $549.99 (2026-10-17), derived by the same FX pattern:
+    # round(549.99 x 18.4) = 10,120.
+    assert mx.MXN_PRICE_ANCHORS["unlimited"]["mxn_pesos"] == 10120
+    assert mx.MXN_PRICE_ANCHORS["unlimited"]["mxn_cents"] == 1012000
 
 
 def test_mx_line_item_and_kwargs():
@@ -124,14 +128,15 @@ def test_iva_inclusive_display_and_copy():
     assert "IVA incluido" in d["label_es"]
     assert "ahorra dos meses" in mx.MX_BILLING_COPY["annual_via_transfer"]["es"]
     disp = mx.mx_plans_display()
-    assert [p["plan"] for p in disp] == ["lite", "starter", "pro", "empire"]
+    assert [p["plan"] for p in disp] == ["lite", "starter", "pro", "empire", "unlimited"]
 
 
 def test_plans_mx_endpoint_data(fake_db):
     out = run(payments.list_plans_mx())
     assert out["market"] == "mx" and out["iva_included"] is True
     assert out["payment_method_types"] == ["card", "oxxo", "customer_balance"]
-    assert len(out["plans"]) == 4 and out["plans"][2]["mxn_cents"] == 294400
+    assert len(out["plans"]) == 5 and out["plans"][2]["mxn_cents"] == 294400
+    assert out["plans"][4]["plan"] == "unlimited" and out["plans"][4]["mxn_cents"] == 1012000
     assert "annual_via_transfer" in out["billing_copy"]
 
 
