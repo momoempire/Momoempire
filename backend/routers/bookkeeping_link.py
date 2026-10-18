@@ -77,6 +77,7 @@ from services.accounting import (
     SyncInvoice,
     SyncInvoiceLine,
     SyncPayment,
+    SyncRefund,
     MindAtEaseProvider,
     idempotency_key,
     DEFAULT_API_BASE_URL,
@@ -610,6 +611,90 @@ async def sync_invoice_paid(db, tenant_id: str, invoice: dict) -> Dict[str, Any]
         bk["attempts"] = int(bk.get("attempts") or 0) + 1
         bk["last_attempt_at"] = _now_iso()
         bk["last_error"] = str(e)[:300]
+        try:
+            await db.invoices.update_one(
+                {"id": inv_id, "tenant_id": tenant_id},
+                {"$set": {"bookkeeping_sync": bk, "updated_at": _now_iso()}},
+            )
+        except Exception:
+            pass  # recording must never break the never-raises contract
+        return await _record_failure(db, tenant_id, inv_id, str(e)[:300],
+                                     kind=getattr(e, "kind", "error"))
+
+
+async def sync_invoice_refund(db, tenant_id: str, invoice: dict, *,
+                              refunded_total_cents: int) -> Dict[str, Any]:
+    """Reflect a Stripe refund in the tenant's books (fix track
+    2026-10-17; Track E Confirmed Broken #2 — refunds previously never
+    left Momo, so books kept showing refunded invoices as paid).
+
+    `refunded_total_cents` is the CUMULATIVE refunded amount for the
+    invoice's charge, exactly as Stripe reports it (`amount_refunded`).
+    The invoice's `bookkeeping_sync.refunded_cents_synced` tracks how
+    much of that total books already reflects; only the delta is
+    pushed, under a key derived from the cumulative target — so a
+    duplicate webhook delivery pushes nothing new, and books' own
+    idempotency enforcement replays the recorded result if the same
+    push is ever delivered twice.
+
+    Deliberately NOT gated on `auto_sync_on_paid`: that flag governs
+    new paid-invoice pushes. A refund corrects a payment books already
+    holds; skipping it would leave books permanently overstated with
+    no recovery path. Best-effort like sync_invoice_paid: NEVER raises.
+    """
+    inv_id = invoice.get("id")
+    settings = await _get_settings(db, tenant_id)
+    if not settings.get("enabled"):
+        return {"synced": False, "reason": "disabled"}
+    if settings.get("credential_revoked_at"):
+        return {"synced": False, "reason": "credential_revoked"}
+    bk = dict(invoice.get("bookkeeping_sync") or {})
+    if not bk.get("invoice_provider_id"):
+        # The payment never reached books, so there is nothing to
+        # correct there. (The paid-sync remains the recovery path if
+        # the invoice is later re-paid in full.)
+        return {"synced": False, "reason": "not_synced"}
+    already = int(bk.get("refunded_cents_synced") or 0)
+    delta = int(refunded_total_cents) - already
+    if delta <= 0:
+        return {"synced": True, "reason": "already_synced",
+                "refunded_cents_synced": already}
+
+    try:
+        provider = _provider_for(settings)
+    except HTTPException as e:
+        return await _record_failure(db, tenant_id, inv_id,
+                                     f"not configured: {e.detail}",
+                                     kind="config")
+    try:
+        entry = await provider.push_refund(
+            SyncRefund(invoice_provider_id=bk["invoice_provider_id"],
+                       amount_cents=delta, method="card"),
+            idempotency_key=idempotency_key(
+                tenant_id, inv_id, "refund", str(int(refunded_total_cents))))
+        bk["refunded_cents_synced"] = already + delta
+        refund_ids = list(bk.get("refund_provider_ids") or [])
+        refund_ids.append(entry)
+        bk["refund_provider_ids"] = refund_ids
+        bk["last_refund_sync_at"] = _now_iso()
+        await db.invoices.update_one(
+            {"id": inv_id, "tenant_id": tenant_id},
+            {"$set": {"bookkeeping_sync": bk, "updated_at": _now_iso()}},
+        )
+        settings["last_sync_at"] = _now_iso()
+        settings["last_error"] = None
+        health = dict(settings.get("health") or _default_health())
+        health.update({"status": "healthy", "checked_at": _now_iso(),
+                       "detail": None, "consecutive_failures": 0})
+        settings["health"] = health
+        await _save_settings(db, tenant_id, settings)
+        return {"synced": True, "refund_provider_id": entry,
+                "refunded_cents_synced": bk["refunded_cents_synced"]}
+    except Exception as e:  # never propagate into the webhook flow
+        log.warning("bookkeeping-link refund sync failed tenant=%s invoice=%s: %s",
+                    tenant_id, inv_id, e)
+        bk["refund_attempts"] = int(bk.get("refund_attempts") or 0) + 1
+        bk["last_refund_error"] = str(e)[:300]
         try:
             await db.invoices.update_one(
                 {"id": inv_id, "tenant_id": tenant_id},

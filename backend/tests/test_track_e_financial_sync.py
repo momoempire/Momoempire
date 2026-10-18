@@ -545,14 +545,17 @@ def test_same_key_different_payload_is_409():
 
 
 def test_repeat_customer_second_invoice_blocked(monkeypatch):
-    """KNOWN GAP, asserted as-is: Momo pushes the customer once per
-    invoice (key is per-invoice), and books' natural dedupe (same name
-    + email/phone) answers the second push with 409 'Customer already
-    exists'. The client does not adopt the returned existing_id, so a
-    repeat customer's second paid invoice does not sync."""
+    """WAS a known gap (Track E): the per-invoice customer push hit
+    books' natural-dedup 409 and the client ignored the returned
+    existing_id, so a repeat customer's second paid invoice never
+    synced. FIXED by the financial-sync fix track (client adopts
+    existing_id): the second invoice now syncs against the SAME books
+    customer, and no duplicate customer is created. (Test name kept
+    from Track E; assertions now pin the fixed behavior.)"""
     fake = FakeDB()
     bind_db(monkeypatch, fake, bk_mod)
     seed_link(fake, MT_HVAC)
+    before = settle_bt(MT_HVAC)
     name, email = uniq("Repeat"), "repeat@example.com"
     inv1 = paid_invoice(uniq("inv-r1"), 10000, name, email)
     fake.invoices.docs.append(inv1)
@@ -561,8 +564,11 @@ def test_repeat_customer_second_invoice_blocked(monkeypatch):
     inv2 = paid_invoice(uniq("inv-r2"), 8000, name, email)
     fake.invoices.docs.append(inv2)
     out2 = run(bk_mod.sync_invoice_paid(fake, MT_HVAC, inv2))
-    assert out2["synced"] is False, out2
-    assert "409" in (out2.get("error") or ""), out2
+    assert out2["synced"] is True, out2
+    assert out2["customer_provider_id"] == out1["customer_provider_id"]
+    after = wait_bt(MT_HVAC, lambda d: len(d["invoices"]) ==
+                    len(before["invoices"]) + 2)
+    assert len(after["customers"]) == len(before["customers"]) + 1
 
 
 def test_books_partial_payments_and_retry_semantics():
@@ -777,9 +783,14 @@ def _synced_invoice(monkeypatch, fake, tenant=MT_HVAC, total=18000):
 
 
 def test_refund_and_dispute_never_reach_books(monkeypatch):
-    """Momo represents refunds (charge.refunded) and disputes
-    (charge.dispute.created) locally, but neither handler syncs to
-    books: books keeps the invoice fully paid. Asserted as-is."""
+    """WAS asserted as-is by Track E: neither handler synced. FIXED
+    for refunds by the financial-sync fix track: _apply_refund now
+    fires the books refund sync, so books reopens the full balance
+    (paid_cents 0, one refund journal entry). Disputes remain
+    marker-only in Momo and unrepresented in books BY DESIGN — that
+    representation is an owner decision (FINANCIAL_SYNC_DESIGN_NOTES.md),
+    so the dispute half still asserts no books change. (Test name kept
+    from Track E; the refund assertions now pin the fixed behavior.)"""
     fake = FakeDB()
     bind_db(monkeypatch, fake, bk_mod, c2p_mod)
     inv, out = _synced_invoice(monkeypatch, fake)
@@ -791,21 +802,28 @@ def test_refund_and_dispute_never_reach_books(monkeypatch):
                                      "amount_refunded": 18000}))
     stored = next(d for d in fake.invoices.docs if d["id"] == inv["id"])
     assert stored["amount_paid_cents"] == 0 and stored["status"] == "sent"
+    assert stored["bookkeeping_sync"]["refunded_cents_synced"] == 18000
     run(c2p_mod._apply_dispute(fake, {"id": "dp_gap_1",
                                       "payment_intent": pi_id}))
     stored = next(d for d in fake.invoices.docs if d["id"] == inv["id"])
     assert stored["dispute_id"] == "dp_gap_1"
-    after = settle_bt(MT_HVAC)
+    after = wait_bt(MT_HVAC, lambda d: any(
+        i["id"] == out["invoice_provider_id"] and i["paid_cents"] == 0
+        for i in d["invoices"]))
     binv = [i for i in after["invoices"]
             if i["id"] == out["invoice_provider_id"]][0]
-    assert binv["status"] == "paid" and binv["paid_cents"] == 18000
-    assert after["journal_entries"] == before["journal_entries"]
+    assert binv["status"] == "issued" and binv["paid_cents"] == 0
+    # Exactly one new journal entry: the refund. The dispute added none.
+    assert after["journal_entries"] == before["journal_entries"] + 1
 
 
 def test_mark_paid_does_not_sync_but_manual_sync_does(monkeypatch):
-    """CRM mark-paid flips Momo state only; the books link is not
-    triggered (gap). The link's manual 'Sync now' endpoint is the
-    existing recovery path and does sync the same invoice."""
+    """WAS a gap (Track E): mark-paid flipped Momo state only.
+    FIXED by the financial-sync fix track: mark-paid now fires the
+    same books sync as the Stripe success path. The manual 'Sync now'
+    endpoint remains the recovery path — on an already-synced invoice
+    it is a successful no-op (no duplicate books records). (Test name
+    kept from Track E; assertions now pin the fixed behavior.)"""
     fake = FakeDB()
     bind_db(monkeypatch, fake, bk_mod, crm_mod)
     seed_link(fake, MT_HVAC)
@@ -818,13 +836,14 @@ def test_mark_paid_does_not_sync_but_manual_sync_does(monkeypatch):
     run(crm_mod.mark_invoice_paid(inv["id"], user=USER_HVAC))
     stored = next(d for d in fake.invoices.docs if d["id"] == inv["id"])
     assert stored["status"] == "paid"
-    mid = settle_bt(MT_HVAC)
-    assert len(mid["invoices"]) == len(before["invoices"])  # nothing synced
+    mid = wait_bt(MT_HVAC, lambda d: len(d["invoices"]) ==
+                  len(before["invoices"]) + 1)
+    assert len(mid["invoices"]) == len(before["invoices"]) + 1  # synced
     out = run(bk_mod.manual_sync(inv["id"], user=USER_HVAC))
-    assert out["synced"] is True, out
-    after = wait_bt(MT_HVAC, lambda d: len(d["invoices"]) ==
-                    len(before["invoices"]) + 1)
+    assert out["synced"] is True and out["steps"] == [], out
+    after = settle_bt(MT_HVAC)
     assert len(after["invoices"]) == len(before["invoices"]) + 1
+    assert after["journal_entries"] == before["journal_entries"] + 2
 
 
 # ================= Task 3 — E2E workflow =================
