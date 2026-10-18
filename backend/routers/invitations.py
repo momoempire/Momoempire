@@ -35,7 +35,8 @@ async def create_invite(data: InvitationIn, user: dict = Depends(require_tenant_
     doc = inv.model_dump()
     await db.invitations.insert_one(doc)
     doc.pop("_id", None)
-    print(f"[INVITE] {email} invited to tenant {user['tenant_id']} role={data.role} token={doc['token']}")
+    # The invite token is a bearer credential — never write it to logs.
+    print(f"[INVITE] {email} invited to tenant {user['tenant_id']} role={data.role}")
     # Fire-and-forget email send
     try:
         from services.email import send_email, invite_html
@@ -86,6 +87,46 @@ async def set_staff_role(user_id: str, role: str, user: dict = Depends(require_t
     if res.matched_count == 0:
         raise HTTPException(404, "User not found")
     return {"status": "ok"}
+
+
+class StaffStatusIn(BaseModel):
+    disabled: bool
+
+
+@router.put("/staff/{user_id}/status")
+async def set_staff_status(user_id: str, data: StaffStatusIn,
+                           user: dict = Depends(require_tenant_owner_or_admin)):
+    """Disable or re-enable a staff account. Disabling is the offboarding
+    control: security.get_current_user, login and refresh all honor the flag,
+    so a disabled account is locked out on its next request — live JWTs and
+    refresh tokens stop working immediately instead of at token expiry.
+    Guards: you cannot disable yourself; only an owner can disable an owner;
+    the tenant's last active owner cannot be disabled."""
+    db = get_db()
+    if data.disabled and user_id == user["id"]:
+        raise HTTPException(400, "You cannot disable your own account")
+    target = await db.users.find_one(
+        {"id": user_id, "tenant_id": user["tenant_id"]}, {"_id": 0, "password_hash": 0})
+    if not target:
+        raise HTTPException(404, "User not found")
+    if data.disabled and target.get("role") == "owner":
+        if user.get("role") != "owner":
+            raise HTTPException(403, "Only an owner can disable an owner account")
+        other_owners = await db.users.count_documents({
+            "tenant_id": user["tenant_id"], "role": "owner",
+            "id": {"$ne": user_id}, "disabled": {"$ne": True},
+        })
+        if other_owners == 0:
+            raise HTTPException(400, "Cannot disable the tenant's last active owner")
+    patch = {"disabled": bool(data.disabled), "updated_at": _now_iso()}
+    if data.disabled:
+        patch["disabled_at"] = _now_iso()
+        patch["disabled_by"] = user["id"]
+    res = await db.users.update_one(
+        {"id": user_id, "tenant_id": user["tenant_id"]}, {"$set": patch})
+    if res.matched_count == 0:
+        raise HTTPException(404, "User not found")
+    return {"status": "ok", "disabled": bool(data.disabled)}
 
 
 # ---------- Public (anyone with the token) accept endpoint ----------

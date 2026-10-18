@@ -581,9 +581,9 @@ async def connect_webhook(request: Request):
         elif ev_type == "payment_intent.payment_failed":
             await _apply_payment_failure(db, obj, event.get("account"))
         elif ev_type == "charge.refunded":
-            await _apply_refund(db, obj)
+            await _apply_refund(db, obj, event.get("account"))
         elif ev_type == "charge.dispute.created":
-            await _apply_dispute(db, obj)
+            await _apply_dispute(db, obj, event.get("account"))
         elif ev_type == "account.updated":
             await _apply_account_update(db, obj, event.get("account"))
         else:
@@ -723,27 +723,69 @@ async def _apply_payment_failure(db, pi: dict, account: str | None = None):
     )
 
 
-async def _apply_refund(db, charge: dict):
+async def _resolve_invoice_for_payment(db, pi_id: str, account: str | None) -> dict | None:
+    """Resolve the invoice a refund/dispute event applies to, WITH the same
+    tenant/account validation the payment success/failure paths enforce.
+
+    Authoritative source: the invoice_payments row recorded when the payment
+    was created. The previous implementation matched only
+    invoices.last_payment_intent_id, which (a) silently dropped refunds for
+    every payment except the invoice's most recent one — a multi-payment
+    invoice kept money it no longer had — and (b) never checked that the
+    event's connected account owns the invoice. Falls back to the legacy
+    last-intent match for payments that predate per-payment records, still
+    gated on the tenant's connected account."""
+    rec = await db.invoice_payments.find_one({"stripe_payment_intent_id": pi_id}, {"_id": 0})
+    if rec:
+        if account and rec.get("connected_account") and rec["connected_account"] != account:
+            raise ConnectEventMismatch("event account does not match the recorded payment account")
+        inv = await db.invoices.find_one({"id": rec.get("invoice_id")}, {"_id": 0})
+        if not inv or inv.get("tenant_id") != rec.get("tenant_id"):
+            return None
+        return inv
+    inv = await db.invoices.find_one({"last_payment_intent_id": pi_id}, {"_id": 0})
+    if not inv:
+        return None
+    await _require_tenant_account(db, inv["tenant_id"], account)
+    return inv
+
+
+async def _apply_refund(db, charge: dict, account: str | None = None):
     pi_id = charge.get("payment_intent")
     if not pi_id:
         return
-    inv = await db.invoices.find_one({"last_payment_intent_id": pi_id}, {"_id": 0})
+    inv = await _resolve_invoice_for_payment(db, pi_id, account)
     if not inv:
         return
-    refunded = int(charge.get("amount_refunded") or 0)
-    new_paid = max(0, int(inv.get("amount_paid_cents") or 0) - refunded)
+    # charge.amount_refunded is CUMULATIVE for the charge. Track how much of
+    # it has already been applied (on the payment record; on the invoice for
+    # the legacy path) and subtract only the new delta — replayed or
+    # follow-up refund events must never double-subtract.
+    refunded_total = int(charge.get("amount_refunded") or 0)
+    rec = await db.invoice_payments.find_one({"stripe_payment_intent_id": pi_id}, {"_id": 0})
+    if rec:
+        already_applied = int(rec.get("refunded_cents") or 0)
+    else:
+        already_applied = int(inv.get("refunded_cents") or 0)
+    delta = max(0, refunded_total - already_applied)
+    new_paid = max(0, int(inv.get("amount_paid_cents") or 0) - delta)
     status = "paid" if new_paid >= int(inv["total_cents"]) else ("sent" if new_paid > 0 else "sent")
     patch = {"amount_paid_cents": new_paid, "status": status, "updated_at": _now_iso(),
-             "last_refund_amount": refunded}
+             "last_refund_amount": delta}
     if status != "paid":
         patch["paid_at"] = None
         patch["reminders_paused_at"] = None  # resume reminders if balance owed again
     await db.invoices.update_one({"id": inv["id"]}, {"$set": patch})
+    if rec:
+        await db.invoice_payments.update_one(
+            {"stripe_payment_intent_id": pi_id}, {"$set": {"refunded_cents": refunded_total}})
+    else:
+        await db.invoices.update_one({"id": inv["id"]}, {"$set": {"refunded_cents": refunded_total}})
 
 
-async def _apply_dispute(db, dispute: dict):
+async def _apply_dispute(db, dispute: dict, account: str | None = None):
     pi_id = dispute.get("payment_intent")
-    inv = await db.invoices.find_one({"last_payment_intent_id": pi_id}, {"_id": 0}) if pi_id else None
+    inv = await _resolve_invoice_for_payment(db, pi_id, account) if pi_id else None
     if not inv:
         return
     await db.invoices.update_one(

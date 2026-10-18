@@ -43,3 +43,20 @@ def test_default_plans_match_stripe_mx_usd_list():
     by_key = _price_by_key()
     for key, cents in mx.USD_LIST_CENTS.items():
         assert by_key[key] == cents, f"{key}: DEFAULT_PLANS {by_key.get(key)} != stripe_mx {cents}"
+
+
+# Owner-approved 2026-10-17 (PR #97): user caps Lite 1 / Starter 2 /
+# Pro 12 / Empire 25. Prices above pin the money; this pins the seats so a
+# future plan edit cannot silently re-inflate the caps.
+LOCKED_USER_CAPS = {
+    "lite": 1,
+    "starter": 2,
+    "pro": 12,
+    "empire": 25,
+}
+
+
+def test_default_plans_match_locked_user_caps():
+    by_key = {p["key"]: (p.get("limits") or {}).get("users") for p in DEFAULT_PLANS}
+    for key, cap in LOCKED_USER_CAPS.items():
+        assert by_key[key] == cap, f"{key}: expected {cap} users, got {by_key.get(key)}"

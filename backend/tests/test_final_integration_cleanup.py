@@ -18,6 +18,11 @@ import pytest
 os.environ.setdefault("JWT_SECRET", "final-integration-test")
 os.environ.setdefault("MONGO_URL", "mongodb://127.0.0.1:9")
 os.environ.setdefault("DB_NAME", "final_integration_test")
+# Integration secrets are encrypted at rest (audit fix): the router fails
+# closed without a Fernet key, like the 2FA suite.
+from cryptography.fernet import Fernet  # noqa: E402
+
+os.environ.setdefault("TWO_FACTOR_ENCRYPTION_KEY", Fernet.generate_key().decode())
 
 from fastapi import FastAPI, HTTPException  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402

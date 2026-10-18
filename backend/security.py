@@ -106,8 +106,18 @@ def _enforce_must_change(request: Request, user: dict) -> dict:
     return user
 
 
+def _enforce_not_disabled(user: dict) -> dict:
+    """A disabled account (see PUT /tenants/invitations/staff/{id}/status) is
+    locked out everywhere, immediately: every auth path loads the user record
+    fresh from the DB, so this check revokes live sessions/tokens on the next
+    request instead of waiting for token expiry."""
+    if user and user.get("disabled"):
+        raise HTTPException(403, "Account disabled")
+    return user
+
+
 async def get_current_user(request: Request) -> dict:
-    return _enforce_must_change(request, await _load_current_user(request))
+    return _enforce_must_change(request, _enforce_not_disabled(await _load_current_user(request)))
 
 
 async def _load_current_user(request: Request) -> dict:
