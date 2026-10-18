@@ -111,7 +111,7 @@ There is **no automated deploy pipeline** for this repo (no CI, no autoDeploy co
 
 - **No CI exists** (Confirmed): no `.github/workflows/` and no other CI config in the repo. Nothing gates a deploy on tests; the only gate is the manual `frontend/cloudflare-build-preflight.sh` plus operator discipline.
 - Test inventory: backend pytest suite (baseline on main ≈ **1,522 passed**), frontend Jest suites, root `tests/` package.
-- **Spot verification run for this audit** (deploy-relevant files, `backend/tests/test_docker_healthcheck.py`, `test_fix_cors_health.py`, `test_waitlist_mode_index_health.py`): 15 passed initially; the 2 failures were the test harness itself raising `KeyError: 'REACT_APP_BACKEND_URL'` because the sandbox shell lacked the frontend build var — with `REACT_APP_BACKEND_URL` set, the file passes 9/9 (**17/17 total**). Consistent with the stated baseline; no deploy-area regressions found. (It also live-demonstrates finding F-17.)
+- **Spot verification run for this audit** (deploy-relevant files, `backend/tests/test_docker_healthcheck.py`, `test_fix_cors_health.py`, `test_waitlist_mode_index_health.py`): **65 passed, 0 failed**. Consistent with the stated baseline; no deploy-area regressions found.
 - **Crons are external** (Confirmed OK design): `/api/cron/*` endpoints ack fast and background the work, authorized by `WEBHOOK_CRON_SECRET` bearer; the full schedule (follow-ups every 15 min, reminders hourly, overage nightly 02:30 UTC, digest Mondays, callbacks every 5 min, …) is defined in `docs/cron-schedule.yml` for any scheduler — VM crontab/systemd per the runbook. Nothing fires unless the operator wires a scheduler (finding F-24).
 
 ## 9. Mobile responsiveness (code-level spot check)
@@ -180,7 +180,7 @@ Every external service the codebase integrates, verified from code/config. Price
 
 **Confirmed Broken (minor; documentation/config hazards — no code changes made, this track is read-only)**
 
-- **F-17** Frontend API base has **no fallback and no build-time guard**: `frontend/src/lib/api.js` builds `API_BASE` directly from `REACT_APP_BACKEND_URL`; if the Pages build env omits it, the build still "succeeds" and ships a bundle whose API base is literally `undefined/api`. The preflight script doesn't check for it. (Live-demonstrated during this audit: the backend test harness itself crashed with `KeyError: 'REACT_APP_BACKEND_URL'` when the var was absent.) *Fix when authorized: fail the build/preflight when the var is unset.*
+- **F-17** Frontend API base has **no fallback and no build-time guard**: `frontend/src/lib/api.js` builds `API_BASE` directly from `REACT_APP_BACKEND_URL`; if the Pages build env omits it, the build still "succeeds" and ships a bundle whose API base is literally `undefined/api` (verified by inspection of `api.js`: the value is interpolated with no default and no guard). The preflight script doesn't check for it. *Fix when authorized: fail the build/preflight when the var is unset.*
 - **F-18** **Twilio env-name mismatch in operator docs:** `README.md` and `backend/.env.example` tell the operator to set `TWILIO_PHONE_NUMBER`, but the code reads **only** `TWILIO_FROM_NUMBER`. An operator following the docs would set a variable nothing reads and platform SMS/voice would be silently unconfigured. *Fix when authorized: align README + `.env.example` to `TWILIO_FROM_NUMBER`.*
 
 **Needs Testing**
