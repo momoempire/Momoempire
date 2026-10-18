@@ -68,7 +68,7 @@
   },
   "scripts": {
     "start": "craco start",
-    "build": "craco build",
+    "build": "node scripts/check-build-env.js && craco build",
     "test": "craco test"
   },
   "browserslist": {

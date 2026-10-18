@@ -71,7 +71,7 @@ All variable names, purpose, and which are required live in
 | Payments | `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET` |
 | Email | `RESEND_API_KEY` + `RESEND_FROM_EMAIL` (operator-owned Resend account) |
 | Crons | `WEBHOOK_CRON_SECRET` |
-| Voice/SMS | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` |
+| Voice/SMS | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER` |
 
 ## Tests
 
