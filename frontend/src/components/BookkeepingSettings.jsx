@@ -198,7 +198,7 @@ export default function BookkeepingSettings() {
         <Input
           value={settings.api_base_url || ""}
           onChange={(e) => setSettings({ ...settings, api_base_url: e.target.value })}
-          placeholder="https://bookkeeping-api-ymh6.onrender.com"
+          placeholder="https://bookkeeping-api-ymh6.onrender.com/api"
           data-testid="bookkeeping-base-url-input"
         />
       </div>

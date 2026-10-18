@@ -37,7 +37,11 @@ import httpx
 
 log = logging.getLogger("accounting")
 
-DEFAULT_API_BASE_URL = "https://bookkeeping-api-ymh6.onrender.com"
+# The books app serves its API only under /api (INTEGRATION_CONTRACT.md
+# §0). The pre-audit default omitted it, so a tenant who accepted the
+# default got 404s on every sync call and could never connect (Track E
+# finding D-4; fixed by the financial-sync fix track, 2026-10-17).
+DEFAULT_API_BASE_URL = "https://bookkeeping-api-ymh6.onrender.com/api"
 HTTP_TIMEOUT_SECONDS = 10.0
 
 
@@ -56,6 +60,11 @@ class AccountingError(Exception):
     def __init__(self, message: str, *, kind: str = "error"):
         super().__init__(message)
         self.kind = kind
+        # Populated by MindAtEaseProvider._request for HTTP failures so
+        # callers can act on structured error bodies (e.g. the books
+        # natural-dedup 409 carries the existing record's id).
+        self.status_code: Optional[int] = None
+        self.response_body: Any = None
 
 
 # ---------- value objects ----------
@@ -92,6 +101,13 @@ class SyncPayment:
     method: str = "card"  # bookkeeping app payment_method (bank/card/cash/...)
 
 
+@dataclass(frozen=True)
+class SyncRefund:
+    invoice_provider_id: str
+    amount_cents: int  # the refund increment to post (not a cumulative total)
+    method: str = "card"  # bookkeeping app payment_method (bank/card/cash/...)
+
+
 def idempotency_key(*parts: str) -> str:
     """Deterministic idempotency key from tenant + local record + step."""
     h = hashlib.sha256()
@@ -99,6 +115,28 @@ def idempotency_key(*parts: str) -> str:
         h.update(str(p).encode("utf-8"))
         h.update(b"\x00")
     return h.hexdigest()
+
+
+def _existing_id_from_error(err: AccountingError) -> Optional[str]:
+    """The existing record id from a books natural-dedup 409, if any.
+
+    Books answers a duplicate customer create with 409 and a detail
+    object {"message": "Customer already exists", "existing_id": ...}
+    (FastAPI wraps it as {"detail": {...}}). Returns None for every
+    other error — in particular for the idempotency payload-mismatch
+    409, whose detail is a plain string with no id to adopt.
+    """
+    if getattr(err, "status_code", None) != 409:
+        return None
+    body = getattr(err, "response_body", None)
+    if not isinstance(body, dict):
+        return None
+    detail = body.get("detail")
+    if isinstance(detail, dict) and detail.get("existing_id"):
+        return str(detail["existing_id"])
+    if body.get("existing_id"):
+        return str(body["existing_id"])
+    return None
 
 
 def _body_signals_revoked(resp) -> bool:
@@ -146,6 +184,16 @@ class AccountingProvider(ABC):
     @abstractmethod
     async def push_payment(self, payment: SyncPayment, *, idempotency_key: str) -> str:
         """Record the payment remotely. Returns the provider payment/entry id."""
+
+    async def push_refund(self, refund: SyncRefund, *, idempotency_key: str) -> str:
+        """Record a payment refund remotely. Returns the provider entry id.
+
+        Not abstract: providers without a refund surface inherit this
+        refusal; MindAtEaseProvider implements it against the books
+        app's sync-surface refund endpoint (INTEGRATION_CONTRACT_ADDENDUM.md).
+        """
+        raise AccountingError(
+            f"Provider {self.name} does not support refund sync", kind="config")
 
 
 # ---------- the user's own bookkeeping app ----------
@@ -213,7 +261,14 @@ class MindAtEaseProvider(AccountingProvider):
             raise AccountingError("Bookkeeping API refused (403) — the linked user needs the owner role", kind="forbidden")
         if resp.status_code >= 400:
             body = (resp.text or "")[:200]
-            raise AccountingError(f"Bookkeeping API error {resp.status_code}: {body}", kind="http")
+            err = AccountingError(
+                f"Bookkeeping API error {resp.status_code}: {body}", kind="http")
+            err.status_code = resp.status_code
+            try:
+                err.response_body = resp.json()
+            except Exception:
+                err.response_body = None
+            raise err
         try:
             return resp.json()
         except Exception as e:
@@ -255,7 +310,24 @@ class MindAtEaseProvider(AccountingProvider):
             payload["email"] = customer.email
         if customer.phone:
             payload["phone"] = customer.phone
-        doc = await self._request("POST", "/customers", json=payload, idem=idempotency_key)
+        try:
+            doc = await self._request("POST", "/customers", json=payload, idem=idempotency_key)
+        except AccountingError as e:
+            # Track E Confirmed Broken #1 (fixed here): books' natural
+            # dedup answers a repeat customer's push with 409 "Customer
+            # already exists" and the EXISTING record's id in the body.
+            # The customer step is keyed per invoice, so a repeat
+            # customer's later invoices always take this path. Adopt the
+            # existing id — that is the dedup contract's whole point —
+            # instead of failing the entire invoice sync. Any other 409
+            # (e.g. the idempotency payload-mismatch, whose body carries
+            # no existing_id) stays a hard error per contract §4.3.
+            existing = _existing_id_from_error(e)
+            if existing:
+                log.info("bookkeeping customer push adopted existing id "
+                         "(natural dedup): %s", existing)
+                return existing
+            raise
         cid = (doc or {}).get("id")
         if not cid:
             raise AccountingError("Bookkeeping API /customers returned no id")
@@ -293,6 +365,19 @@ class MindAtEaseProvider(AccountingProvider):
         entry = (doc or {}).get("entry_number")
         if entry is None:
             raise AccountingError("Bookkeeping API /invoices/{id}/pay returned no entry number")
+        return str(entry)
+
+    async def push_refund(self, refund: SyncRefund, *, idempotency_key: str) -> str:
+        payload = {
+            "payment_method": refund.method,
+            "amount": round(refund.amount_cents / 100, 2),
+        }
+        doc = await self._request(
+            "POST", f"/invoices/{refund.invoice_provider_id}/refund",
+            json=payload, idem=idempotency_key)
+        entry = (doc or {}).get("entry_number")
+        if entry is None:
+            raise AccountingError("Bookkeeping API /invoices/{id}/refund returned no entry number")
         return str(entry)
 
 

@@ -1,10 +1,14 @@
 """Estimates + Invoices for the mini CRM."""
+import logging
+
 from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timezone
 from db import get_db
 from models import _now_iso
 from models import Estimate, EstimateIn, Invoice, InvoiceIn
 from security import require_tenant_user
+
+log = logging.getLogger("crm")
 
 router = APIRouter(prefix="/tenants", tags=["crm"])
 
@@ -91,7 +95,20 @@ async def mark_invoice_paid(iid: str, user: dict = Depends(require_tenant_user))
     )
     if res.matched_count == 0:
         raise HTTPException(404, "Not found")
-    return await db.invoices.find_one({"id": iid}, {"_id": 0})
+    inv = await db.invoices.find_one({"id": iid}, {"_id": 0})
+    # Bookkeeping link: a manual mark-paid IS a payment (cash/check) —
+    # fire the same books sync the Stripe success handler fires (fix
+    # track 2026-10-17; before this, mark-paid invoices never reached
+    # books until someone pressed "Sync now"). Best-effort: the helper
+    # never raises, and any failure is recorded on the tenant's
+    # bookkeeping-link settings, not surfaced as a mark-paid failure.
+    try:
+        from routers.bookkeeping_link import sync_invoice_paid as _bk_sync
+        if inv:
+            await _bk_sync(db, user["tenant_id"], inv)
+    except Exception as e:  # pragma: no cover - sync must never break CRM
+        log.warning("bookkeeping-link mark-paid sync failed: %s", e)
+    return inv
 
 
 @router.delete("/invoices/{iid}")

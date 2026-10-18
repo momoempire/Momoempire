@@ -340,3 +340,38 @@ QuickBooks API integration.
    parsing for localhost (bracketed IPv6 `NO_PROXY` entries); the
    harness scrubs them in-process. This is a sandbox artifact, not a
    product defect.
+
+---
+
+## Addendum (2026-10-17, financial-sync fix track — branch `audit/financial-sync-fixes`)
+
+The four mechanical defects this report confirmed are fixed on the
+stacked fix branch (books side stacked on PR #144), each with
+regression tests that fail on this branch's code and pass on the fix
+branch:
+
+- **Repeat-customer sync block (Confirmed Broken #1) — FIXED**
+  client-side: Momo adopts the `existing_id` from books' natural-dedup
+  409. `test_repeat_customer_second_invoice_blocked` now asserts the
+  fixed behavior (name kept); a new live test syncs three sequential
+  paid invoices for one customer with exactly one books customer.
+- **Refunds never sync (Confirmed Broken #2) — FIXED:** books gains
+  `POST /invoices/{id}/refund` on the sync surface (see
+  `INTEGRATION_CONTRACT_ADDENDUM.md` in the books repo — a post-freeze
+  addition flagged for owner ratification; the frozen contract is
+  untouched), and Momo's `charge.refunded` path pushes cumulative
+  deltas idempotently. `test_refund_and_dispute_never_reach_books`
+  now asserts the refund reaches books (disputes remain marker-only —
+  see `FINANCIAL_SYNC_DESIGN_NOTES.md`).
+- **Mark-paid never syncs — FIXED:** the CRM mark-paid handler fires
+  the same sync as the webhook success path (best-effort, never
+  breaks the CRM action). `test_mark_paid_does_not_sync_but_manual_sync_does`
+  now asserts mark-paid syncs and manual Sync-now stays a working
+  no-op recovery.
+- **D-4 default base URL — FIXED:** default + settings placeholder
+  now end in `/api`.
+
+Live verification on the fix branches, same harness method: **24/24**
+(21 above with three assertions updated to the fixed behavior, plus 3
+new tests in `tests/test_track_e_sync_fixes.py`). Full-suite
+failure/error sets unchanged vs the pre-fix branches.
