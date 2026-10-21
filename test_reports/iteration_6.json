@@ -34,7 +34,7 @@
     "/app/backend/tests/test_phase7.py"
   ],
   "success_rate": {"backend": "100% (11/11)", "frontend": "100% (6/6 UI flows: Expert tab + persona + objection CRUD + quote + embed snippet/copy + coach)"},
-  "test_credentials": "Admin ramonajefferson10@gmail.com / AdminPass123! not used (all Phase 7 endpoints are tenant-scoped). Each run registers a fresh ui_p7_* / test_p7_* owner with password testpass123; business_name is auto-generated UIBiz<rand>/P7Biz<rand>.",
+  "test_credentials": "REDACTED \u2014 test credentials removed 2026-10-21",
   "seed_data_creation": "Per run: 1 tenant + 1 user; 2 customers for winback test (RecentCust 10d, OldCust 100d) with last_contacted_at patched via pymongo; 1 appointment 24h-ahead; 1 widget lead; up to 2 objections created & deleted; 1 persona row. All prefixed TEST_P7_* / UI P7 for easy cleanup.",
   "retest_needed": false,
   "should_main_agent_self_test": false,

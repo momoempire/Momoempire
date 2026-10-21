@@ -26,7 +26,7 @@
     "/app/backend/tests/test_phase9.py"
   ],
   "success_rate": {"backend": "100% (10/10)", "frontend": "100% (5 UI flows: 9 tabs render + callbacks CRUD + heatmap ranges + standup ICS link + lead-callback inline pill)"},
-  "test_credentials": "Fresh test_p9_*/ui_p9_* owner registered per run with password testpass123; business_name P9Biz<rand>/UIBiz<rand>. No seeded admin needed.",
+  "test_credentials": "REDACTED \u2014 test credentials removed 2026-10-21",
   "seed_data_creation": "Per run: 1 tenant+1 user; review_url set via PUT /api/tenants/me; 1 callback job (scheduled→cancelled); 3 appointments (YES/RESCHEDULE/CANCEL flows); 1 appointment completed→triggers review-request-2h; 3 leads with Austin+Dallas ZIPs for heatmap; 1 lead for frontend lead-callback button. All TEST_P9_* prefixed data stays in Mongo; harmless for repeat runs.",
   "retest_needed": false,
   "should_main_agent_self_test": false,

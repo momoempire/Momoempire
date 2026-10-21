@@ -34,7 +34,7 @@
     "/app/backend/tests/test_phase6.py"
   ],
   "success_rate": {"backend": "100% (20/20)", "frontend": "100% (8/8 UI assertions)"},
-  "test_credentials": "Admin: ramonajefferson10@gmail.com / AdminPass123! (not used — Phase 6 endpoints are tenant-scoped). Each run registers fresh TEST_P6_* and TEST_UI_* tenant owners (plumbing industry) with password testpass123.",
+  "test_credentials": "REDACTED \u2014 test credentials removed 2026-10-21",
   "seed_data_creation": "Per run: 2 TEST_P6_* / TEST_UI_* tenants + 1 referral code per tenant + 1 winback campaign log + 1 discount policy row + 1 pending invitation. All test data is prefixed TEST_ for easy cleanup.",
   "retest_needed": false,
   "should_main_agent_self_test": true,

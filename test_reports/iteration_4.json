@@ -38,7 +38,7 @@
     "/app/backend/tests/test_phase5.py"
   ],
   "success_rate": {"backend": "100% (23/23)", "frontend": "100% (all 20+ UI assertions passed)"},
-  "test_credentials": "Admin: ramonajefferson10@gmail.com / AdminPass123! (seeded). Each run registers 2 fresh TEST_phase5* tenants + 1 TEST_ui* tenant + 1 TEST_calls* tenant + 1 TEST_inv* tenant with onboarding (plumbing industry).",
+  "test_credentials": "REDACTED \u2014 test credentials removed 2026-10-21",
   "seed_data_creation": "Per run: ~5 TEST_* tenants (plumbing, onboarded) + 1 test upsell per tenant + 1 scored conversation + ~3 scheduled follow-up jobs on hot leads. Starter plan's stripe_price_id is temporarily set to 'price_test_123' then restored to '' before checkout test. UI run also writes 'price_test_ui_abc' onto the Trial plan (first Edit button fallback) — safe since trial has no checkout flow, but reset manually if clean baseline needed.",
   "retest_needed": false,
   "should_main_agent_self_test": true,

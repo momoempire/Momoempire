@@ -27,7 +27,7 @@
   ],
   "updated_files": ["/app/backend/tests/test_phase8.py"],
   "success_rate": {"backend": "100% (12/12)", "frontend": "100% (5/5 UI flows: 7 tabs render + review drafter + standup + social + settings review_url)"},
-  "test_credentials": "Each run registers a fresh test_p8_* / ui_p8_* owner with password testpass123; business_name auto-generated P8Biz<rand> / UIBiz<rand>. No seeded credentials needed.",
+  "test_credentials": "REDACTED \u2014 test credentials removed 2026-10-21",
   "seed_data_creation": "Per run: 1 tenant + 1 user; 2 appointments (one auto-triggers post-job via status=completed, one for manual /run); 1 review_url saved on tenant. All data prefixed TEST_P8_* / UI P8 for cleanup.",
   "retest_needed": false,
   "should_main_agent_self_test": false,
