@@ -37,7 +37,7 @@
     "/app/backend/tests/test_phase2.py"
   ],
   "success_rate": {"backend": "100% (21/21)", "frontend": "not tested (backend-only)"},
-  "test_credentials": "Admin unchanged: admin@example.com / AdminPass123!. Phase 2 tests register fresh TEST_ prefixed owners per module.",
+  "test_credentials": "REDACTED \u2014 test credentials removed 2026-10-21",
   "seed_data_creation": "Each run creates 2 TEST_ prefixed owners + their tenants (hvac industry seeded with services + knowledge), plus a handful of TEST_ estimates/invoices/reviews/invites/domains/leads/customers/appointments/conversations. Items used by assertions are deleted; residual rows all carry the TEST_ prefix for easy cleanup.",
   "retest_needed": false,
   "should_main_agent_self_test": true,

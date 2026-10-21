@@ -14,7 +14,7 @@
   ],
   "updated_files": ["/app/backend/tests/test_call_to_payment.py"],
   "success_rate": {"backend": "100%", "frontend": "N/A"},
-  "test_credentials": "tenant A: repeat-tester@example.com / StrongPass123! ; tenant B: freshly registered TEST_c2p_<uuid>@example.com (cleaned up after run); STRIPE_WEBHOOK_SECRET + WEBHOOK_CRON_SECRET read from /app/backend/.env",
+  "test_credentials": "REDACTED \u2014 test credentials removed 2026-10-21",
   "seed_data_creation": "Created a tenant-A service 'TEST_Deep Clean' (if none existed) and TEST_cust_* customers used for quote drafting. Cleaned up TEST_ customers and TEST_Biz_* tenant after run.",
   "retest_needed": false,
   "should_main_agent_self_test": false,

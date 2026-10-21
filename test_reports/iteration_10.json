@@ -24,7 +24,7 @@
     "/app/backend/tests/test_iteration10_cloudflare_prep.py"
   ],
   "success_rate": {"backend": "100%", "frontend": "not re-tested (per request)"},
-  "test_credentials": "repeat-tester@example.com / StrongPass123! (owner); platform admin ramonajefferson10@gmail.com / AdminPass123!",
+  "test_credentials": "REDACTED \u2014 test credentials removed 2026-10-21",
   "seed_data_creation": "Two throwaway tenants created per workspace-isolation test run (iter10-<hex>@example.com); schedules/testimonials prefixed TEST_. Repeat schedules created in CRUD/isolation tests are deleted at end of test. One testimonial per tenant per run remains in consent_pending state (seed endpoint does not expose a delete pathway without consent token).",
   "retest_needed": false,
   "main_agent_can_self_test": true,

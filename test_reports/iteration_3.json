@@ -35,7 +35,7 @@
     "/app/backend/tests/test_phase4.py"
   ],
   "success_rate": {"backend": "100% (21/21)", "frontend": "not tested (backend-only)"},
-  "test_credentials": "Admin: ramonajefferson10@gmail.com / AdminPass123! (seeded). Owner: fresh TEST_ registration per module.",
+  "test_credentials": "REDACTED \u2014 test credentials removed 2026-10-21",
   "seed_data_creation": "Each run registers 1 TEST_ owner + onboarded hvac tenant, purchases 1 demo domain (hearthhvac<rand>.com) which creates 1 TEST domain row, tweaks the 'starter' plan sms limit to 999 and the cost_config ai_minutes to 7, and sets admin domain-providers default to manual then back to demo_registrar. The plan + cost mutations are not reverted — admin seeded values are stable across restarts since seed_plans is idempotent per-key. Reset manually if clean baselines are needed for Phase 5.",
   "retest_needed": false,
   "should_main_agent_self_test": true,
