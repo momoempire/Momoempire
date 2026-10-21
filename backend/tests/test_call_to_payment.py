@@ -76,7 +76,7 @@ def _register_fresh() -> tuple[requests.Session, dict]:
     s = requests.Session()
     email = f"TEST_c2p_{uuid.uuid4().hex[:10]}@example.com"
     r = s.post(f"{BASE_URL}/api/auth/register", json={
-        "email": email, "password": "StrongPass123!", "name": "Isolation Tenant",
+        "email": email, "password": "REDACTED-TEST-PASSWORD", "name": "Isolation Tenant",
         "business_name": f"TEST_Biz_{uuid.uuid4().hex[:6]}",
     }, timeout=30)
     assert r.status_code == 200, f"register failed: {r.status_code} {r.text}"
@@ -87,7 +87,7 @@ def _register_fresh() -> tuple[requests.Session, dict]:
 # ------- fixtures -------
 @pytest.fixture(scope="session")
 def tenant_a_sess():
-    return _login(os.environ.get("TEST_OWNER_EMAIL", "repeat-tester@example.com"), os.environ.get("TEST_OWNER_PASSWORD", "StrongPass123!"))
+    return _login(os.environ.get("TEST_OWNER_EMAIL", "test-user-3@example.test"), os.environ.get("TEST_OWNER_PASSWORD", "REDACTED-TEST-PASSWORD"))
 
 
 @pytest.fixture(scope="session")

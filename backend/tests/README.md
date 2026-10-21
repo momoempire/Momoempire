@@ -19,7 +19,7 @@ Environment (test-only values, never production credentials):
 |---|---|
 | `REACT_APP_BACKEND_URL` | Test server, e.g. `https://localhost:8001` |
 | `TEST_ADMIN_EMAIL` / `TEST_ADMIN_PASSWORD` | Platform admin on the test server (first-login password already changed). Admin tests skip when unset. |
-| `TEST_OWNER_EMAIL` / `TEST_OWNER_PASSWORD` | Pre-registered owner (default `repeat-tester@example.com`); dependent tests skip if it cannot log in. |
+| `TEST_OWNER_EMAIL` / `TEST_OWNER_PASSWORD` | Pre-registered owner (default `test-user-3@example.test`); dependent tests skip if it cannot log in. |
 | `MONGO_URL` / `DB_NAME` | Same DB as the test server (some tests read it directly). |
 | `WEBHOOK_CRON_SECRET` | Must match the server; cron tests skip when unset. |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Stripe **test-mode** keys; payment/webhook tests skip when unset. |

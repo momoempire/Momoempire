@@ -23,7 +23,7 @@
     "/app/backend/tests/test_phase10_new_features.py"
   ],
   "success_rate": {"backend": "100%", "frontend": "100%"},
-  "test_credentials": "repeat-tester@example.com / StrongPass123! (owner); ramonajefferson10@gmail.com / AdminPass123! (platform_admin)",
+  "test_credentials": "REDACTED \u2014 test credentials removed 2026-10-21",
   "seed_data_creation": "Backend tests create and clean up TEST_ prefixed repeat schedules and testimonials; one consent testimonial for 'TEST_Consent' remains in DB after UI verification (consent_token 44e9e1f5-...)",
   "retest_needed": false,
   "main_agent_can_self_test": true,

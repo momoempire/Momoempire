@@ -7,7 +7,7 @@ MIN_LENGTH = 12
 # checked against them). Includes the old seeded admin default. Never accepted as a new password,
 # and any existing admin hash matching one is replaced at startup (seed_data.seed_admin).
 KNOWN_DEFAULT_PASSWORDS = (
-    "AdminPass123!",
+    "REDACTED-TEST-PASSWORD",
     "Password123!",
     "ChangeMe123!",
     "Admin123456!",

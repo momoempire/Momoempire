@@ -58,10 +58,10 @@ def test_forgot_then_reset_password_works_on_real_mongo(monkeypatch):
     import security
 
     async def go(db):
-        await db.users.insert_one({"id": "adm", "email": "admin@example.com", "role": "platform_admin",
+        await db.users.insert_one({"id": "adm", "email": "test-user-1@example.test", "role": "platform_admin",
                                    "tenant_id": None, "password_hash": security.hash_password("x" * 20),
                                    "must_change_password": True, "password_unusable": True})
-        await auth_router.forgot_password(ForgotIn(email="admin@example.com"))
+        await auth_router.forgot_password(ForgotIn(email="test-user-1@example.test"))
         tok = await db.password_reset_tokens.find_one({"user_id": "adm"})
         assert isinstance(tok["expires_at"], datetime) and tok["expires_at"].tzinfo is None  # stored as a BSON date
         res = await auth_router.reset_password(ResetIn(token=tok["token"], new_password=STRONG))
