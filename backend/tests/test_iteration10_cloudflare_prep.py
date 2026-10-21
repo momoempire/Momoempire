@@ -17,8 +17,8 @@ import requests
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "http://127.0.0.1:9").rstrip("/")  # WL-044: never a public server by default
 API = f"{BASE_URL}/api"
 
-OWNER_A_EMAIL = os.environ.get("TEST_OWNER_EMAIL", "repeat-tester@example.com")  # pre-seeded owner on the test server
-OWNER_A_PASSWORD = os.environ.get("TEST_OWNER_PASSWORD", "StrongPass123!")
+OWNER_A_EMAIL = os.environ.get("TEST_OWNER_EMAIL", "test-user-3@example.test")  # pre-seeded owner on the test server
+OWNER_A_PASSWORD = os.environ.get("TEST_OWNER_PASSWORD", "REDACTED-TEST-PASSWORD")
 
 
 # PR #10: /api/health/deployment is platform-admin only. Provide admin credentials for the
@@ -41,7 +41,7 @@ def _apply_token(s, data):
 
 def _register_fresh_tenant():
     email = f"iter10-{uuid.uuid4().hex[:8]}@example.com"
-    pwd = "StrongPass123!"
+    pwd = "REDACTED-TEST-PASSWORD"
     biz = f"Iter10Biz{uuid.uuid4().hex[:6]}"
     s = requests.Session()
     r = s.post(f"{API}/auth/register", json={

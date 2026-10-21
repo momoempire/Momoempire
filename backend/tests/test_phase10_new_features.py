@@ -7,8 +7,8 @@ import requests
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "http://127.0.0.1:9").rstrip("/")  # WL-044: never a public server by default
 API = f"{BASE_URL}/api"
 
-OWNER_EMAIL = os.environ.get("TEST_OWNER_EMAIL", "repeat-tester@example.com")  # pre-seeded owner on the test server
-OWNER_PASSWORD = os.environ.get("TEST_OWNER_PASSWORD", "StrongPass123!")
+OWNER_EMAIL = os.environ.get("TEST_OWNER_EMAIL", "test-user-3@example.test")  # pre-seeded owner on the test server
+OWNER_PASSWORD = os.environ.get("TEST_OWNER_PASSWORD", "REDACTED-TEST-PASSWORD")
 ADMIN_EMAIL = os.environ.get("TEST_ADMIN_EMAIL", "")  # test-only: set for the server under test
 ADMIN_PASSWORD = os.environ.get("TEST_ADMIN_PASSWORD", "")
 
